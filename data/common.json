@@ -1,0 +1,275 @@
+{
+  "_readme": "Shared tables used by every setting. Weights are relative. Edit freely: the server re-reads these files on every roll.",
+
+  "age_groups": {
+    "child":       {"label": "Child (6-12)",        "min": 6,  "max": 12, "weight": 0},
+    "teen":        {"label": "Teen (13-17)",        "min": 13, "max": 17, "weight": 0},
+    "young_adult": {"label": "Young adult (18-29)", "min": 18, "max": 29, "weight": 3},
+    "adult":       {"label": "Adult (30-49)",       "min": 30, "max": 49, "weight": 4},
+    "middle_aged": {"label": "Middle-aged (50-64)", "min": 50, "max": 64, "weight": 2.5},
+    "senior":      {"label": "Senior (65+)",        "min": 65, "max": 88, "weight": 1.5}
+  },
+
+  "genders": {
+    "female":    {"label": "Female",     "weight": 49, "pronouns": ["she", "her", "her"]},
+    "male":      {"label": "Male",       "weight": 49, "pronouns": ["he", "him", "his"]},
+    "nonbinary": {"label": "Non-binary", "weight": 2,  "pronouns": ["they", "them", "their"]}
+  },
+
+  "neutral_names": ["Alex", "Jordan", "Taylor", "Riley", "Sam", "Quinn", "Morgan", "Avery", "Rowan", "Sasha", "Robin", "Charlie", "Casey", "Jules", "Kai", "Skyler"],
+
+  "heritages": {
+    "european": {
+      "label": "European", "weight": 30,
+      "skin": {"very fair": 1, "fair": 3, "light": 3, "light olive": 1.2, "tan": 0.5},
+      "hair_colors": {"blonde": 2, "dirty blonde": 2, "light brown": 3, "brown": 3, "dark brown": 3, "black": 1, "auburn": 1, "red": 0.8, "strawberry blonde": 0.6},
+      "hair_textures": {"straight": 4, "wavy": 4, "curly": 1.2},
+      "eyes": {"blue": 3, "green": 1.5, "gray": 1, "hazel": 2, "brown": 3},
+      "names": {
+        "female": ["Emma", "Olivia", "Charlotte", "Hannah", "Sofia", "Clara", "Ingrid", "Eleanor", "Megan", "Laura", "Katarina", "Freya"],
+        "male": ["James", "Oliver", "Henry", "Lukas", "Daniel", "Matteo", "Thomas", "Callum", "Anders", "Patrick", "Felix", "Jonas"]
+      },
+      "surnames": ["Miller", "Hughes", "Fischer", "Novak", "Bennett", "Larsen", "Rossi", "Walsh", "Kowalski", "Dubois", "Murphy", "Sullivan", "Hartmann", "Bianchi"]
+    },
+    "black": {
+      "label": "Black / African", "weight": 14,
+      "skin": {"medium brown": 1.5, "brown": 3, "dark brown": 3, "deep dark brown": 2, "light brown": 0.8},
+      "hair_colors": {"black": 8, "dark brown": 3},
+      "hair_textures": {"coily": 5, "curly": 3, "wavy": 0.6},
+      "eyes": {"dark brown": 6, "brown": 4, "hazel": 0.4},
+      "names": {
+        "female": ["Amara", "Imani", "Nia", "Zuri", "Keisha", "Adaeze", "Naomi", "Tamika", "Abena", "Simone", "Chioma", "Jasmine"],
+        "male": ["Kwame", "Malik", "Darius", "Jamal", "Tunde", "Isaiah", "Emeka", "Marcus", "Kofi", "Andre", "Desmond", "Idris"]
+      },
+      "surnames": ["Okafor", "Johnson", "Mensah", "Williams", "Baptiste", "Adeyemi", "Jackson", "Diallo", "Washington", "Nkosi", "Robinson", "Osei"]
+    },
+    "east_asian": {
+      "label": "East Asian", "weight": 10,
+      "skin": {"fair": 2, "light": 3, "light olive": 1.5, "golden tan": 1},
+      "hair_colors": {"black": 8, "dark brown": 2},
+      "hair_textures": {"straight": 8, "wavy": 1.2, "curly": 0.2},
+      "eyes": {"dark brown": 7, "brown": 3},
+      "names": {
+        "female": ["Mei", "Yuna", "Hana", "Ji-woo", "Sakura", "Lin", "Min-seo", "Akari", "Xiu", "Haruka", "Soo-jin", "Yui"],
+        "male": ["Hiroshi", "Wei", "Jun", "Min-jun", "Kenji", "Daichi", "Hyun-woo", "Ryo", "Jian", "Takumi", "Seung-ho", "Bo"]
+      },
+      "surnames": ["Tanaka", "Wang", "Kim", "Chen", "Sato", "Park", "Li", "Nakamura", "Choi", "Zhang", "Yamamoto", "Lee"]
+    },
+    "south_asian": {
+      "label": "South Asian", "weight": 10,
+      "skin": {"light brown": 1.2, "medium brown": 3, "brown": 3, "dark brown": 1.5, "tan": 1},
+      "hair_colors": {"black": 8, "dark brown": 3},
+      "hair_textures": {"straight": 3, "wavy": 4, "curly": 1.2},
+      "eyes": {"dark brown": 7, "brown": 3},
+      "names": {
+        "female": ["Priya", "Ananya", "Aisha", "Meera", "Kavya", "Fatima", "Sunita", "Riya", "Nisha", "Devi", "Zara", "Lakshmi"],
+        "male": ["Arjun", "Rohan", "Imran", "Vikram", "Sanjay", "Amir", "Rahul", "Dev", "Tariq", "Kiran", "Nikhil", "Farhan"]
+      },
+      "surnames": ["Patel", "Sharma", "Khan", "Singh", "Reddy", "Gupta", "Iyer", "Chaudhry", "Das", "Mehta", "Rahman", "Nair"]
+    },
+    "southeast_asian": {
+      "label": "Southeast Asian", "weight": 6,
+      "skin": {"light brown": 2, "golden tan": 2, "medium brown": 2, "light olive": 1},
+      "hair_colors": {"black": 8, "dark brown": 2},
+      "hair_textures": {"straight": 6, "wavy": 2, "curly": 0.6},
+      "eyes": {"dark brown": 7, "brown": 3},
+      "names": {
+        "female": ["Linh", "Mai", "Dewi", "Siti", "Nong", "Anh", "Kanya", "Putri", "Thao", "Malee", "Aliyah", "Chanthavy"],
+        "male": ["Minh", "Budi", "Somchai", "Rizal", "Khoa", "Arif", "Tuan", "Narong", "Danilo", "Joko", "Sopheak", "Bao"]
+      },
+      "surnames": ["Nguyen", "Tran", "Santos", "Reyes", "Pham", "Wijaya", "Lim", "Tan", "Sok", "Cruz", "Hidayat", "Bautista"]
+    },
+    "latino": {
+      "label": "Hispanic / Latino", "weight": 15,
+      "skin": {"light": 1.5, "light olive": 2, "tan": 3, "olive": 2, "medium brown": 2, "light brown": 1},
+      "hair_colors": {"black": 5, "dark brown": 5, "brown": 3, "light brown": 1, "auburn": 0.4, "blonde": 0.3},
+      "hair_textures": {"straight": 4, "wavy": 4, "curly": 2.5, "coily": 0.4},
+      "eyes": {"dark brown": 6, "brown": 4, "hazel": 1.2, "green": 0.4},
+      "names": {
+        "female": ["Sofia", "Camila", "Valentina", "Lucia", "Isabella", "Ximena", "Marisol", "Daniela", "Catalina", "Renata", "Paola", "Guadalupe"],
+        "male": ["Mateo", "Santiago", "Diego", "Carlos", "Alejandro", "Javier", "Luis", "Andres", "Emilio", "Rafael", "Joaquin", "Hector"]
+      },
+      "surnames": ["Garcia", "Rodriguez", "Martinez", "Hernandez", "Lopez", "Gonzalez", "Morales", "Ramirez", "Torres", "Flores", "Vargas", "Castillo"]
+    },
+    "middle_eastern": {
+      "label": "Middle Eastern / North African", "weight": 6,
+      "skin": {"light olive": 2, "olive": 3, "tan": 2, "medium brown": 1, "light": 0.6},
+      "hair_colors": {"black": 6, "dark brown": 5, "brown": 1.5},
+      "hair_textures": {"straight": 3, "wavy": 5, "curly": 2.5},
+      "eyes": {"dark brown": 6, "brown": 4, "hazel": 1.2, "green": 0.5},
+      "names": {
+        "female": ["Layla", "Yasmin", "Noor", "Leila", "Amira", "Salma", "Rania", "Dalia", "Samira", "Mariam", "Hana", "Soraya"],
+        "male": ["Omar", "Karim", "Youssef", "Tariq", "Hassan", "Ali", "Samir", "Khalid", "Nabil", "Rami", "Idris", "Amir"]
+      },
+      "surnames": ["Haddad", "Nasser", "Khalil", "Mansour", "Aziz", "Farouk", "Saleh", "Bakr", "Hamdan", "Abbas", "Rahimi", "Yilmaz"]
+    },
+    "mixed": {
+      "label": "Mixed heritage", "weight": 9, "mixed": true
+    }
+  },
+
+  "dyed_hair_colors": ["pastel pink", "bright blue", "lavender", "teal", "platinum silver", "vivid red", "mint green"],
+
+  "builds": [
+    {"label": "slim", "w": 3},
+    {"label": "average", "w": 5},
+    {"label": "athletic", "w": 2.5},
+    {"label": "stocky", "w": 1.5},
+    {"label": "heavyset", "w": 1.5},
+    {"label": "muscular", "w": 1, "g": ["male", "nonbinary"]},
+    {"label": "curvy", "w": 1.2, "g": ["female", "nonbinary"]},
+    {"label": "petite", "w": 1, "g": ["female", "nonbinary"]},
+    {"label": "tall and lanky", "w": 1}
+  ],
+
+  "hair_styles": [
+    {"label": "long hair",                    "w": [4, 0.2, 1.5],  "tex": true},
+    {"label": "shoulder-length hair",         "w": [4, 0.6, 2],    "tex": true},
+    {"label": "chin-length bob",              "w": [2.5, 0.05, 1.5], "tex": true},
+    {"label": "pixie cut",                    "w": [1.5, 0.05, 2], "tex": true},
+    {"label": "high ponytail",                "w": [2, 0.1, 1],    "tex": true},
+    {"label": "messy bun",                    "w": [1.5, 0.3, 1.5], "tex": true},
+    {"label": "low bun",                      "w": [1.5, 0.1, 0.6], "tex": true},
+    {"label": "curtain bangs",                "w": [1.5, 0.2, 1],  "tex": true},
+    {"label": "two braids",                   "w": [1, 0, 0.3],    "tex": true},
+    {"label": "box braids",                   "w": [0.8, 0.1, 0.4], "tex": false, "only": ["coily", "curly"]},
+    {"label": "natural afro",                 "w": [0.8, 0.8, 0.6], "tex": false, "only": ["coily"]},
+    {"label": "cornrows",                     "w": [0.3, 1, 0.5],  "tex": false, "only": ["coily"]},
+    {"label": "locs",                         "w": [0.6, 0.7, 0.7], "tex": false, "only": ["coily", "curly"]},
+    {"label": "short cropped hair",           "w": [1, 3, 2],      "tex": true},
+    {"label": "buzz cut",                     "w": [0.1, 3, 1],    "tex": false},
+    {"label": "side-parted short hair",       "w": [0.3, 4, 0.5],  "tex": true},
+    {"label": "slicked-back hair",            "w": [0.05, 2, 0.5], "tex": true},
+    {"label": "undercut with a textured top", "w": [0.4, 2, 1.5],  "tex": true},
+    {"label": "medium-length tousled hair",   "w": [1, 2, 2.5],    "tex": true},
+    {"label": "man bun",                      "w": [0, 0.6, 0.4],  "tex": true},
+    {"label": "bald",                         "w": [0.02, 0.8, 0.3], "bald": true}
+  ],
+
+  "facial_hair": [
+    {"label": "clean-shaven", "w": 60},
+    {"label": "light stubble", "w": 12},
+    {"label": "a short trimmed beard", "w": 12},
+    {"label": "a full beard", "w": 6},
+    {"label": "a mustache", "w": 4},
+    {"label": "a goatee", "w": 4}
+  ],
+
+  "glasses": [
+    {"label": "none", "w": 78},
+    {"label": "round wire-rimmed glasses", "w": 5},
+    {"label": "thick-framed rectangular glasses", "w": 7},
+    {"label": "cat-eye glasses", "w": 3, "g": ["female", "nonbinary"]},
+    {"label": "aviator glasses", "w": 2}
+  ],
+
+  "distinguishing": [
+    {"label": "none", "w": 60},
+    {"label": "freckles across the nose", "w": 8},
+    {"label": "a small mole on the cheek", "w": 4},
+    {"label": "dimples", "w": 4},
+    {"label": "a small scar through one eyebrow", "w": 2},
+    {"label": "a gap between the front teeth", "w": 2},
+    {"label": "a small nose stud", "w": 2},
+    {"label": "a tattoo on the forearm", "w": 3},
+    {"label": "a birthmark on the neck", "w": 1}
+  ],
+
+  "traits": [
+    "friendly", "cheerful", "grumpy", "shy", "outgoing", "confident", "anxious", "calm", "curious", "ambitious",
+    "lazy", "creative", "practical", "stubborn", "generous", "frugal", "romantic", "cynical", "optimistic", "loyal",
+    "gossipy", "perfectionist", "easygoing", "adventurous", "cautious", "sarcastic", "honest", "blunt", "polite", "playful",
+    "serious", "dramatic", "thoughtful", "competitive", "patient", "impulsive", "nostalgic", "superstitious", "tidy", "messy",
+    "absent-minded", "hot-tempered", "forgiving", "suspicious", "charming"
+  ],
+
+  "trait_looks": {
+    "friendly": "a warm, friendly smile",
+    "cheerful": "a bright, cheerful smile",
+    "grumpy": "a stern, slightly grumpy scowl",
+    "shy": "a shy, reserved expression",
+    "confident": "a calm, confident look",
+    "anxious": "a slightly worried expression",
+    "calm": "a calm, relaxed expression",
+    "curious": "an alert, curious look",
+    "playful": "a playful half-smile",
+    "serious": "a serious, focused look",
+    "absent-minded": "a slightly distracted, dreamy look",
+    "suspicious": "a wary, suspicious look",
+    "charming": "a charming smirk",
+    "hot-tempered": "a tense, irritated look"
+  },
+
+  "trait_exclusive": [
+    ["outgoing", "shy"], ["cheerful", "grumpy"], ["lazy", "ambitious"], ["generous", "frugal"], ["calm", "anxious"],
+    ["calm", "hot-tempered"], ["optimistic", "cynical"], ["tidy", "messy"], ["adventurous", "cautious"],
+    ["polite", "blunt"], ["easygoing", "perfectionist"], ["patient", "impulsive"], ["friendly", "grumpy"],
+    ["friendly", "suspicious"], ["serious", "playful"], ["confident", "shy"], ["confident", "anxious"],
+    ["forgiving", "stubborn"], ["outgoing", "anxious"], ["easygoing", "hot-tempered"]
+  ],
+
+  "speech_styles": [
+    {"t": "quick and chatty, tumbling from one thought to the next", "for": ["outgoing", "impulsive", "cheerful", "playful", "gossipy"], "not": ["shy", "serious"]},
+    {"t": "slow and deliberate, choosing each word with care", "for": ["thoughtful", "patient", "serious", "cautious", "perfectionist"], "not": ["impulsive", "gossipy"]},
+    {"t": "dry and understated, with a deadpan aside now and then", "for": ["sarcastic", "cynical", "serious", "easygoing"], "not": ["dramatic"]},
+    {"t": "warm and gentle, with an easy laugh", "for": ["friendly", "forgiving", "generous", "calm", "cheerful", "polite"], "not": ["hot-tempered", "grumpy"]},
+    {"t": "plain and blunt, saying exactly what they mean", "for": ["blunt", "honest", "practical", "stubborn", "grumpy"], "not": ["polite", "charming"]},
+    {"t": "vivid and theatrical, turning small things into stories", "for": ["dramatic", "charming", "outgoing", "gossipy", "nostalgic"], "not": ["shy", "calm"]},
+    {"t": "teasing and playful, always half a joke", "for": ["playful", "sarcastic", "charming", "cheerful", "impulsive"], "not": ["serious", "shy"]},
+    {"t": "soft-spoken and hesitant, trailing off when unsure", "for": ["shy", "anxious", "absent-minded", "cautious", "polite"], "not": ["confident", "outgoing", "blunt"]},
+    {"t": "confident and crisp, never wasting a word", "for": ["confident", "ambitious", "competitive", "perfectionist", "practical"], "not": ["shy", "anxious", "absent-minded"]},
+    {"t": "curious and full of questions, always asking why", "for": ["curious", "adventurous", "optimistic", "thoughtful", "creative"], "not": ["grumpy"]},
+    {"t": "rambling and tangential, losing the thread halfway through", "for": ["absent-minded", "gossipy", "messy", "nostalgic", "easygoing"], "not": ["perfectionist", "tidy", "serious"]},
+    {"t": "formal and courteous, well-mannered even when annoyed", "for": ["polite", "tidy", "cautious", "perfectionist", "serious"], "not": ["blunt", "messy", "impulsive", "playful"]},
+    {"t": "earthy and homespun, fond of old sayings", "for": ["practical", "nostalgic", "superstitious", "frugal", "loyal"]},
+    {"t": "sharp and quick-tempered, words snapping out when provoked", "for": ["hot-tempered", "competitive", "impulsive", "stubborn", "grumpy"], "not": ["calm", "patient", "easygoing", "forgiving"]},
+    {"t": "low and calm, never raising their voice", "for": ["calm", "patient", "serious", "forgiving", "thoughtful"], "not": ["hot-tempered", "impulsive", "dramatic"]},
+    {"t": "bright and sing-song, sprinkling in cheerful exclamations", "for": ["cheerful", "optimistic", "friendly", "playful", "outgoing"], "not": ["grumpy", "cynical", "serious"]},
+    {"t": "wry and world-weary, as if they have heard it all before", "for": ["cynical", "sarcastic", "suspicious", "grumpy", "serious"], "not": ["cheerful", "optimistic"]},
+    {"t": "dreamy and lyrical, fond of poetic turns of phrase", "for": ["romantic", "creative", "nostalgic", "charming", "thoughtful"], "not": ["blunt"]},
+    {"t": "lively and animated, gesturing as they talk", "for": ["outgoing", "dramatic", "adventurous", "impulsive", "cheerful"], "not": ["shy", "calm"]},
+    {"t": "guarded and clipped, giving little away", "for": ["suspicious", "shy", "grumpy", "cautious", "cynical"], "not": ["gossipy", "outgoing", "friendly"]},
+    {"t": "conspiratorial, lowering their voice to share the latest news", "for": ["gossipy", "curious", "charming", "outgoing"], "not": ["serious", "shy"]},
+    {"t": "full of asides about omens, touching wood and muttering warnings", "for": ["superstitious", "anxious", "cautious", "nostalgic"]},
+    {"t": "meticulous and precise, correcting small details", "for": ["perfectionist", "tidy", "serious", "honest", "practical"], "not": ["messy", "absent-minded", "lazy"]},
+    {"t": "a lazy drawl, in no hurry to finish a sentence", "for": ["lazy", "easygoing", "calm", "messy", "patient"], "not": ["ambitious", "impulsive", "hot-tempered"]},
+    {"t": "earnest and sincere, saying what they feel", "for": ["honest", "loyal", "romantic", "forgiving", "generous"], "not": ["sarcastic", "cynical"]},
+    {"t": "brisk and businesslike, all facts and no fuss", "for": ["practical", "ambitious", "frugal", "tidy", "competitive"], "not": ["dramatic", "absent-minded", "romantic"]},
+    {"t": "breathless and enthusiastic about every new discovery", "for": ["adventurous", "curious", "optimistic", "impulsive", "creative"], "not": ["cynical", "grumpy"]}
+  ],
+
+  "demeanors": [
+    {"t": "friendly and open, treating a stranger like an old friend", "for": ["friendly", "outgoing", "cheerful", "easygoing", "generous"], "not": ["suspicious", "shy", "grumpy"]},
+    {"t": "reserved at first, warming up slowly once trust is earned", "for": ["shy", "cautious", "suspicious", "serious", "anxious"], "not": ["outgoing", "charming"]},
+    {"t": "curious about everyone, quick to ask about your life", "for": ["curious", "friendly", "thoughtful", "adventurous", "gossipy"], "not": ["grumpy", "suspicious"]},
+    {"t": "guarded and watchful, sizing people up before saying much", "for": ["suspicious", "cynical", "cautious", "grumpy", "serious"], "not": ["friendly", "outgoing", "cheerful"]},
+    {"t": "confident and commanding, taking charge of any room", "for": ["confident", "ambitious", "competitive", "outgoing", "blunt"], "not": ["shy", "anxious"]},
+    {"t": "gentle and caring, quick to notice when someone is upset", "for": ["forgiving", "generous", "friendly", "calm", "loyal", "patient"], "not": ["grumpy", "hot-tempered", "cynical"]},
+    {"t": "mischievous, testing people with a joke to see how they react", "for": ["playful", "sarcastic", "charming", "impulsive", "cheerful"], "not": ["serious", "shy", "anxious"]},
+    {"t": "warm but easily flustered by attention", "for": ["shy", "anxious", "polite", "cautious"], "not": ["confident", "outgoing", "blunt"]},
+    {"t": "gruff on the outside, softening once you have made them laugh", "for": ["grumpy", "blunt", "stubborn", "loyal", "cynical"], "not": ["cheerful", "charming", "polite"]},
+    {"t": "charming and attentive, making each person feel like the only one in the room", "for": ["charming", "romantic", "outgoing", "polite", "friendly"], "not": ["grumpy", "suspicious", "shy"]},
+    {"t": "restless and eager, always looking for the next adventure", "for": ["adventurous", "impulsive", "optimistic", "curious", "outgoing"], "not": ["cautious", "lazy", "anxious"]},
+    {"t": "calm and steady, a reassuring presence", "for": ["calm", "patient", "thoughtful", "easygoing", "loyal"], "not": ["anxious", "hot-tempered", "impulsive"]},
+    {"t": "proud and particular, holding people to a high standard", "for": ["perfectionist", "competitive", "tidy", "serious", "ambitious"], "not": ["easygoing", "lazy", "messy"]},
+    {"t": "dreamy and easily distracted, drifting off mid-conversation", "for": ["absent-minded", "creative", "romantic", "nostalgic", "lazy"], "not": ["perfectionist"]},
+    {"t": "dramatic and expressive, feeling everything loudly", "for": ["dramatic", "hot-tempered", "romantic", "outgoing", "impulsive"], "not": ["calm"]},
+    {"t": "honest to a fault, telling you what they really think", "for": ["honest", "blunt", "practical", "stubborn"], "not": ["polite"]},
+    {"t": "sociable and gossipy, always the first to know the news", "for": ["gossipy", "outgoing", "curious", "friendly"], "not": ["shy", "suspicious"]},
+    {"t": "wry and detached, amused by the world from a distance", "for": ["sarcastic", "cynical", "easygoing", "serious"], "not": ["dramatic"]},
+    {"t": "nurturing and a little bossy, fussing over whether you have eaten", "for": ["generous", "loyal", "tidy", "practical", "friendly"], "not": ["lazy", "grumpy"]},
+    {"t": "quietly intense, listening more than talking and remembering everything", "for": ["thoughtful", "serious", "patient", "calm", "curious"], "not": ["gossipy", "outgoing", "impulsive"]},
+    {"t": "cheerful and optimistic, finding the bright side of everything", "for": ["cheerful", "optimistic", "friendly", "playful", "forgiving"], "not": ["grumpy", "cynical", "anxious"]},
+    {"t": "formal and restrained until they know you, then surprisingly funny", "for": ["polite", "serious", "cautious", "tidy", "thoughtful"], "not": ["outgoing", "messy"]}
+  ],
+
+  "default_expression": "a calm, pleasant, neutral expression",
+
+  "bio_templates": [
+    "{first} is {occ_a} with a reputation for being {t1} and {t2}. In {poss} free time, {subj} {v:enjoy} {h1} and {h2}. Deep down, {subj} {v:dream} of {goal}.",
+    "{a_t1}, {t3} {occ} in the {place}, {first} is known for {quirk}. {Subj} {v:love} {h1}, and {poss} biggest pet peeve is {peeve}.",
+    "At {age}, {first} is {occ_a}. {Subj} {be} {t1}, a little {t3}, and never happier than when {h1}. Secretly, {subj} {v:dream} of {goal}.",
+    "Locals describe {first} as {t1} but {t2}. {Subj} {be} {occ_a} who {v:spend} weekends {h1}. Nothing drives {obj} up the wall like {peeve}.",
+    "{first} {v:have} been {occ_a} for years, and {poss} {t1} nature shows in everything {subj} {v:do}. Known around the {place} for {quirk}, {subj} still {v:dream} of {goal}."
+  ]
+}

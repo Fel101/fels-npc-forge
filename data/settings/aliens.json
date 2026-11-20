@@ -1,0 +1,191 @@
+{
+  "label": "Alien species",
+  "short": "Aliens",
+  "blurb": "Extraterrestrials of every shape: greys, reptilians, insectoids, crystal beings and living gel, working the docks, bars and embassies of a busy galactic spaceport. Humans need not apply.",
+  "order": 19,
+  "place": "spaceport",
+  "context": "science fiction alien character, a non-human extraterrestrial (not a human in makeup), in alien clothing",
+  "origin_label": "Species",
+
+  "races": {
+    "nearhuman": {"label": "Near-human alien", "weight": 14, "phrase": "near-human alien",
+                  "features": "subtly alien features: long pointed ears and faint patterned markings along the temples and jaw",
+                  "skin": ["pale lavender", "soft teal", "golden", "ash gray", "deep blue", "pale silver"],
+                  "eyes": ["solid silver", "glowing violet", "pale gold", "solid black", "bright turquoise"],
+                  "hair_colors": {"white": 3, "silver": 2, "deep violet": 2, "teal": 2, "black": 2, "coral pink": 1}},
+    "grey":      {"label": "Grey alien", "weight": 10, "phrase": "grey alien",
+                  "features": "a large smooth bulbous head, a narrow pointed chin, tiny nostril slits, a small lipless mouth and long thin fingers",
+                  "skin": ["pale gray", "blue-gray", "pale green-gray", "silvery gray"],
+                  "eyes": ["huge glossy black almond-shaped", "huge dark almond-shaped"],
+                  "hair": "a smooth hairless head", "facial_hair": "",
+                  "builds": ["slim", "tall and lanky", "petite"]},
+    "reptilian": {"label": "Reptilian alien", "weight": 10, "phrase": "reptilian alien",
+                  "features": "fine overlapping scales, a flat nose with slit nostrils, a heavy ridged brow and a crest of short spines along the head",
+                  "skin": ["emerald green", "olive green", "bronze", "sandy tan", "charcoal black", "rusty red"],
+                  "eyes": ["golden slit-pupilled", "amber slit-pupilled", "green slit-pupilled", "red slit-pupilled"],
+                  "hair": "a crest of short spines in place of hair", "facial_hair": "",
+                  "builds": ["athletic", "muscular", "tall and lanky", "average", "stocky"]},
+    "insectoid": {"label": "Insectoid alien", "weight": 8, "phrase": "insectoid alien",
+                  "features": "a hard glossy chitin exoskeleton, two long feathered antennae and small mandibles either side of the mouth",
+                  "skin": ["glossy green chitin", "iridescent blue-black chitin", "amber chitin", "dusty brown chitin", "pearl white chitin"],
+                  "eyes": ["large faceted black compound", "large faceted iridescent green compound", "large faceted red compound"],
+                  "hair": "a smooth chitin-plated head with no hair", "facial_hair": "",
+                  "builds": ["slim", "tall and lanky", "athletic"]},
+    "amphibian": {"label": "Amphibian alien", "weight": 8, "phrase": "amphibian alien",
+                  "features": "smooth damp skin, gill slits along the neck, a wide lipless mouth and webbed fingers",
+                  "skin": ["mottled teal", "blue-green", "bright orange with dark spots", "olive with gold speckles", "pale aquamarine"],
+                  "eyes": ["large round golden", "large round black", "bulging pale blue"],
+                  "hair": "a smooth hairless head with a soft fin ridge down the middle", "facial_hair": ""},
+    "trieye":    {"label": "Three-eyed alien", "weight": 7, "phrase": "three-eyed alien",
+                  "features": "a third eye in the middle of the forehead, smooth skin and small ear holes in place of ears",
+                  "skin": ["pale orange", "soft pink", "mint green", "lilac", "sandy beige"],
+                  "eyes": ["three golden", "three violet", "three bright green", "three deep blue"],
+                  "hair_colors": {"white": 2, "black": 2, "bright orange": 2, "lilac": 2}},
+    "crystal":   {"label": "Crystalline alien", "weight": 5, "phrase": "crystalline alien",
+                  "features": "a body of faceted translucent crystal with a soft glowing light shining through the chest and face",
+                  "skin": ["translucent amethyst crystal", "pale quartz crystal", "deep sapphire crystal", "rose quartz crystal", "smoky topaz crystal"],
+                  "eyes": ["glowing white", "softly glowing blue", "glowing gold"],
+                  "hair": "a cluster of jagged crystal spikes in place of hair", "facial_hair": ""},
+    "sylvan":    {"label": "Plantfolk alien", "weight": 5, "phrase": "plantfolk alien",
+                  "features": "bark-textured skin, thin vines curling along the arms and small flowering buds on the shoulders",
+                  "skin": ["mossy green", "birch-white bark", "dark walnut bark", "pale sage green"],
+                  "eyes": ["glowing amber", "deep green", "pale yellow"],
+                  "hair": "a crown of broad leafy fronds in place of hair", "facial_hair": ""},
+    "stoneback": {"label": "Stone-hided alien", "weight": 5, "phrase": "stone-hided alien",
+                  "features": "thick craggy stone-like hide plates, a heavy brow and a broad blunt jaw",
+                  "skin": ["granite gray", "sandstone red", "basalt black", "slate blue"],
+                  "eyes": ["small glowing orange", "small pale blue", "small glowing yellow"],
+                  "hair": "a craggy stone-plated head with no hair", "facial_hair": "",
+                  "builds": ["heavyset", "stocky", "muscular"]},
+    "gel":       {"label": "Gel alien", "weight": 3, "phrase": "gel alien",
+                  "features": "a translucent gelatinous body holding a humanoid shape, with small bubbles drifting inside",
+                  "skin": ["translucent lime-green gel", "translucent pink gel", "translucent blue gel", "translucent amber gel"],
+                  "eyes": ["two floating dark", "two small bright white"],
+                  "hair": "a smooth rounded gel head with no hair", "facial_hair": ""}
+  },
+
+  "names": {
+    "female": ["Zyra", "Oona", "Ixa", "Yavi", "Nym", "Tessk", "Qira", "Selvaa", "Liss", "Mirra", "Vael", "Xhosi", "Ulla", "Pheme", "Rhiss", "Aiya"],
+    "male": ["Kael", "Vex", "Thrix", "Sorn", "Qell", "Draxis", "Ruun", "Voss", "Zor", "Brakk", "Orrin", "Hask", "Juulo", "Tarn", "Grell", "Mox"],
+    "neutral": ["Pell", "Xil", "Zhaa", "Kiri", "Ossa", "Tavi", "Uxen", "Wexi", "Yllo", "Nix", "Quo", "Ebb", "Sift", "Hum"],
+    "surnames": ["Arkos", "Belvane", "Cyrrix", "Dho-Rann", "Esketh", "Fyr-Vaal", "Gorrun", "Hexxi", "Ithan-Tor", "Jhaar", "Kessivar", "Lumo",
+                 "Mirrix", "Nuvaan", "Oxarr", "Pyrrhen", "Qaldis", "Rhovane", "Sskar", "Thessek", "Ulvaris", "Vyrn", "Wuul", "Yssith",
+                 "Zhoraan", "of the Ninth Moon", "of Hive Seven", "Tel-Omari"]
+  },
+  "hair_color_choices": ["white", "silver", "black", "deep violet", "teal", "lilac", "coral pink", "bright orange"],
+
+  "hobbies": [
+    "collecting Earth trinkets", "trying every dish in the spaceport market", "singing in frequencies humans can't hear",
+    "stargazing for the home system", "playing zero-gravity ball games", "learning human slang (badly)", "tending a tank of glowing spores",
+    "racing hover-skiffs", "carving meditation stones", "trading recipes with other species", "watching old human films for research",
+    "photographing sunsets on new worlds", "mapping gravity wells", "gambling at the spaceport casino", "keeping a tiny pet from the home world",
+    "restoring an ancient starship engine", "writing poetry in three languages", "dancing at the dock-side clubs"
+  ],
+  "quirks": [
+    "tilting {poss} head at every human joke", "tasting the air when meeting someone", "blinking in an odd rhythm", "humming when content",
+    "counting in base twelve", "standing far too close when talking", "bowing to every door", "refusing to sit with {poss} back to a window",
+    "collecting other species' names in a notebook", "changing colour slightly when embarrassed", "calling everyone by their full name",
+    "saying goodbye before saying hello"
+  ],
+  "goals": [
+    "finding a way back to {poss} home world", "being the first of {poss} kind accepted on the council", "opening a restaurant for every species",
+    "mapping an uncharted nebula", "paying off {poss} starship", "finding the rest of {poss} lost clutch-mates", "understanding what humans find funny",
+    "ending the old feud between two species", "winning the great spaceport race", "earning citizenship on a peaceful world",
+    "decoding a signal older than the stars around it", "seeing an ocean on another planet"
+  ],
+  "peeves": [
+    "being called a monster", "gravity set too high", "human food that is mostly salt", "translator devices that get idioms wrong",
+    "being asked to take them to the leader", "cramped airlocks", "dry recycled air", "customs forms in forty languages",
+    "being mistaken for another species", "loud music in the docking bay"
+  ],
+  "accessories": [
+    "a small floating translator drone at the shoulder", "a crystal pendant that glows in a rhythm", "a bandolier of sample vials",
+    "a holographic data slate", "a breathing apparatus clipped to the collar", "a ceremonial ring of polished alien metal",
+    "a sling holding a strange small alien pet", "a curved blade in a jewelled sheath", "a star map projector worn on the wrist",
+    "a woven sash of iridescent fibre", "an ornate energy pistol in a hip holster", "a trade token on a chain"
+  ],
+  "default_outfits": [
+    "a high-collared flowing robe of iridescent fabric, a woven sash and soft wrapped boots",
+    "a fitted utility bodysuit with glowing seam lines, a belt of pouches and soft boots",
+    "a layered traveller's poncho of alien silk over a simple tunic and wrapped boots"
+  ],
+
+  "_tables": "The next entries replace the shared tables in common.json for this setting only (same shape): space-age eyewear, no dye, and marks that read on any of the species (no fur, no hair). Each species states its own skin and eyes; the ones with no hair state fixed 'hair' text and 'facial_hair': '' (see roll.py).",
+  "dyed_hair_colors": [],
+  "glasses": [
+    {"label": "none", "w": 70},
+    {"label": "a sleek sensor visor", "w": 10},
+    {"label": "a single-lens translator monocle", "w": 8},
+    {"label": "dark goggles against bright suns", "w": 7},
+    {"label": "a glowing heads-up lens over one eye", "w": 5}
+  ],
+  "distinguishing": [
+    {"label": "none", "w": 45},
+    {"label": "faintly glowing bioluminescent spots along the neck", "w": 8},
+    {"label": "a ritual scar across one cheek", "w": 5},
+    {"label": "patterned markings around the eyes", "w": 6},
+    {"label": "a small translator implant at the temple", "w": 5},
+    {"label": "a chipped piece missing from one side of the head", "w": 3},
+    {"label": "glowing clan markings on the forehead", "w": 5},
+    {"label": "a metallic ring piercing at the brow", "w": 3},
+    {"label": "an unusual shimmer to the skin", "w": 5},
+    {"label": "an old burn scar from a starship fire", "w": 3}
+  ],
+
+  "occupations": [
+    {"id": "ambassador", "label": "ambassador", "weight": 1, "min_age": 30, "outfits": [
+      "flowing layered purple-and-gold robes with a tall ornate collar, and soft slippers"]},
+    {"id": "pilot", "label": "star pilot", "weight": 2, "min_age": 18, "outfits": [
+      "a padded flight jacket with glowing trim over a fitted flight suit, gauntlets and magnetic boots"]},
+    {"id": "bountyhunter", "label": "bounty hunter", "weight": 1.2, "min_age": 20, "outfits": [
+      "scuffed plated armour over a dark bodysuit, a tattered cape, a rifle on the back and heavy boots"]},
+    {"id": "xenoarch", "label": "xenoarchaeologist", "weight": 0.8, "min_age": 25, "outfits": [
+      "a dusty field coat with many pockets, a tool belt of brushes and scanners and sturdy boots"]},
+    {"id": "merchant", "label": "spaceport merchant", "weight": 2, "outfits": [
+      "a bright patterned robe with jangling trade tokens, a coin pouch and soft boots"]},
+    {"id": "smuggler", "label": "smuggler", "weight": 1.5, "min_age": 18, "outfits": [
+      "a worn leather vest over a loose shirt, a blaster on the hip, fingerless gloves and scuffed boots"]},
+    {"id": "mercenary", "label": "mercenary", "weight": 1.2, "min_age": 18, "outfits": [
+      "mismatched armour plates over a padded bodysuit, a heavy blaster and armoured boots"]},
+    {"id": "barkeep", "label": "cantina keeper", "weight": 1.2, "min_age": 22, "outfits": [
+      "a stained apron over a sleeveless tunic, a bar towel over one shoulder and soft boots"]},
+    {"id": "mechanic", "label": "starship mechanic", "weight": 2, "outfits": [
+      "oil-stained coveralls with rolled sleeves, a glowing multitool on the belt and magnetic boots"]},
+    {"id": "healer", "label": "xenomedic", "weight": 1, "min_age": 22, "outfits": [
+      "a clean white medical tunic with a glowing scanner on the wrist, gloves and soft boots"]},
+    {"id": "oracle", "label": "star oracle", "weight": 0.6, "min_age": 30, "outfits": [
+      "a hooded robe covered in tiny glowing star patterns, strings of crystal beads and bare feet in sandals"]},
+    {"id": "scientist", "label": "researcher", "weight": 1, "min_age": 22, "outfits": [
+      "a sleek lab coat with glowing seams over a fitted tunic, a data slate and soft boots"]},
+    {"id": "raider", "label": "space pirate raider", "weight": 1, "min_age": 18, "outfits": [
+      "spiked scrap armour over a torn bodysuit, trophy chains, a jagged blade and heavy boots"]},
+    {"id": "farmer", "label": "moon farmer", "weight": 1.2, "outfits": [
+      "a simple woven tunic, a wide sun hat, work trousers tucked into boots and a harvest basket"]},
+    {"id": "scout", "label": "planetary scout", "weight": 1, "min_age": 18, "outfits": [
+      "a lightweight environment suit with the helmet off, a scanner on the wrist and all-terrain boots"]},
+    {"id": "gladiator", "label": "arena fighter", "weight": 0.8, "min_age": 18, "max_age": 45, "outfits": [
+      "gleaming ornate shoulder armour, a leather harness, arm wraps, a wide belt and armoured sandals"]},
+    {"id": "beasttamer", "label": "alien beast tamer", "weight": 0.6, "outfits": [
+      "a thick leather coat covered in claw marks, heavy gauntlets, a whip coiled at the hip and boots"]},
+    {"id": "noble", "label": "noble of the royal house", "weight": 0.5, "min_age": 20, "outfits": [
+      "a regal high-collared gown-robe of shimmering metallic fabric, a jewelled circlet and soft slippers"]},
+    {"id": "soldier", "label": "legion soldier", "weight": 1.2, "min_age": 18, "max_age": 50, "outfits": [
+      "polished segmented armour with a glowing chest emblem of the legion's own design, a spear rifle and armoured boots"]},
+    {"id": "navigator", "label": "hyperspace navigator", "weight": 0.8, "min_age": 20, "outfits": [
+      "a fitted uniform jacket with glowing star-chart trim, dark trousers and polished boots"]},
+    {"id": "archivist", "label": "archive keeper", "weight": 0.6, "min_age": 30, "outfits": [
+      "long layered grey robes, a belt of data crystals and soft slippers"]},
+    {"id": "gambler", "label": "gambler", "weight": 0.8, "min_age": 20, "outfits": [
+      "a flashy shimmering jacket, a patterned shirt, rings and a card case, dark trousers and polished boots"]},
+    {"id": "musician", "label": "cantina musician", "weight": 0.8, "outfits": [
+      "a sequined performer's vest over a loose shirt, a strange stringed instrument on a strap and soft boots"]},
+    {"id": "courier", "label": "courier", "weight": 1, "max_age": 45, "outfits": [
+      "a light padded jacket, a sealed message case across the chest and soft running boots"]},
+    {"id": "elder", "label": "clan elder", "weight": 0.8, "min_age": 60, "max_age": 99, "outfits": [
+      "heavy embroidered ceremonial robes, a staff carved from alien wood and soft slippers"]},
+    {"id": "urchin", "label": "spaceport urchin", "weight": 1, "min_age": 6, "max_age": 12, "outfits": [
+      "an oversized patched jacket, a scarf, baggy trousers and mismatched boots"]},
+    {"id": "cadet", "label": "junior cadet", "weight": 1, "min_age": 13, "max_age": 17, "outfits": [
+      "a plain cadet uniform with a glowing collar pin, trousers and lace-up boots"]}
+  ]
+}

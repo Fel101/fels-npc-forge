@@ -1,0 +1,37 @@
+{
+  "_readme": "Model sheet: portrait + front + both sides + back of one character, each drawn by Mage-Flow-Edit from the full-body sprite (the portrait view from the portrait when there is one). {who} is 'woman', 'man', 'character'..., {arms} comes from 'poses', {hair} is ', the hair' for people and empty for freeform characters, {hair_line} (people_extra only) states the hair from the character's data. Edit the wording freely: the server re-reads this file on every request. See docs/model-sheet.md for what was measured.",
+
+  "views": {
+    "portrait": {
+      "label": "Portrait",
+      "prompt": "Redraw the {who} from the reference as a close-up head-and-shoulders portrait, cropped at the chest with no legs, skirt or feet visible. The head is large and fills the frame, the shoulders are square to the camera and the {who} looks straight at the camera."
+    },
+    "front": {
+      "label": "Front",
+      "prompt": "Redraw the {who} from the reference standing straight and facing the camera, {arms}, the whole body visible from head to toe with both feet fully visible."
+    },
+    "side_right": {
+      "label": "Side (facing right)",
+      "prompt": "Redraw the {who} from the reference in a true side profile view facing right: the body and face turned 90 degrees to the right, {arms}, the whole body visible from head to toe with the feet fully visible."
+    },
+    "side_left": {
+      "label": "Side (facing left)",
+      "prompt": "Redraw the {who} from the reference in a true side profile view facing left: the body and face turned 90 degrees to the left, {arms}, the whole body visible from head to toe with the feet fully visible."
+    },
+    "back": {
+      "label": "Back",
+      "prompt": "Redraw the {who} from the reference seen from directly behind, turned completely away from the camera so that only the back of the head{hair}, the back and the back of the clothing are visible and the face is not visible at all, {arms}, the whole body visible from head to toe with the feet fully visible.",
+      "people_extra": "Keep the same hat or other headwear as in the reference. {hair_line}"
+    }
+  },
+
+  "poses": {
+    "a_pose": {"label": "A-pose (best for 3D modelling)", "arms": "in a neutral A-pose: the arms held straight and angled about 30 degrees away from the body, so there is a clear gap between each arm and the torso, with the hands fully visible"},
+    "relaxed": {"label": "Relaxed", "arms": "with the arms relaxed by the sides"}
+  },
+  "default_pose": "a_pose",
+
+  "tail": "Plain pure white background, flat even studio lighting, no floor shadow, no props, no text.",
+  "negative": "cropped, cut-off feet, floor shadow, extra shoes, extra people, text, watermark, frame, collage, duplicate figure",
+  "barefoot_negative": "bare feet, barefoot"
+}

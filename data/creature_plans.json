@@ -1,0 +1,86 @@
+{
+  "checked": "2026-10-16",
+  "about": "The body plans the creature maker knows. status: rigged = the prep step builds a rig and clips; static = a model with no rig. prep is the mode the Blender prep step runs in (serpentine or static). make lists the steps a plan allows. min_elongation (serpentine only): the least the body may be long, over its width or height, measured on the picture's shape before the fit; a coil is about 1 and is refused. ground (true for a body that stands on legs): the pack refuses a body that stands taller than it is long. facing_after_prep: the axis the game model's head points along once the prep has run; the pack states it as its forward axis (+Z for every plan: the Blender prep turns the head to -Y, which glTF exports as +Z).",
+  "plans": {
+    "serpentine": {
+      "label": "Serpentine",
+      "rig_text": "rigged",
+      "status": "rigged",
+      "prep": "serpentine",
+      "facing_after_prep": "+Z",
+      "clips": [
+        "Idle",
+        "Swim",
+        "Bite",
+        "Hit",
+        "Death"
+      ],
+      "note": "Rigged: one bone per body segment, five clips. The eel pilot is this plan. Its up direction has no picture check yet: the picture check is for static bodies, and it can not read a rigged model (2026-10-17). Not proven: no serpent made here is proven, and the Brine-elder's spines lie along its lower edge.",
+      "min_elongation": 2.2,
+      "make": [
+        "concept",
+        "3d",
+        "prep"
+      ]
+    },
+    "quadruped": {
+      "label": "Quadruped",
+      "rig_text": "not rigged yet",
+      "status": "static",
+      "prep": "static",
+      "facing_after_prep": "+Z",
+      "ground": true,
+      "clips": [],
+      "note": "Built as a static model: its rig is not built yet. Made in 3D again from 2026-10-17 (the owner's decision). Its up direction is confirmed by its picture (the Road-hound: 0.63 against 0.35), and its proportion check passes (final height 0.72 of its length). Not proven (2026-10-17): its belly and near front leg tear into spurs, which fails the surface rule of the proof rubric.",
+      "make": [
+        "concept",
+        "3d",
+        "prep"
+      ]
+    },
+    "six-leg": {
+      "label": "Six-legged",
+      "rig_text": "not rigged yet",
+      "status": "static",
+      "prep": "static",
+      "facing_after_prep": "+Z",
+      "ground": true,
+      "clips": [],
+      "note": "Built as a static model: its rig is not built yet. Proven 2026-10-17 on one creature (the Sand-crab): it stands upright, its six legs are under the body and nothing stray is in the model. Its shape is squatter than the picture.",
+      "make": [
+        "concept",
+        "3d",
+        "prep"
+      ],
+      "proven": true
+    },
+    "flying": {
+      "label": "Flying",
+      "rig_text": "not rigged yet",
+      "status": "static",
+      "prep": "static",
+      "facing_after_prep": "+Z",
+      "clips": [],
+      "note": "Built as a static model: its rig is not built yet. Not proven (2026-10-17): the Far-country hawk stands upright and its picture check confirms it, but at 20,000 triangles its wings and tail shred into stair-stepped slabs with floating fragments. Its brief has no perch now (in mid-air).",
+      "make": [
+        "concept",
+        "3d",
+        "prep"
+      ]
+    },
+    "prop": {
+      "label": "Prop",
+      "rig_text": "no rig",
+      "status": "static",
+      "prep": "static",
+      "facing_after_prep": "+Z",
+      "clips": [],
+      "note": "No rig: a static model.",
+      "make": [
+        "concept",
+        "3d",
+        "prep"
+      ]
+    }
+  }
+}

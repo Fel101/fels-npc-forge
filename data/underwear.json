@@ -1,0 +1,15 @@
+{
+  "_readme": "Plain underwear for a designed body (npcgen/underwear.py). It is a thin shell of the body's own triangles, `offset_mm` out along their normals, with the body's own UVs, joints and weights, and its edges are the alpha of its texture: `ramp_mm` is how far the alpha takes to rise from 0 to 1 across an edge (a few texels: a hard edge would show the texels as steps), `edge_mm` the width of the darker elastic band along every edge and `edge_blend_mm` how softly it ends, `reach_mm` how far outside an edge the mesh goes on, so that the alpha has triangles to be in. A kind says which bodies wear it and where its edges are, in the body's own measures: `above_waist_m` is the waistband's height above the spine_01 joint, `leg_weight` the share of the leg bones' skin weight at the leg openings (they follow the hip crease), `arm_weight` the share of the arm bones' weight where a piece stops at the arms, `below_apex_m` and `above_apex_m` the band's reach below and above the most forward point of the chest.",
+  "colour": "#d8d2c8",
+  "offset_mm": 1.8,
+  "texture": 1024,
+  "ramp_mm": 5.0,
+  "edge_blend_mm": 2.5,
+  "reach_mm": 8.0,
+  "edge_mm": 7.0,
+  "edge_shade": 0.8,
+  "kinds": {
+    "briefs": {"label": "Briefs", "sexes": ["female", "male"], "above_waist_m": 0.07, "leg_weight": 0.40, "arm_weight": 0.30},
+    "bandeau": {"label": "Bandeau", "sexes": ["female"], "below_apex_m": 0.085, "above_apex_m": 0.05, "arm_weight": 0.30}
+  }
+}

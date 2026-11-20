@@ -1,0 +1,20 @@
+{
+  "_readme": "Expression set. 'phrase' is what the edit model is asked to change the face to. 'default' marks the ones ticked by default. 'living' marks the ones a living portrait is made of (see npcgen/living.py): blink and talking keep the portrait's own expression and move only the eyes or the mouth.",
+  "expressions": [
+    {"id": "neutral",     "label": "Neutral",     "phrase": "a calm, neutral expression with a relaxed mouth", "default": false},
+    {"id": "happy",       "label": "Happy",       "phrase": "a big warm genuine smile", "default": true, "living": true},
+    {"id": "sad",         "label": "Sad",         "phrase": "a sad, downcast expression with slightly furrowed brows and a small frown", "default": true, "living": true},
+    {"id": "angry",       "label": "Angry",       "phrase": "an angry expression with furrowed brows, narrowed eyes and a tight frown", "default": true},
+    {"id": "surprised",   "label": "Surprised",   "phrase": "a surprised expression with raised eyebrows, wide eyes and a slightly open mouth", "default": true, "living": true},
+    {"id": "scared",      "label": "Scared",      "phrase": "a frightened expression with wide eyes and raised worried brows", "default": false},
+    {"id": "disgusted",   "label": "Disgusted",   "phrase": "a disgusted expression with a wrinkled nose and a curled upper lip", "default": false},
+    {"id": "laughing",    "label": "Laughing",    "phrase": "laughing out loud with crinkled eyes and a wide open mouth", "default": false, "living": true},
+    {"id": "tired",       "label": "Tired",       "phrase": "a tired, sleepy expression with heavy half-closed eyelids", "default": false},
+    {"id": "smug",        "label": "Smug",        "phrase": "a smug smirk with one raised eyebrow", "default": false, "living": true},
+    {"id": "embarrassed", "label": "Embarrassed", "phrase": "an embarrassed, shy smile with a slight blush on the cheeks", "default": false, "living": true},
+    {"id": "thinking",    "label": "Thinking",    "phrase": "a thoughtful expression, only the eyes glancing up and to the side while the head stays exactly where it is, lips gently pressed together", "default": false, "living": true},
+    {"id": "flirty",      "label": "Flirty",      "phrase": "a playful, flirtatious look with softly narrowed eyes and a teasing half smile", "default": false, "living": true},
+    {"id": "blink",       "label": "Blink",       "phrase": "the very same expression as now, but with both eyes fully closed as in the middle of a blink", "default": false, "living": true},
+    {"id": "talking",     "label": "Talking",     "phrase": "the very same expression as now, but with the mouth slightly open as if in the middle of saying a word", "default": false, "living": true}
+  ]
+}

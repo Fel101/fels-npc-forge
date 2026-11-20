@@ -1,0 +1,101 @@
+{
+  "label": "Superhero city",
+  "short": "Superhero",
+  "blurb": "A comic-book metropolis of capes and secret identities: vigilantes, scientists, reporters and the villains who keep them busy.",
+  "order": 9,
+  "place": "city",
+  "context": "comic book superhero city character, bold and dynamic",
+  "origin_label": "Heritage",
+  "negative": "Superman logo, S-shield, DC Comics logo, Marvel Comics logo, real comic book character, existing superhero costume, copyrighted logo, trademarked emblem",
+
+  "hobbies": [
+    "working out at 5am", "tinkering in the home lab", "reading old comic collections",
+    "sketching villains from the evening news", "running rooftop parkour drills", "volunteering at the community center",
+    "restoring a vintage motorcycle", "studying old case files", "training at the boxing gym",
+    "growing tomatoes on the fire escape", "building gadgets from spare parts", "photographing the skyline at night",
+    "learning a new martial art", "collecting rare comic issues", "practicing sleight of hand", "keeping a workout log",
+    "listening to police scanners", "sketching blueprints for gadgets no one asked for"
+  ],
+  "quirks": [
+    "always checking the exits first", "never quite meeting {poss} own eyes in the mirror",
+    "flinching at loud bangs from old habit", "keeping a go-bag by the door",
+    "talking {poss} way out of trouble a little too smoothly", "humming the evening news jingle without noticing",
+    "double-checking every lock twice", "keeping band-aids in every pocket", "never eating the same lunch two days running",
+    "watching the sky more than the sidewalk", "keeping a spare change of clothes at work, just in case",
+    "flinching whenever a helicopter passes over"
+  ],
+  "goals": [
+    "keeping {poss} family out of it", "finding out who's really behind the break-ins downtown",
+    "earning back the city's trust", "getting a full night's sleep for once", "proving {subj} is more than a sidekick",
+    "affording a real lab of {poss} own", "clearing {poss} name after the papers got it wrong",
+    "making it home in one piece before sunrise", "protecting the old neighborhood", "living one ordinary day",
+    "finding a cure before it's too late", "being remembered for something good"
+  ],
+  "peeves": [
+    "reporters who never check their facts", "sirens at 3am", "property damage nobody pays for",
+    "villains with monologues", "a city council that won't fund anything", "knockoff gadgets that fall apart mid-fight",
+    "people who don't believe {obj} at all", "traffic during an emergency", "a mask that won't stay put",
+    "getting blamed for the collateral damage"
+  ],
+  "accessories": [
+    "a battered utility belt", "a press badge on a lanyard", "a pair of tinted goggles pushed up on the forehead",
+    "a small lapel pin from an old team", "fingerless tactical gloves", "a cracked smartphone with too many notifications",
+    "a locket with an old photograph", "a reinforced wristband", "a police scanner clipped to the belt",
+    "a notebook full of half-finished blueprints"
+  ],
+  "default_outfits": [
+    "a fitted bomber jacket over a plain t-shirt, dark jeans and running shoes",
+    {"t": "a tailored blazer over a blouse, slacks and low heels", "g": "female"},
+    "a crisp button-up shirt, dress trousers and polished shoes"
+  ],
+
+  "_tables": "The next two entries replace the shared tables in common.json for this setting only (same shape): a bolder dye chance for comic-book signature hair colours, and a few hero/villain distinguishing marks.",
+  "dye_chance": 0.15,
+  "dyed_hair_colors": ["vivid red", "electric blue", "bold purple", "streak of silver", "bright white"],
+  "distinguishing": [
+    {"label": "none", "w": 48},
+    {"label": "freckles across the nose", "w": 6},
+    {"label": "a small mole on the cheek", "w": 3},
+    {"label": "dimples", "w": 3},
+    {"label": "a thin scar through one eyebrow", "w": 5},
+    {"label": "a faint chemical burn scar on one hand", "w": 3},
+    {"label": "a jagged scar across the forearm", "w": 3},
+    {"label": "a small tattoo of a personal emblem", "w": 5},
+    {"label": "a birthmark on the neck", "w": 2},
+    {"label": "unusually piercing eyes", "w": 4},
+    {"label": "a burn scar along the collarbone", "w": 2},
+    {"label": "knuckles scarred from years of training", "w": 4}
+  ],
+
+  "occupations": [
+    {"id": "vigilante", "label": "street vigilante", "weight": 1, "min_age": 18, "outfits": ["a matte black tactical suit with a domino mask, fingerless gloves and combat boots"]},
+    {"id": "hero", "label": "costumed hero", "weight": 0.8, "min_age": 18, "outfits": ["a form-fitting teal and silver costume with a short cape, a plain chest, a wide utility belt and sturdy boots", "a purple and white costume with a high collar, a small circle symbol of their own design on the chest and sturdy boots", "a sleek orange and charcoal bodysuit with armored shoulder plates, gauntlets and sturdy boots"]},
+    {"id": "sidekick", "label": "sidekick", "weight": 0.6, "min_age": 15, "max_age": 25, "outfits": ["a simple teal and white costume with a plain chest, a small domino mask and light boots", "a hooded orange and grey costume with a plain chest, a small domino mask and sneakers"]},
+    {"id": "rookie", "label": "rookie hero", "weight": 0.6, "min_age": 16, "max_age": 24, "outfits": ["a slightly ill-fitting costume with a hand-sewn patch, a mask and sneakers"]},
+    {"id": "reporter", "label": "investigative reporter", "weight": 1.5, "min_age": 23, "outfits": ["a rumpled blazer over a button-up shirt, slacks and worn loafers, a press badge on a lanyard"]},
+    {"id": "photojournalist", "label": "photojournalist", "weight": 1, "outfits": ["a utility vest over a t-shirt, cargo pants and hiking boots, a camera strap around the neck"]},
+    {"id": "detective", "label": "police detective", "weight": 1.2, "min_age": 27, "outfits": ["a plain blazer over a shirt and tie, a badge clipped to the belt and worn oxfords"]},
+    {"id": "commissioner", "label": "police commissioner", "weight": 0.4, "min_age": 45, "outfits": ["a decorated dress uniform with a peaked cap and polished shoes"]},
+    {"id": "scientist", "label": "scientist and inventor", "weight": 1.5, "min_age": 24, "outfits": ["a white lab coat over a button-up shirt, safety goggles pushed up on the forehead and closed-toe shoes"]},
+    {"id": "labassistant", "label": "lab assistant", "weight": 1.2, "outfits": ["a lab coat over a t-shirt, jeans and sneakers, safety goggles around the neck"]},
+    {"id": "patron", "label": "tech billionaire patron", "weight": 0.4, "min_age": 30, "outfits": ["a tailored designer suit with no tie, a smartwatch and polished loafers"]},
+    {"id": "professor", "label": "university professor", "weight": 1, "min_age": 30, "outfits": ["a tweed blazer with elbow patches over a sweater, corduroy trousers and brogues"]},
+    {"id": "paramedic", "label": "paramedic", "weight": 1, "min_age": 20, "outfits": ["a navy paramedic uniform with reflective patches and sturdy boots"]},
+    {"id": "firefighter", "label": "firefighter", "weight": 1, "min_age": 21, "outfits": ["a navy fire department t-shirt, work trousers with suspenders and heavy boots"]},
+    {"id": "social_worker", "label": "social worker", "weight": 1, "outfits": ["a cardigan over a blouse, slacks and comfortable flats, carrying a worn shoulder bag"]},
+    {"id": "henchman", "label": "former henchman", "weight": 1, "min_age": 20, "outfits": ["a plain black tactical jumpsuit stripped of its old insignia, combat boots"]},
+    {"id": "villain", "label": "supervillain", "weight": 0.5, "min_age": 25, "outfits": ["a dramatic armored coat with sharp angular lines, gloves and heavy boots, a distinctive symbol of their own on the chest"]},
+    {"id": "curator", "label": "museum curator", "weight": 0.6, "min_age": 28, "outfits": ["a tailored blazer over a blouse, slacks and low heels"]},
+    {"id": "security", "label": "security guard", "weight": 1.2, "outfits": ["a black security uniform with a badge, black trousers and boots"]},
+    {"id": "taxidriver", "label": "taxi driver", "weight": 1, "outfits": ["a casual jacket over a t-shirt, jeans and sneakers"]},
+    {"id": "construction", "label": "construction worker", "weight": 1.2, "outfits": ["an orange high-visibility vest over a work shirt, a hard hat and steel-toe boots"]},
+    {"id": "teacher", "label": "teacher", "weight": 1.5, "min_age": 23, "outfits": ["a cardigan over a collared shirt, chinos and comfortable flats"]},
+    {"id": "nurse", "label": "nurse", "weight": 1.2, "min_age": 21, "outfits": ["light blue scrubs with a stethoscope around the neck and white sneakers"]},
+    {"id": "doctor", "label": "doctor", "weight": 1, "min_age": 27, "outfits": ["a white lab coat over a shirt and tie, dark trousers and leather shoes"]},
+    {"id": "agent", "label": "government agent", "weight": 0.8, "min_age": 26, "outfits": ["a plain black suit with an earpiece, a lapel pin and polished shoes"]},
+    {"id": "contractor", "label": "private security contractor", "weight": 0.8, "min_age": 24, "outfits": ["tactical body armor over a black uniform, a helmet under one arm and combat boots"]},
+    {"id": "tailor", "label": "costume tailor", "weight": 0.5, "outfits": ["a fitted vest with a measuring tape around the neck, rolled sleeves and soft shoes"]},
+    {"id": "retired", "label": "retired hero", "weight": 0.6, "min_age": 55, "outfits": ["a faded civilian cardigan over a shirt, plain trousers and comfortable shoes, with an old lapel pin from their glory days"]},
+    {"id": "bartender", "label": "bartender", "weight": 1, "min_age": 21, "outfits": ["a black vest over a white shirt, dark jeans and boots"]}
+  ]
+}

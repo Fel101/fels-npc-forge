@@ -1,0 +1,14 @@
+{
+  "_about": "A small Old West cast to try Library > Import cast with. Some entries give every detail, some only a few (the rest is rolled from the Old West tables), and one is a free description that drives the art on its own. Columns NPC Forge does not know (id, shift, quest) are kept untouched in npc.custom, which is how game data such as schedules or stats can travel with a character.",
+  "characters": [
+    {"name": "Hattie Dunmore", "setting": "western", "id": "npc_saloon_01", "shift": "noon-midnight",
+     "age": 52, "gender": "female", "job": "saloon keeper", "hair": "gray hair pinned up in a bun",
+     "outfit": "a muted burgundy dress with a modest lace collar, a dark shawl and buttoned boots"},
+    {"name": "Cyrus Yates", "setting": "western", "id": "npc_sheriff_01", "quest": "the missing payroll",
+     "age": 44, "gender": "male", "job": "town sheriff", "facial_hair": "a walrus mustache"},
+    {"name": "Nellie Ashby", "setting": "western", "id": "npc_teacher_01", "age": 29, "gender": "female", "job": "schoolteacher"},
+    {"name": "Otis Colter", "setting": "western", "id": "npc_prospector_01", "age": 61, "job": "prospector", "distinguishing": "a sunburned nose"},
+    {"name": "Jesse Landry", "setting": "western", "id": "npc_drifter_01",
+     "description": "a lean young drifter in a threadbare gray coat and a floppy hat, a bedroll over one shoulder, dust on every seam, with a guarded look"}
+  ]
+}

@@ -1,0 +1,161 @@
+{
+  "_readme": "Animation clips and directions. A 'generated' clip asks Mage-Flow-Edit for each frame separately, using the character's sprite (and a canonical view of the direction) as references. A clip with a 'guide' (the walk) first draws a puppet of each pose (npcgen/pose.py) and has the model repaint it as the character, except in styles with 'guided_walk': false, which use its 'poses' like any other clip. 'poses' maps a direction group (side = left/right, front = down/up) to a frame count and one pose phrase per frame. A 'procedural' clip is derived from the canonical view without generating anything. 'cycle' is how long one loop takes in seconds, so the frame rate follows the frame count. Experimental clips have one reviewed draft GPU sample and remain unvalidated across characters and styles; quality_note describes that sample's issues.",
+
+  "directions": {
+    "down":  {"label": "Down (front)",  "group": "front", "view": "toward the camera, in a front view"},
+    "up":    {"label": "Up (back)",     "group": "front", "view": "away from the camera, seen from directly behind, back view"},
+    "right": {"label": "Right (side)",  "group": "side",  "view": "in a side view facing right"},
+    "left":  {"label": "Left (side)",   "group": "side",  "view": "in a side view facing left"}
+  },
+
+  "canonical_prompts": {
+    "right": "Show the same character in a side view facing right, standing still in a neutral relaxed pose with arms at the sides, full body head to toe",
+    "left": "Show the same character in a side view facing left, standing still in a neutral relaxed pose with arms at the sides, full body head to toe",
+    "up": "Show the same character from directly behind, back view facing away from the camera, standing still in a neutral relaxed pose with arms at the sides, full body head to toe"
+  },
+
+  "reference_strategy": {
+    "_note": "Which images to pass as references for the frames of each direction, in order. 'front' is the character's sprite, 'canonical' the generated view for that direction. Measured on a pixel-art test character (leg variation: 0 = static, ~0.3 = a real walk): for side views front-only drifted (the hair changed between frames) and canonical-only barely moved (0.06), but both together gave real movement (0.33) with a stable head. For the back view the canonical view made the legs static (0.07-0.09) and front-only walked (0.23), so it uses the sprite alone. Re-test if you change the style or the model.",
+    "down": ["front"],
+    "right": ["canonical", "front"],
+    "left": ["canonical", "front"],
+    "up": ["front"]
+  },
+
+  "guided_strategy": {
+    "_note": "References for the frames of a guided clip, after the drawn pose (which is always the FIRST image). Measured on a photoreal test character: the sprite alone kept the character the same across a cycle; a canonical side view as a third image made the model copy the puppet instead.",
+    "down": ["front"],
+    "right": ["front"],
+    "left": ["front"],
+    "up": ["front"]
+  },
+
+  "guided_prompt": "Repaint the rough figure in the first image as a finished painting of the {who} in the second image, {verb} {view}, {caught}full body head to toe, on {backdrop} with no floor and no shadow. Keep the exact pose of the rough figure: the same leg, knee, foot and arm positions.{note} The whole figure, from the top of the head to both shoes, fits inside the picture with space around it. {keep}, as in the second image.",
+
+  "guided_notes": {
+    "_note": "Extra wording per direction, for every frame ('caught', 'note') or for one kind of pose ('by_pose'). A front pose barely differs from the standing sprite, which is the second image, so without the front wording the model drew the standing sprite four times (measured: the legs differed from it by 0.02-0.05; with it 0.27-0.40). The passing step is often drawn as a small stride; with the sentence the feet came out 0.12-0.28 of the height apart at four seeds, without it 0.24-0.38.",
+    "down": {"caught": "caught in mid-step, ", "note": " The pose changes from the standing picture: copy the rough figure's legs and arms exactly, including the raised knee and the foot lifted off the ground."},
+    "right": {"by_pose": {"passing": " The legs pass each other: one leg is straight and carries the weight, the other knee is bent and that foot is lifted off the ground right beside the standing leg, so the feet are close together."}},
+    "left": {"by_pose": {"passing": " The legs pass each other: one leg is straight and carries the weight, the other knee is bent and that foot is lifted off the ground right beside the standing leg, so the feet are close together."}}
+  },
+
+  "clips": {
+    "walk": {
+      "label": "Walk cycle", "kind": "generated", "verb": "walking", "cycle": 0.8, "loop": true, "guide": "walk", "frames": [4, 8],
+      "poses": {
+        "side": {
+          "4": ["left leg forward and right leg back, arms swinging opposite",
+                "legs close together as one foot passes the other, body slightly raised",
+                "right leg forward and left leg back, arms swinging opposite",
+                "legs close together as the other foot passes, body slightly raised"],
+          "8": ["left foot planted far forward and right leg trailing behind, arms swinging opposite",
+                "front knee bending slightly as the body sinks to its lowest point",
+                "legs close together as the right foot passes the left leg",
+                "body at its highest point, left leg pushing off the ground behind",
+                "right foot planted far forward and left leg trailing behind, arms swinging opposite",
+                "front knee bending slightly as the body sinks to its lowest point",
+                "legs close together as the left foot passes the right leg",
+                "body at its highest point, right leg pushing off the ground behind"]
+        },
+        "front": {
+          "4": ["left foot stepped forward and right foot behind, arms swinging slightly opposite",
+                "feet close together mid-step, right knee lifted slightly, body slightly raised",
+                "right foot stepped forward and left foot behind, arms swinging slightly opposite",
+                "feet close together mid-step, left knee lifted slightly, body slightly raised"],
+          "8": ["left foot stepped far forward, right foot behind, arms swinging slightly opposite",
+                "left knee bending slightly as the body sinks to its lowest point",
+                "feet close together mid-step, right knee lifted",
+                "body at its highest point, right foot about to step forward",
+                "right foot stepped far forward, left foot behind, arms swinging slightly opposite",
+                "right knee bending slightly as the body sinks to its lowest point",
+                "feet close together mid-step, left knee lifted",
+                "body at its highest point, left foot about to step forward"]
+        }
+      }
+    },
+
+    "run": {
+      "label": "Run cycle (experimental)", "kind": "generated", "verb": "running", "fps": 12, "loop": true, "experimental": true,
+      "quality_note": "Draft right-view GPU sample: legs did not alternate clearly and the requested airborne poses stayed grounded.",
+      "poses": {
+        "side": {
+          "4": ["mid-stride, front knee high and rear leg extended behind, body leaning forward, arms bent and pumping opposite",
+                "both feet off the ground in mid-air, legs tucked, body leaning forward",
+                "mid-stride on the other leg, front knee high and rear leg extended behind, arms pumping opposite",
+                "both feet off the ground in mid-air, legs tucked, body leaning forward, arms swapped"]
+        },
+        "front": {
+          "4": ["running toward the camera, left knee lifted high, body leaning forward, arms pumping",
+                "both feet off the ground in mid-air, body leaning forward",
+                "running toward the camera, right knee lifted high, body leaning forward, arms pumping",
+                "both feet off the ground in mid-air, body leaning forward, arms swapped"]
+        }
+      }
+    },
+
+    "attack": {
+      "label": "Attack (experimental)", "kind": "generated", "verb": "attacking", "cycle": 0.8, "loop": false, "experimental": true,
+      "quality_note": "Draft right-view GPU sample: a strike reads, but the windup and impact frames repeat the extended arm.",
+      "poses": {
+        "side": {"4": ["braced fighting stance, knees bent and fists raised in front of the chest",
+                       "weight shifts forward, one arm draws back and the front foot steps in",
+                       "lunging forward with one arm fully extended in a punch, legs spread for balance",
+                       "recovering from the punch, arm drawing back and weight settling into the stance"]},
+        "front": {"4": ["facing forward in a braced fighting stance, knees bent and fists raised",
+                         "one shoulder turns and one fist draws back while the front foot steps forward",
+                         "punching toward the camera with one arm extended, torso leaning into the strike",
+                         "recovering to a guarded stance, arm returning to the chest"]}
+      }
+    },
+
+    "hurt": {
+      "label": "Hurt reaction (experimental)", "kind": "generated", "verb": "recoiling as if struck", "cycle": 0.8, "loop": false, "experimental": true,
+      "quality_note": "Draft right-view GPU sample: the recoil was unclear and one frame gained an extra arm.",
+      "poses": {
+        "side": {"4": ["torso jerking backward from an impact, arms beginning to rise defensively",
+                       "staggering one step backward, one hand reaching across the chest and knees bending",
+                       "off balance with arms spread, upper body leaning back and one foot lifting",
+                       "catching balance in a low guarded stance, shoulders hunched"]},
+        "front": {"4": ["torso jerking backward from an impact, arms beginning to rise defensively",
+                         "staggering backward, one hand reaching across the chest and knees bending",
+                         "off balance with arms spread, upper body leaning back and one foot lifting",
+                         "catching balance in a low guarded stance, shoulders hunched"]}
+      }
+    },
+
+    "cast": {
+      "label": "Cast spell (experimental)", "kind": "generated", "verb": "casting a spell", "cycle": 1.0, "loop": false, "experimental": true,
+      "quality_note": "Draft right-view GPU sample: the casting gesture reads, but the spell effect appears before the release and changes across frames.",
+      "poses": {
+        "side": {"4": ["raising both hands and gathering energy, feet planted apart",
+                       "hands draw together before the chest as the body leans forward",
+                       "thrusting both hands forward to release a spell, arms extended and fingers spread",
+                       "lowering the arms as the spell is released, returning to a steady stance"]},
+        "front": {"4": ["raising both hands and gathering energy, feet planted apart",
+                         "hands draw together before the chest as the body leans forward",
+                         "thrusting both hands toward the viewer to release a spell, arms extended and fingers spread",
+                         "lowering the arms as the spell is released, returning to a steady stance"]}
+      }
+    },
+
+    "death": {
+      "label": "Fall (experimental)", "kind": "generated", "verb": "falling to the ground", "cycle": 1.0, "loop": false, "experimental": true,
+      "quality_note": "Draft right-view GPU sample: every frame was already prone and several frames were cropped; no standing-to-fall motion appeared.",
+      "poses": {
+        "side": {"4": ["standing unsteadily, shoulders drooping and knees beginning to buckle",
+                       "falling backward, torso tilting and one knee giving way",
+                       "dropping toward the ground, one hand reaching down to break the fall",
+                       "lying still on the ground on one side, body fully inside the frame"]},
+        "front": {"4": ["standing unsteadily, shoulders drooping and knees beginning to buckle",
+                         "sinking downward, torso tilting and knees giving way",
+                         "dropping toward the ground, one hand reaching down to break the fall",
+                         "lying still on the ground, body fully inside the frame"]}
+      }
+    },
+
+    "idle": {
+      "label": "Idle (breathing)", "kind": "procedural", "cycle": 1.8, "loop": true,
+      "frames": [4, 6, 8], "lift": 0.010, "chest": 0.014
+    }
+  }
+}

@@ -1,0 +1,105 @@
+{
+  "label": "Space program",
+  "short": "Astronauts",
+  "blurb": "A near-future space agency: astronauts, mission control, rocket engineers and the crews of an orbital station and a lunar base. Grounded, realistic spaceflight rather than far-future sci-fi.",
+  "order": 16,
+  "place": "space center",
+  "context": "near-future space program astronaut character, realistic modern spaceflight gear with plain unbranded patches",
+  "origin_label": "Heritage",
+  "min_age": 18,
+  "negative": "agency logo, NASA logo, national flag, flag patch, lettering, text on clothing",
+
+  "hobbies": [
+    "photographing Earth from the cupola window", "flying vintage aerobatic planes", "scuba diving on weekends", "building model rockets",
+    "running marathons", "playing guitar in the crew quarters", "amateur radio chats with schoolkids", "growing lettuce under grow lights",
+    "stargazing with a backyard telescope", "rock climbing", "reading old science fiction", "practicing Russian vocabulary",
+    "chess by email with a friend on the ground", "cooking elaborate meals from freeze-dried food", "sketching the Moon's craters",
+    "skydiving", "restoring an old sports car", "keeping a daily video diary"
+  ],
+  "quirks": [
+    "checking every checklist twice, even at home", "floating a pen in front of {poss} face when thinking, even on the ground",
+    "counting down from ten before anything important", "wearing {poss} lucky socks on every launch day",
+    "talking in mission-control jargon at dinner", "timing every task with a wristwatch", "saluting the rocket before boarding",
+    "keeping a photo of {poss} dog on every flight", "eating the same breakfast before every launch", "always sitting by the window",
+    "humming the same song during every spacewalk", "writing everything in tiny capital letters"
+  ],
+  "goals": [
+    "walking on the Moon", "being picked for the first crewed Mars mission", "commanding the orbital station",
+    "fixing the station's failing coolant loop for good", "inspiring kids back home to study science", "logging a thousand days in orbit",
+    "discovering life in a sample {subj} brought back", "flying one last mission before retiring", "designing the rocket {subj} will fly on",
+    "proving the new habitat module works", "making it through astronaut training on the first try", "bringing the whole crew home safely"
+  ],
+  "peeves": [
+    "crumbs floating around the cabin", "a checklist with a typo", "launch delays for weather", "people asking how the toilet works",
+    "a mission patch sewn on crooked", "loud crew members during sleep shift", "cold coffee from a pouch", "a scrubbed launch",
+    "reporters who confuse astronomy with astrology", "dehydrated shrimp cocktail"
+  ],
+  "accessories": [
+    "a spacesuit helmet held under one arm", "a clipboard with a mission checklist", "a tablet showing orbital telemetry",
+    "a headset with a boom microphone", "a crew badge on a lanyard", "a chunky pilot's wristwatch", "a round mission patch of the crew's own design",
+    "aviator sunglasses tucked into a pocket", "a small toy mascot clipped to the zip", "a flight bag over one shoulder",
+    "a sample canister in one gloved hand", "a pen clipped to the sleeve pocket"
+  ],
+  "default_outfits": [
+    "a blue flight suit with a zip front, plain mission patches and black boots",
+    "a crew polo shirt with a small plain patch, khaki trousers and trainers",
+    "a white crew jacket over a plain T-shirt, dark trousers and trainers"
+  ],
+
+  "occupations": [
+    {"id": "commander", "label": "mission commander", "weight": 1.5, "min_age": 35, "outfits": [
+      "a blue flight suit with a zip front, plain unbranded mission patches, a name tape and black flight boots"]},
+    {"id": "pilot", "label": "spacecraft pilot", "weight": 1.5, "min_age": 28, "outfits": [
+      "an orange pressure suit with the helmet off, a padded collar ring, plain patches and white pressure boots"]},
+    {"id": "flightengineer", "label": "flight engineer", "weight": 2, "min_age": 26, "outfits": [
+      "a grey crew polo tucked into cargo trousers with many pockets, a tool pouch and grip socks"]},
+    {"id": "specialist", "label": "mission specialist", "weight": 2, "min_age": 26, "outfits": [
+      "a navy flight suit with rolled sleeves, a pen-filled shoulder pocket, plain patches and black boots"]},
+    {"id": "evaspecialist", "label": "spacewalk specialist", "weight": 1.5, "min_age": 28, "outfits": [
+      "a bulky white spacewalk suit with the helmet off, a chest control panel, red stripes on the legs and large white boots"]},
+    {"id": "flightsurgeon", "label": "flight surgeon", "weight": 1, "min_age": 30, "outfits": [
+      "a white lab coat over a blue crew polo, a stethoscope around the neck, dark trousers and trainers"]},
+    {"id": "flightdirector", "label": "flight director", "weight": 1, "min_age": 35, "outfits": [
+      "a pressed white shirt with rolled sleeves, a loosened tie, a vest, a headset around the neck, dark trousers and polished shoes"]},
+    {"id": "capcom", "label": "capsule communicator", "weight": 1, "min_age": 28, "outfits": [
+      "a crew polo shirt under a headset, khaki trousers and trainers"]},
+    {"id": "missioncontrol", "label": "mission control operator", "weight": 1.5, "min_age": 22, "outfits": [
+      "a short-sleeved shirt with a pocket protector, a lanyard badge, dark trousers and brown shoes"]},
+    {"id": "roverdriver", "label": "lunar rover driver", "weight": 1, "min_age": 28, "outfits": [
+      "a dusty white surface suit with the helmet visor raised, grey moon dust on the knees and heavy surface boots"]},
+    {"id": "geologist", "label": "lunar geologist", "weight": 1, "min_age": 28, "outfits": [
+      "a dusty white surface suit with sample bags on the thigh, a rock hammer and heavy surface boots"]},
+    {"id": "astrobiologist", "label": "astrobiologist", "weight": 1, "min_age": 26, "outfits": [
+      "a white lab coat over a crew polo, purple nitrile gloves, dark trousers and clean trainers"]},
+    {"id": "botanist", "label": "station botanist", "weight": 0.8, "min_age": 26, "outfits": [
+      "a sage-green crew polo, cargo shorts with many pockets, grip socks and a small pair of pruning shears"]},
+    {"id": "roboticist", "label": "robotic arm operator", "weight": 0.8, "min_age": 26, "outfits": [
+      "a black crew polo with a small patch, a hand controller on a strap, cargo trousers and grip socks"]},
+    {"id": "rocketengineer", "label": "rocket engineer", "weight": 1.5, "min_age": 23, "outfits": [
+      "a hard hat, safety glasses pushed up, a hi-vis vest over a company polo, work trousers and steel-toe boots"]},
+    {"id": "padtech", "label": "launch pad technician", "weight": 1.2, "outfits": [
+      "white clean-room coveralls, a hard hat, gloves and white shoe covers over work boots"]},
+    {"id": "suittech", "label": "spacesuit technician", "weight": 0.8, "min_age": 22, "outfits": [
+      "a lab coat over a grey polo, cotton gloves, a measuring tape around the neck and clean trainers"]},
+    {"id": "recoverydiver", "label": "capsule recovery diver", "weight": 0.7, "min_age": 22, "max_age": 50, "outfits": [
+      "a black wetsuit with a high-visibility orange life vest, a dive mask pushed up and dive boots"]},
+    {"id": "weatherofficer", "label": "launch weather officer", "weight": 0.6, "min_age": 25, "outfits": [
+      "an air-force-blue uniform shirt with plain insignia, a lanyard, dark trousers and polished shoes"]},
+    {"id": "trainer", "label": "astronaut trainer", "weight": 0.8, "min_age": 32, "outfits": [
+      "a blue training polo, track trousers, a whistle and a stopwatch around the neck and trainers"]},
+    {"id": "candidate", "label": "astronaut candidate", "weight": 1.5, "min_age": 22, "max_age": 40, "outfits": [
+      "a brand-new blue flight suit still stiff from the packet, plain patches and shiny black boots"]},
+    {"id": "tourist", "label": "space tourist", "weight": 0.6, "min_age": 25, "outfits": [
+      "a sleek black flight suit with a personalised patch, an expensive watch and white trainers"]},
+    {"id": "journalist", "label": "space reporter", "weight": 0.6, "min_age": 23, "outfits": [
+      "a smart blazer over a T-shirt, a press lanyard, jeans and trainers, a microphone in hand"]},
+    {"id": "cook", "label": "space food scientist", "weight": 0.6, "min_age": 24, "outfits": [
+      "a white chef's jacket with a small crew patch, a hairnet, checked trousers and clogs"]},
+    {"id": "physicist", "label": "astrophysicist", "weight": 0.8, "min_age": 26, "outfits": [
+      "a cardigan over a collared shirt, a lanyard badge, chinos and comfortable shoes"]},
+    {"id": "habitatcrew", "label": "Mars habitat analog crew", "weight": 0.6, "min_age": 24, "outfits": [
+      "a rust-red habitat jumpsuit with plain patches, a utility belt and chunky boots"]},
+    {"id": "retired", "label": "retired astronaut", "weight": 0.8, "min_age": 55, "max_age": 99, "outfits": [
+      "a faded blue flight jacket covered in old mission patches over a polo, slacks and loafers"]}
+  ]
+}

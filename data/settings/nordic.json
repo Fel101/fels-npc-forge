@@ -1,0 +1,145 @@
+{
+  "label": "Nordic saga",
+  "short": "Nordic",
+  "blurb": "A frost-bound northern realm of jarls, shield walls and dragon legends -- the mead-hall fantasy flavor of Skyrim-style RPGs.",
+  "order": 12,
+  "place": "mead hall",
+  "context": "Nordic saga fantasy character, frost-bound northern highlands, mead-hall and dragon-legend atmosphere",
+  "origin_label": "Race",
+
+  "races": {
+    "human":      {"label": "Northlander", "weight": 65, "phrase": ""},
+    "elf":        {"label": "Elf", "weight": 7, "phrase": "elf", "features": "long pointed ears and pale, ageless features", "builds": ["slim", "tall and lanky", "athletic"],
+                   "hair_colors": {"frost white": 3, "pale silver": 3, "ash blonde": 2, "black": 2, "icy blue": 1}},
+    "beastfolk":  {"label": "Beastfolk", "weight": 8, "phrase": "beastfolk", "features": "a pair of tufted lynx-like ears and a thick fur-lined tail", "builds": ["athletic", "muscular", "slim", "average"]},
+    "marshfolk":  {"label": "Marshfolk", "weight": 5, "phrase": "marshfolk", "features": "smooth scaled skin, faintly webbed fingers and keen slitted eyes", "skin": ["mottled green", "swamp brown", "mossy gray-green", "deep olive"], "builds": ["slim", "athletic", "average"]},
+    "orc":        {"label": "Orc", "weight": 8, "phrase": "orc", "features": "a heavy brow, small tusks and battle-scarred skin", "skin": ["olive-green", "gray-green", "weathered gray"], "builds": ["muscular", "stocky", "heavyset"],
+                   "hair_colors": {"black": 5, "iron gray": 2, "dark brown": 2}},
+    "dwarf":      {"label": "Dwarf", "weight": 7, "phrase": "dwarf", "features": "a broad frame built for mountain halls and a beard braided with small iron rings", "builds": ["stocky", "muscular", "heavyset"],
+                   "hair_colors": {"iron gray": 3, "black": 2, "copper red": 3, "brown": 2}}
+  },
+  "hair_color_choices": ["black", "dark brown", "brown", "copper red", "auburn", "ash blonde", "golden blonde", "platinum blonde", "iron gray", "frost white", "pale silver", "icy blue"],
+
+  "names": {
+    "female": ["Astrid", "Sigrid", "Freya", "Ingrid", "Solveig", "Thora", "Gunnhild", "Ragnhild", "Hilde", "Halla", "Bergljot", "Sunniva", "Dagny", "Liv", "Ronja", "Saga", "Ylva", "Signe"],
+    "male": ["Bjorn", "Ulf", "Erik", "Ragnar", "Sven", "Leif", "Njal", "Gunnar", "Magnus", "Torvald", "Einar", "Halvard", "Ivar", "Bjarke", "Gorm", "Rurik", "Steinar", "Vidar"],
+    "neutral": ["Rune", "Storm", "Ash", "Sten", "Skye", "Vale"],
+    "surnames": ["Frostvale", "Ironbrook", "Coldwater", "Stonewake", "Ashfjord", "Wolfmere", "Ravensby", "Thornholt", "Grimstead", "Winterset", "Oakfell", "Brightfjord", "Stormhaven", "Snowfell", "Deepwood", "Hardanger", "Fjelldal", "Bjornstad"]
+  },
+
+  "hobbies": [
+    "sharpening {poss} axe by the hearth", "carving runes into wood", "wrestling at the hall games", "brewing mead",
+    "singing sagas from memory", "tracking elk through the snow", "mending fishing nets", "playing tafl by the fire",
+    "forging small trinkets", "skiing across the fells", "swimming in the fjord even in winter", "weaving wall-hangings",
+    "training a hunting hawk", "collecting old sagas", "whittling drinking horns", "ice fishing",
+    "racing longships at the summer gathering", "telling ghost stories about the old barrows"
+  ],
+  "quirks": [
+    "touching the hammer charm at {poss} throat before a fight", "never sailing on an unlucky day",
+    "sharpening {poss} blade every night whether it's dull or not", "greeting every stranger with {poss} clan name first",
+    "keeping a raven feather for luck", "never turning down a drinking challenge", "humming battle-hymns while working",
+    "reading omens in the flight of birds", "always sitting with {poss} back to the wall", "carving a notch for every year survived",
+    "spitting for luck before boarding a ship", "boasting about ancestors {subj} never met"
+  ],
+  "goals": [
+    "winning a seat of honor at the mead hall", "avenging {poss} father's death", "being sung about in a saga someday",
+    "finding the lost blade of {poss} line", "earning enough silver to winter comfortably", "proving {poss} worth to a skeptical jarl",
+    "seeing the southern lands before {subj} dies", "ending the feud between {poss} clan and the next hold over",
+    "surviving one more winter without losing anyone", "becoming a name the young ones ask about",
+    "finding where the old gods still listen", "keeping the hold's granary full through the dark season"
+  ],
+  "peeves": [
+    "watered-down mead", "a dull axe", "boasting with nothing to back it up", "oathbreakers", "a fire that won't catch",
+    "wolves near the herd", "a long winter with short rations", "cowardice in a shield wall", "frost that ruins the harvest",
+    "a bard who forgets the words"
+  ],
+  "accessories": [
+    "a hammer-shaped charm on a leather cord", "a drinking horn at the belt", "a carved rune stone", "a wolf-fang necklace",
+    "a woven wrist braid", "a small whetstone on a cord", "a fur-lined cloak clasp", "a battered shield slung on the back",
+    "a satchel of dried fish", "a bone comb tucked in a pouch", "a silver arm ring", "a leather-bound saga book"
+  ],
+  "default_outfits": [
+    "a fur-lined leather jerkin over a wool tunic, cross-gartered trousers and sturdy fur-trimmed boots",
+    {"t": "a long wool dress with a layered apron pinned at the shoulders with brooches, a fur-trimmed cloak and soft leather boots", "g": "female"},
+    "a heavy wool cloak over a padded leather vest and tunic, thick trousers and fur-wrapped boots"
+  ],
+
+  "_tables": "The next five entries replace the shared tables in common.json for this setting only (same shape): braided sailor-warrior hair, heavy beards, almost no eyewear (a fantasy-medieval north), weathered/tattooed marks and no modern hair dye (the races already carry unusual natural colours).",
+  "dyed_hair_colors": [],
+  "hair_styles": [
+    {"label": "long hair braided back from the temples", "w": [3, 2, 1.5], "tex": true},
+    {"label": "long loose windswept hair", "w": [3, 1, 2], "tex": true},
+    {"label": "hair in a single thick braid down the back", "w": [2.5, 0.5, 1], "tex": true},
+    {"label": "shoulder-length hair tied back", "w": [1.5, 2, 2], "tex": true},
+    {"label": "hair shaved at the sides, long on top", "w": [0.3, 2, 1], "tex": true},
+    {"label": "short cropped hair", "w": [0.5, 2.5, 1.5], "tex": true},
+    {"label": "twin hair braids woven with beads", "w": [2, 0, 0.5], "tex": true},
+    {"label": "hair tied in a warrior's topknot", "w": [0.3, 1.5, 0.8], "tex": true},
+    {"label": "matted, wind-tangled hair", "w": [0.4, 0.6, 0.5], "tex": false, "only": ["coily"]},
+    {"label": "bald, weathered scalp", "w": [0.1, 1, 0.3], "bald": true}
+  ],
+  "facial_hair": [
+    {"label": "clean-shaven", "w": 15},
+    {"label": "light stubble", "w": 15},
+    {"label": "a short trimmed beard", "w": 15},
+    {"label": "a full thick beard", "w": 20},
+    {"label": "a long braided beard", "w": 12},
+    {"label": "a braided beard with small iron rings", "w": 6},
+    {"label": "a mustache", "w": 6},
+    {"label": "a goatee", "w": 4},
+    {"label": "mutton chops", "w": 2}
+  ],
+  "glasses": [
+    {"label": "none", "w": 95},
+    {"label": "small round spectacles for reading runes", "w": 4},
+    {"label": "a cracked brass eyepiece", "w": 1}
+  ],
+  "distinguishing": [
+    {"label": "none", "w": 42},
+    {"label": "freckles across the nose", "w": 6},
+    {"label": "a weathered, wind-burned face", "w": 6},
+    {"label": "a jagged battle scar across the brow", "w": 5},
+    {"label": "tribal knotwork tattoos across the forearms", "w": 6},
+    {"label": "frost-pale skin", "w": 4},
+    {"label": "a missing fingertip from frostbite", "w": 3},
+    {"label": "a small mole on the cheek", "w": 3},
+    {"label": "dimples", "w": 2},
+    {"label": "a crooked, once-broken nose", "w": 4},
+    {"label": "a faded scar along the jaw", "w": 4},
+    {"label": "sun-and-wind creases at the eyes", "w": 4}
+  ],
+
+  "occupations": [
+    {"id": "jarl", "label": "jarl", "weight": 0.3, "min_age": 35, "outfits": ["a fur-trimmed cloak over fine layered wool robes, a heavy silver torc and polished boots"]},
+    {"id": "housecarl", "label": "housecarl", "weight": 1, "min_age": 20, "outfits": ["a chainmail shirt over a padded gambeson, a round shield on the back, an axe at the belt and heavy boots"]},
+    {"id": "warrior", "label": "warrior", "weight": 2, "min_age": 18, "outfits": ["a leather cuirass over a wool tunic, a round shield on the back, an axe at the belt and sturdy boots"]},
+    {"id": "berserker", "label": "berserker", "weight": 0.5, "min_age": 22, "outfits": ["a wolf-pelt cloak over a sleeveless leather vest, war paint on the arms, fur-wrapped trousers and heavy boots"]},
+    {"id": "thane", "label": "thane", "weight": 0.5, "min_age": 30, "outfits": ["a fine wool coat trimmed with fur, a signet ring and polished boots"]},
+    {"id": "skald", "label": "skald", "weight": 1, "outfits": ["a fine embroidered tunic under a patterned cloak, a small harp slung across the back and soft boots"]},
+    {"id": "runemage", "label": "rune mage", "weight": 0.6, "min_age": 25, "outfits": ["a long hooded robe lined with fur, a staff carved with runes and soft leather boots"]},
+    {"id": "healer", "label": "wise healer", "weight": 1, "outfits": [
+      {"t": "a long wool dress with an apron of herb pouches, a fur-lined shawl and soft boots", "g": "female"},
+      {"t": "a weathered cloak with herb pouches at the belt, a wool tunic and boots", "g": "male"}]},
+    {"id": "blacksmith", "label": "blacksmith", "weight": 1.5, "outfits": ["a scorched leather apron over a sleeveless tunic, thick gloves and heavy boots"]},
+    {"id": "innkeeper", "label": "mead hall keeper", "weight": 1.2, "min_age": 25, "outfits": [
+      {"t": "a laced wool bodice over a blouse, a long skirt, an apron and soft boots", "g": "female"},
+      {"t": "a linen shirt with rolled sleeves, a leather vest, an apron and boots", "g": "male"}]},
+    {"id": "hunter", "label": "hunter", "weight": 1.5, "outfits": ["a hooded fur-lined cloak over a leather jerkin, a longbow across the back and sturdy boots"]},
+    {"id": "fisher", "label": "fisher", "weight": 1.2, "outfits": ["a heavy wool sweater under an oilskin cloak, waders and thick boots"]},
+    {"id": "farmer", "label": "farmer", "weight": 2.5, "outfits": ["a homespun wool tunic, patched trousers, a wide belt and worn boots"]},
+    {"id": "trader", "label": "trader", "weight": 1.5, "min_age": 20, "outfits": ["a fur-trimmed coat with many pockets, a wide belt and sturdy boots, carrying a heavy pack of goods"]},
+    {"id": "shipwright", "label": "shipwright", "weight": 0.8, "min_age": 22, "outfits": ["a canvas apron over a wool tunic, rolled sleeves, thick trousers and heavy boots"]},
+    {"id": "oarsman", "label": "longship oarsman", "weight": 2, "outfits": ["a padded leather vest over a wool tunic, cross-gartered trousers and sturdy boots"]},
+    {"id": "herbalist", "label": "herbalist", "weight": 0.8, "outfits": ["a hooded wool cloak with pockets of dried herbs, fingerless gloves and soft boots"]},
+    {"id": "guard", "label": "hold guard", "weight": 2, "min_age": 18, "max_age": 55, "outfits": ["a chainmail shirt under a tabard, a round shield on the back, a spear and heavy boots"]},
+    {"id": "thief", "label": "cutpurse", "weight": 1, "min_age": 16, "outfits": ["a hooded dark cloak over a plain tunic, soft-soled boots and fingerless gloves"]},
+    {"id": "bountyhunter", "label": "bounty hunter", "weight": 0.8, "min_age": 22, "outfits": ["worn leather armor with a hood, an axe across the back and heavy boots"]},
+    {"id": "miner", "label": "miner", "weight": 1, "outfits": ["a soot-streaked leather vest over a wool shirt, thick gloves, a pickaxe over the shoulder and heavy boots"]},
+    {"id": "weaver", "label": "weaver", "weight": 1, "outfits": ["a plain wool tunic with rolled sleeves, spools of thread at the belt and soft boots"]},
+    {"id": "beekeeper", "label": "beekeeper", "weight": 0.6, "outfits": ["a wide-brimmed hat with a mesh veil pushed back, a patched smock and worn boots"]},
+    {"id": "woodcutter", "label": "woodcutter", "weight": 1.2, "outfits": ["a heavy wool shirt with rolled sleeves, a leather vest, an axe over the shoulder and sturdy boots"]},
+    {"id": "historian", "label": "hold historian", "weight": 0.6, "min_age": 30, "outfits": ["a fine wool robe with fur trim, a satchel of scrolls and soft shoes"]},
+    {"id": "veteran", "label": "retired warrior", "weight": 1, "min_age": 55, "outfits": ["a faded traveling cloak over simple wool clothes, a walking staff and worn boots"]},
+    {"id": "squire", "label": "young shieldbearer", "weight": 1, "min_age": 13, "max_age": 17, "outfits": ["an oversized borrowed tunic, a leather practice vest and worn boots"]}
+  ]
+}

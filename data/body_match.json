@@ -1,0 +1,82 @@
+{
+  "_readme": "How a character's sheet words become a designed body (npcgen/bodymatch.py). `builds`: each entry gives the proportions (-1..1) a build word asks for; a sheet's build is read word by word and the entries it names are added together, so 'tall and lanky' is `tall` plus `lanky`. The size of one step was measured on the Body Designer's bodies (2026-10-07): height +-1 is about +-20 cm of the whole body; fat +-1 changes the volume by 6 to 10 per cent (a waist of 2.5 cm); muscle is definition, not bulk (+1 is defined and lean, -1 soft); chest +1 is 3 to 4 cm; hips +-1 is 3 cm; shoulders -1.6 / +3 cm. `skin`, `eyes` and `hair`: phrases (longest match first), then single colour words with modifiers; a word that is nowhere here is left out and said so, never guessed. `dyed` are the hair colours of a dyed head (the hair itself takes them, the brows never do); `hair_styles` says which of the Body Designer's game hair a sheet's hair text is (`crop`, `sweep` or `long`), whether it is bald (`none`), or names a style that has none yet (`other`: it wins over the rest, so 'short ponytail' is not a crop). `long` are the words for long hair: a text with one of them and none of `not_long` (up, short or middling: a bun, a bob, shoulder length), `crop`, `none` or `long_near` is the Body Designer's Long, whatever its colour or curl (the Long is straight and smooth, and the page says so); one that also says what the Long is not (`long_near`: braided, a ponytail, tied back, swept over a shoulder, curtain bangs) gets it as the nearest, said so.",
+  "builds": [
+    {"words": ["average", "medium", "normal", "ordinary", "regular"], "values": {}},
+    {"words": ["tall"], "values": {"height": 0.5, "legs": 0.3}},
+    {"words": ["short"], "values": {"height": -0.45}},
+    {"words": ["petite", "small", "tiny", "diminutive", "dainty"], "values": {"height": -0.45, "limbs": -0.3, "shoulders": -0.3, "chest": -0.15, "hips": -0.1}},
+    {"words": ["slim", "slender", "thin", "skinny", "svelte", "trim"], "values": {"fat": -0.6, "limbs": -0.4, "waist": -0.2, "hips": -0.15, "chest": -0.2}},
+    {"words": ["lean", "wiry", "sinewy", "spare"], "values": {"fat": -0.8, "muscle": 0.5, "limbs": -0.3, "chest": -0.15, "waist": -0.2}},
+    {"words": ["lanky", "gangly"], "values": {"limbs": -0.4, "fat": -0.3, "shoulders": -0.2, "legs": 0.3, "arms": 0.3}},
+    {"words": ["gaunt", "emaciated", "desiccated", "haggard", "skeletal"], "values": {"fat": -1.0, "limbs": -1.0, "chest": -0.7, "waist": -0.5, "hips": -0.5, "shoulders": -0.4}},
+    {"words": ["athletic", "fit", "toned", "sporty"], "values": {"muscle": 0.9, "fat": -0.5, "shoulders": 0.45, "chest": 0.25, "waist": -0.3, "limbs": 0.25}},
+    {"words": ["muscular", "brawny", "burly", "powerful", "strapping", "hulking", "ripped"], "values": {"muscle": 1.0, "shoulders": 0.7, "chest": 0.6, "limbs": 0.6, "fat": -0.1, "waist": 0.1, "hips": 0.1, "height": 0.1}},
+    {"words": ["broad", "broad shouldered", "barrel chested"], "values": {"shoulders": 0.9, "chest": 0.4}},
+    {"words": ["stocky", "sturdy", "squat", "thickset", "stout", "compact"], "values": {"height": -0.2, "legs": -0.4, "torso": 0.3, "fat": 0.3, "muscle": 0.3, "shoulders": 0.3, "chest": 0.4, "waist": 0.5, "hips": 0.3, "limbs": 0.4}},
+    {"words": ["heavyset", "heavy", "plump", "chubby", "portly", "rotund", "overweight", "full figured", "big", "large"], "values": {"fat": 1.0, "waist": 0.8, "hips": 0.6, "chest": 0.5, "limbs": 0.6, "muscle": -0.3}},
+    {"words": ["bloated", "swollen", "obese"], "values": {"fat": 1.0, "waist": 1.0, "hips": 0.4, "chest": 0.4, "limbs": 0.6, "muscle": -0.8}},
+    {"words": ["curvy", "hourglass", "voluptuous", "buxom", "shapely"], "values": {"hips": 0.8, "chest": 0.6, "waist": -0.3, "fat": 0.3, "muscle": -0.2, "limbs": 0.2}},
+    {"words": ["slack", "flabby", "soft", "out of shape"], "values": {"fat": 0.4, "muscle": -0.8, "waist": 0.4, "hips": 0.2}},
+    {"words": ["hunched", "stooped", "bent"], "values": {"shoulders": -0.2, "torso": -0.2}}
+  ],
+  "skin": {
+    "phrases": {
+      "very fair": "#f0d2c0", "porcelain": "#f0d2c0", "ivory": "#ecc9b0", "fair": "#e9c1a7", "pale": "#ecc6ad", "white": "#efcdb8",
+      "light olive": "#d3a97e", "light brown": "#b97f57", "light": "#e1b497",
+      "golden tan": "#cd9663", "golden": "#d19a62", "tan": "#c48b5f", "olive": "#b78d62", "honey": "#c99a62", "caramel": "#b57a4a",
+      "sun bronzed": "#b07a48", "bronze": "#a96f3f",
+      "medium brown": "#9c643f", "warm brown": "#a56a44", "brown": "#94593a", "dark brown": "#6c3f27", "deep dark brown": "#442618",
+      "deep brown": "#4c2c1c", "deep umber": "#3d2316", "ebony": "#2f1c13", "black": "#2c1a12", "rosy pink": "#e9b5a5"
+    },
+    "colours": {
+      "white": "#e9e6df", "black": "#25201e", "gray": "#8a8d90", "grey": "#8a8d90", "silver": "#b3b8bc", "green": "#5f8a4b", "blue": "#5b7fae",
+      "red": "#a8472f", "crimson": "#8f2a35", "burgundy": "#6e2a35", "orange": "#c9763a", "yellow": "#c9b44a", "purple": "#7a5a96", "violet": "#7a5a9a",
+      "lilac": "#b49ac4", "lavender": "#b8a6cc", "pink": "#d99aa6", "teal": "#4a8a8a", "turquoise": "#4aa7a2", "mint": "#9bcdb0", "sage": "#9db08a",
+      "olive": "#7d8a3c", "moss": "#6d8a4a", "mossy": "#6d8a4a", "emerald": "#2f8a5a", "forest": "#2f6a3a", "sapphire": "#2f4f8a", "amber": "#c98a2a",
+      "gold": "#c9a23a", "bronze": "#a96f3f", "copper": "#b0653a", "brown": "#7a5035", "tan": "#c48b5f", "tawny": "#b9824a", "beige": "#d8c0a0",
+      "cream": "#eadcc4", "sandy": "#cdb089", "rusty": "#9a4a2a", "charcoal": "#3a3a3c", "obsidian": "#1d1b1c", "slate": "#5d6a78", "ash": "#9a9a98",
+      "pearl": "#e6dfd6", "ivory": "#ecdfc8", "walnut": "#5a3a24", "oak": "#8a6a44", "birch": "#d8cdb8", "granite": "#7c7e80", "basalt": "#2e2f31",
+      "sandstone": "#b5764f", "quartz": "#e6c9c4", "topaz": "#8a6a44", "amethyst": "#8a6aa8", "aquamarine": "#6fc4b8", "reddish": "#9a4d36"
+    },
+    "modifiers": {
+      "deep": [-0.14, 0.05], "dark": [-0.14, 0.0], "dusky": [-0.1, -0.05], "pale": [0.14, -0.1], "light": [0.1, 0.0], "soft": [0.08, -0.08],
+      "bright": [0.04, 0.2], "warm": [0.0, 0.05], "weathered": [-0.04, -0.1], "muddy": [-0.08, -0.1], "dusty": [-0.04, -0.1], "glossy": [0.0, 0.0]
+    }
+  },
+  "eyes": {
+    "phrases": {
+      "dark brown": "#3a2415", "light brown": "#7f5a34", "brown": "#5e3b22", "hazel": "#7a6232", "amber": "#b0782a", "dark": "#2c1c12",
+      "pale blue": "#8db4d2", "deep blue": "#2a4f86", "blue": "#4a76a8", "deep green": "#2f5a36", "green": "#4f7d4a", "emerald": "#2e8b57",
+      "gray": "#7b8790", "grey": "#7b8790", "silver": "#aab2b8", "violet": "#7a58a8", "purple": "#6b4a98", "gold": "#c69c2c", "golden": "#c69c2c",
+      "red": "#9c2b2b", "orange": "#c26a22", "yellow": "#cdb83a", "black": "#17110e", "white": "#d8dde0", "turquoise": "#2fa59f", "teal": "#2a8a8a",
+      "honey": "#b98a3a", "sea green": "#3f8f78", "leaf green": "#4f8a3a", "pearl gray": "#9aa1a6"
+    },
+    "colours": {},
+    "modifiers": {"deep": [-0.12, 0.05], "dark": [-0.12, 0.0], "pale": [0.14, -0.1], "light": [0.1, 0.0], "bright": [0.04, 0.2]}
+  },
+  "hair": {
+    "phrases": {
+      "salt and pepper": "#6d6a66", "strawberry blonde": "#8c5b3c", "dirty blonde": "#7d6340", "dark blonde": "#7d6340", "light blonde": "#b09a6a", "platinum": "#b9b2a2",
+      "jet black": "#14100e", "golden brown": "#5e4128", "reddish brown": "#5a3322", "ash brown": "#5a4a3c", "dark brown": "#33241a", "light brown": "#6e4f35",
+      "chestnut": "#5a3a28", "auburn": "#5e2f20", "ginger": "#7a3b22", "copper": "#7a3b22", "red": "#7a3b22", "blonde": "#9a7a4e", "blond": "#9a7a4e",
+      "golden": "#9a7a4e", "brown": "#4b3324", "black": "#1b1411", "white": "#c9c4ba", "silver": "#8a8782", "gray": "#8a8782", "grey": "#8a8782"
+    },
+    "ignore": ["bald", "shaved", "pastel pink", "bright blue", "lavender", "teal", "platinum silver", "vivid red", "mint green", "pink", "green", "purple", "violet", "magenta"]
+  },
+  "dyed": {
+    "pastel pink": "#e9a6c0", "bright blue": "#2f6fd6", "lavender": "#b59ad6", "teal": "#2a9a98", "platinum silver": "#c9ccd2", "vivid red": "#c2262e", "mint green": "#8fd6b0",
+    "pink": "#d36f9a", "green": "#4f9a5a", "purple": "#7a4f9a", "violet": "#7a4fa6", "magenta": "#b0307a"
+  },
+  "hair_styles": {
+    "none": ["bald", "hairless", "shaved head", "shaven head", "shaved"],
+    "other": ["shoulder", "braid", "braids", "braided", "plait", "plaits", "ponytail", "pony tail", "tail", "bun", "bob", "queue", "locs", "dreadlocks", "afro", "mane", "updo",
+              "pinned up", "victory rolls", "snood", "bandana", "kerchief", "medium length", "chin length", "curtain bangs", "topknot", "top knot", "mohawk", "wisps", "patchy"],
+    "long": ["long", "very long", "waist length", "hip length", "back length", "mid back"],
+    "not_long": ["bun", "buns", "updo", "pinned", "pinned up", "victory rolls", "topknot", "top knot", "bob", "chin length", "medium length", "shoulder length", "mohawk", "afro",
+                 "snood", "bandana", "kerchief"],
+    "long_near": ["braid", "braids", "braided", "plait", "plaits", "ponytail", "pony tail", "tail", "queue", "locs", "dreadlocks", "mane", "curtain bangs", "wisps", "patchy",
+                  "shoulder", "tied", "bound", "gathered"],
+    "sweep": ["swept", "side swept", "side parted", "parted", "fringe", "bangs", "quiff", "combed", "slicked", "pompadour"],
+    "crop": ["short", "cropped", "crop", "buzz", "crew", "pixie", "regulation", "undercut", "back and sides", "close cut"]
+  }
+}

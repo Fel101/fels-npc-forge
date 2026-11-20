@@ -1,0 +1,119 @@
+{
+  "label": "Adventurers' guild",
+  "short": "Guild",
+  "blurb": "A JRPG fantasy world of quests and dungeons: adventurers, guild staff, mage students, summoners and the occasional demon lord.",
+  "order": 10,
+  "place": "guild hall",
+  "context": "JRPG fantasy adventurers' guild character, vivid and heroic",
+  "origin_label": "Race",
+
+  "races": {
+    "human":     {"label": "Human", "weight": 60, "phrase": ""},
+    "elf":       {"label": "Elf", "weight": 8, "phrase": "elf", "features": "long pointed ears and striking, ageless features", "builds": ["slim", "tall and lanky", "athletic"],
+                  "hair_colors": {"silver": 3, "platinum blonde": 3, "emerald green": 1, "sky blue": 1, "black": 2, "white": 2}},
+    "beastkin":  {"label": "Beastkin", "weight": 10, "phrase": "beastkin", "features": "a pair of animal ears and a matching tail", "builds": ["slim", "athletic", "petite", "average"]},
+    "demon":     {"label": "Demon", "weight": 6, "phrase": "demon", "features": "small curling horns and faintly glowing eyes", "skin": ["ivory pale", "dusky violet", "deep red", "ash gray"], "builds": ["slim", "athletic", "average"],
+                  "hair_colors": {"black": 4, "deep red": 3, "violet": 2, "white": 2}},
+    "dwarf":     {"label": "Dwarf", "weight": 5, "phrase": "dwarf", "features": "a stocky, powerful frame and a proudly braided beard", "builds": ["stocky", "muscular", "heavyset"],
+                  "hair_colors": {"red": 3, "black": 2, "brown": 2, "gray": 2, "copper": 2}},
+    "dragonkin": {"label": "Dragonkin", "weight": 3, "phrase": "dragonkin", "features": "faint scale patterns along the jaw and sharp slitted eyes", "skin": ["pale blue-gray", "deep crimson", "emerald-tinted"], "builds": ["athletic", "muscular", "tall and lanky"],
+                  "hair_colors": {"silver": 2, "crimson": 2, "black": 2, "white": 2}}
+  },
+  "hair_color_choices": ["black", "dark brown", "brown", "chestnut", "auburn", "red", "deep red", "copper", "blonde", "platinum blonde", "silver", "emerald green", "sky blue", "violet", "white", "gray", "crimson"],
+
+  "names": {
+    "female": ["Lyra", "Iris", "Fiora", "Sable", "Wren", "Celest", "Nadia", "Aeliana", "Yuna", "Mira", "Selene", "Thalia", "Rin", "Elara", "Ivy", "Freya", "Noa", "Saria"],
+    "male": ["Kael", "Roan", "Theron", "Finn", "Ezra", "Cyrus", "Leon", "Ryn", "Adrian", "Soren", "Dain", "Cato", "Aric", "Kaito", "Rhett", "Idris", "Wolfe", "Tobin"],
+    "neutral": ["Ash", "Sage", "Lark", "Remy", "Vale", "Kit", "Reed", "Skye"],
+    "surnames": ["Windwalker", "Duskbane", "Silverlock", "Ashgrove", "Stormrider", "Nightshade", "Frostholm", "Emberlyn", "Thornwood", "Brightblade", "Moonwhisper", "Ravencrest", "Goldleaf", "Direwood", "Starfall", "Blackwell", "Wyrmspire", "Hallowmere"]
+  },
+
+  "hobbies": [
+    "leveling up at the training grounds", "polishing {poss} weapon until it gleams", "studying old spellbooks",
+    "sparring at the guild yard", "collecting monster cores", "brewing potions in secret", "mapping uncharted dungeon floors",
+    "taming small monsters as pets", "sketching magic circles", "trading rumors at the tavern", "practicing summoning chants",
+    "restringing {poss} bow", "sharpening throwing knives", "reading quest boards for fun", "studying ancient runes",
+    "racing across the rooftops", "collecting rare ingredients", "meditating to grow {poss} mana"
+  ],
+  "quirks": [
+    "naming every weapon {subj} owns", "talking to {poss} familiar like an old friend",
+    "checking {poss} mana reserves out of habit", "never turning down a dare", "keeping a lucky charm from {poss} first quest",
+    "muttering spell components under {poss} breath", "counting monster kills in a battered journal",
+    "refusing to enter a dungeon on an even-numbered day", "sniffing potions before drinking them",
+    "practicing {poss} guild rank salute alone", "arguing with {poss} own reflection about tactics",
+    "leaving small offerings at every shrine passed"
+  ],
+  "goals": [
+    "reaching S-rank before {subj} turns thirty", "finding the dungeon that took {poss} mentor",
+    "earning enough to retire from questing", "proving commoners can out-duel nobles",
+    "unlocking {poss} true elemental affinity", "clearing the labyrinth no one's returned from",
+    "opening a shop of {poss} own", "being trusted with an S-rank party", "finding {poss} missing party member",
+    "becoming the guild's next master", "breaking the curse on {poss} blade", "surviving one clean, quiet week"
+  ],
+  "peeves": [
+    "quest boards picked clean by dawn", "cocky new recruits", "cursed loot that won't identify",
+    "monsters that respawn overnight", "guild fees", "party members who skip the briefing",
+    "potions that taste like swamp water", "dungeons with no clear exit", "nobles who think gold outranks skill",
+    "rain during an outdoor quest"
+  ],
+  "accessories": [
+    "a guild badge pinned to the collar", "a runic pendant", "a coiled whip at the hip", "a spellbook on a chain",
+    "a quiver of enchanted arrows", "a small vial of glowing potion", "a signet ring from a forgotten house",
+    "a familiar's feather tucked in a pocket", "a dagger etched with old runes", "a battered adventurer's log"
+  ],
+  "default_outfits": [
+    "a fitted leather cuirass over a traveler's tunic, reinforced gloves and sturdy boots",
+    {"t": "a light armored dress with a flowing cloak, thigh-high boots and fingerless gloves", "g": "female"},
+    "a hooded mage's robe cinched with a wide belt, soft boots and fingerless gloves"
+  ],
+
+  "_tables": "The next two entries replace the shared tables in common.json for this setting only (same shape): no modern hair dye in a fantasy world (the races already carry unusual natural colours), and a few magic-flavoured distinguishing marks.",
+  "dyed_hair_colors": [],
+  "distinguishing": [
+    {"label": "none", "w": 45},
+    {"label": "freckles across the nose", "w": 6},
+    {"label": "a small mole on the cheek", "w": 3},
+    {"label": "dimples", "w": 3},
+    {"label": "a faint glowing rune scar on one hand", "w": 5},
+    {"label": "a thin scar from a training duel", "w": 5},
+    {"label": "a birthmark shaped like a crescent moon", "w": 3},
+    {"label": "a small scar through one eyebrow", "w": 3},
+    {"label": "faintly luminous eyes", "w": 4},
+    {"label": "a burn mark from a spell gone wrong", "w": 3},
+    {"label": "a birthmark on the neck", "w": 2}
+  ],
+
+  "occupations": [
+    {"id": "novice", "label": "novice adventurer", "weight": 3, "min_age": 15, "outfits": ["a patchwork leather vest over a traveler's tunic, fingerless gloves and worn boots, a battered short sword at the hip"]},
+    {"id": "veteran", "label": "veteran adventurer", "weight": 2, "min_age": 22, "outfits": ["a reinforced leather cuirass over chainmail, a well-worn cloak and sturdy boots, a longsword at the hip"]},
+    {"id": "receptionist", "label": "guild receptionist", "weight": 1.5, "min_age": 18, "outfits": [
+      {"t": "a tailored guild uniform vest over a blouse, a long skirt and neat flats", "g": "female"},
+      {"t": "a tailored guild uniform vest over a shirt, trousers and polished shoes", "g": "male"}]},
+    {"id": "guildmaster", "label": "guild master", "weight": 0.4, "min_age": 35, "outfits": ["an ornate embroidered coat over fine robes, a guild medallion and polished boots"]},
+    {"id": "weaponsmith", "label": "weaponsmith", "weight": 1.5, "outfits": ["a scorched leather apron over a sooty tunic, thick gloves and heavy boots"]},
+    {"id": "alchemist", "label": "potion brewer", "weight": 1.2, "outfits": ["a stained apron over a robe, vials on a bandolier and soft boots"]},
+    {"id": "student", "label": "mage academy student", "weight": 1.5, "min_age": 14, "max_age": 22, "outfits": ["an oversized star-patterned robe cinched at the waist, a pointed cap and soft boots"]},
+    {"id": "battlemage", "label": "battle mage", "weight": 1, "outfits": ["a fitted robe reinforced with leather plating, a runed staff and sturdy boots"]},
+    {"id": "summoner", "label": "summoner", "weight": 0.8, "outfits": ["a flowing dark robe with silver embroidery, a summoning charm at the belt and soft boots"]},
+    {"id": "healer", "label": "cleric", "weight": 1.2, "outfits": ["a white and gold hooded robe with a holy symbol pendant and soft sandals"]},
+    {"id": "beastmaster", "label": "beastmaster", "weight": 0.8, "outfits": ["a rugged leather jerkin, a coiled whip at the hip, thick gloves and worn boots"]},
+    {"id": "guide", "label": "dungeon guide", "weight": 1, "outfits": ["a hooded traveling cloak over leather armor, a lantern at the belt and sturdy boots"]},
+    {"id": "bountyhunter", "label": "bounty hunter", "weight": 1, "outfits": ["worn leather armor with a hood, a crossbow across the back and heavy boots"]},
+    {"id": "merchant", "label": "traveling merchant", "weight": 1.5, "outfits": ["a colorful layered coat with many pockets, a wide-brimmed hat and sturdy boots"]},
+    {"id": "tavernkeeper", "label": "guild tavern keeper", "weight": 1, "outfits": [
+      {"t": "a laced bodice over a blouse, a long skirt and an apron", "g": "female"},
+      {"t": "a linen shirt with rolled sleeves, a leather vest and an apron", "g": "male"}]},
+    {"id": "bard", "label": "bard", "weight": 1, "outfits": ["a bright embroidered doublet with a feathered cap, a lute strapped across the back and soft boots"]},
+    {"id": "rogue", "label": "rogue", "weight": 1, "min_age": 16, "outfits": ["a fitted dark leather outfit with many hidden pockets and soft-soled boots"]},
+    {"id": "tank", "label": "hired blade", "weight": 1, "outfits": ["heavy plate armor over padded cloth, a tower shield on the back and steel boots"]},
+    {"id": "scout", "label": "scout", "weight": 1.2, "outfits": ["a hooded green-gray cloak over leather armor, a longbow across the back and worn boots"]},
+    {"id": "demonlord", "label": "demon lord", "weight": 0.15, "min_age": 25, "outfits": ["an ornate dark regal coat with sweeping trim, small curling horns visible, and polished black boots"]},
+    {"id": "hero", "label": "chosen hero", "weight": 0.15, "min_age": 16, "outfits": ["a radiant white-and-gold tunic with a ceremonial cape, an heirloom blade at the hip and polished boots"]},
+    {"id": "enchanter", "label": "enchanter", "weight": 0.7, "outfits": ["a fine robe stitched with faintly glowing thread, a satchel of runes and soft shoes"]},
+    {"id": "archivist", "label": "guild archivist", "weight": 0.8, "outfits": ["a modest robe with ink-stained cuffs, a satchel of scrolls and soft shoes"]},
+    {"id": "clerk", "label": "quest board clerk", "weight": 1, "outfits": ["a plain guild tabard over a shirt, trousers and simple shoes"]},
+    {"id": "apprentice", "label": "blacksmith apprentice", "weight": 1, "min_age": 14, "max_age": 20, "outfits": ["a scorched apron over a plain tunic, thick gloves and worn boots"]},
+    {"id": "retired", "label": "retired adventurer", "weight": 1, "min_age": 50, "outfits": ["a faded travel cloak over simple clothes, a walking staff and worn boots"]},
+    {"id": "squire", "label": "young squire", "weight": 1, "min_age": 13, "max_age": 17, "outfits": ["an oversized borrowed tunic, a leather practice vest and worn boots"]}
+  ]
+}

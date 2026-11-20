@@ -1,0 +1,138 @@
+{
+  "label": "Noir detective",
+  "short": "Noir",
+  "blurb": "A rain-slicked 1940s city of trench coats and neon signs: private eyes, gangsters, reporters and nightclub singers.",
+  "order": 8,
+  "place": "city",
+  "context": "1940s film noir detective city character, in period-accurate clothing",
+  "origin_label": "Heritage",
+
+  "names": {
+    "female": ["Dorothy", "Mildred", "Evelyn", "Rosalind", "Vivian", "Gloria", "Peggy", "Bernice", "Maxine", "Dottie", "Lorraine", "Gwen", "Adele", "Barbara", "Shirley", "Colette", "Marlene", "Ruthie"],
+    "male": ["Vincent", "Walter", "Nathaniel", "Eddie", "Sal", "Frank", "Dutch", "Lou", "Nico", "Gordon", "Stanley", "Rex", "Sammy", "Vic", "Murray", "Chester", "Leo", "Artie"],
+    "neutral": ["Frankie", "Lou", "Sammy", "Jo", "Mickey", "Charlie"],
+    "surnames": ["Malone", "Castellano", "Reyes", "Donnelly", "Kowalczyk", "Voss", "Marchetti", "Sinclair", "DeLuca", "O'Bannon", "Whitfield", "Costa", "Brennan", "Vance", "Larkin", "Moretti", "Halloran", "Reznik", "Argento", "Doyle", "Sabatini", "Ferraro"]
+  },
+
+  "hobbies": [
+    "playing solitaire at the automat", "listening to the ballgame on the radio", "shooting pool at the pool hall",
+    "reading pulp detective magazines", "collecting jazz records", "playing poker in the back room",
+    "writing letters that never get sent", "watching the trains come in", "sketching strangers at the diner counter",
+    "practicing card tricks", "following the horse races", "restoring an old typewriter", "dancing at the corner ballroom",
+    "collecting matchbooks from every joint in town", "cleaning a revolver that's never fired", "reading the racing forms",
+    "humming along to the radio serials"
+  ],
+  "quirks": [
+    "never taking {poss} hat off indoors", "lighting a cigarette before answering a question",
+    "keeping a flask in the coat pocket", "counting exits the moment {subj} walks into a room",
+    "tipping {poss} hat to every stranger on the street", "never trusting anyone who won't look {obj} in the eye",
+    "keeping the office bottle in the bottom drawer", "reading the obituaries before the front page",
+    "tapping ash into an empty coffee cup", "talking to {poss} own reflection while shaving",
+    "flipping a nickel when {subj} can't decide", "keeping a photograph {subj} never explains"
+  ],
+  "goals": [
+    "finding out who set {obj} up", "getting out of this town for good", "clearing {poss} name before the file closes",
+    "paying off a debt to the wrong people", "finding the one who skipped town", "making it to the coast with the money still in the case",
+    "putting the Castellano outfit away for good", "getting the truth into tomorrow's paper", "earning enough to leave the beat behind",
+    "finding out who's really running the numbers racket", "keeping the family name out of the papers", "getting one clean break, just once"
+  ],
+  "peeves": [
+    "cops on the take", "cheap gin", "a phone that won't stop ringing", "people who lie without blinking",
+    "a stakeout in the rain", "empty promises", "a landlord who won't wait", "a story that doesn't add up",
+    "smoke-filled rooms with no exit", "a tail {subj} can't shake"
+  ],
+  "accessories": [
+    "a battered fedora", "a silver cigarette case", "a pair of brass knuckles in the coat pocket", "a pocket flask",
+    "a press badge clipped to the lapel", "a string of pearls", "a monogrammed handkerchief",
+    "a hip flask engraved with someone else's initials", "a revolver in a shoulder holster", "a locket with a photograph inside",
+    "a folded racing form in the breast pocket", "a matchbook from a club that burned down"
+  ],
+  "default_outfits": [
+    "a rumpled trench coat over a white shirt and loosened tie, dark trousers and worn oxfords",
+    {"t": "a fitted wool dress with padded shoulders, seamed stockings and low pumps", "g": "female"},
+    "a pinstripe suit with wide lapels, a fedora and polished two-tone shoes"
+  ],
+
+  "_tables": "The next four entries replace the shared tables in common.json for this setting only (same shape): 1940s hairstyles and facial hair, period eyewear, no undercuts or dye.",
+  "dyed_hair_colors": [],
+  "hair_styles": [
+    {"label": "victory rolls pinned above the forehead", "w": [3, 0, 0.2], "tex": true},
+    {"label": "shoulder-length waves", "w": [4, 0, 0.5], "tex": true},
+    {"label": "neat finger-waved bob", "w": [3, 0, 0.3], "tex": true},
+    {"label": "hair pinned up in a snood", "w": [1.5, 0, 0.2], "tex": true},
+    {"label": "long hair rolled and pinned at the back", "w": [2, 0, 0.3], "tex": true},
+    {"label": "short, tightly curled hair", "w": [1, 0, 0.6], "tex": true},
+    {"label": "short back and sides, neatly combed", "w": [0.2, 4, 1], "tex": true},
+    {"label": "slicked-back hair with a side part", "w": [0.1, 4, 1], "tex": true},
+    {"label": "close-cropped military-cut hair", "w": [0, 2, 0.5], "tex": false},
+    {"label": "box braids pinned up", "w": [0.8, 0, 0.2], "tex": false, "only": ["coily", "curly"]},
+    {"label": "natural curls cropped close", "w": [0.5, 1, 0.5], "tex": false, "only": ["coily"]},
+    {"label": "bald", "w": [0, 0.8, 0.2], "bald": true}
+  ],
+  "facial_hair": [
+    {"label": "clean-shaven", "w": 55},
+    {"label": "light stubble", "w": 8},
+    {"label": "a thin pencil mustache", "w": 18},
+    {"label": "a short trimmed mustache", "w": 10},
+    {"label": "a neat mustache and goatee", "w": 5},
+    {"label": "mutton chops", "w": 2},
+    {"label": "a full beard", "w": 2}
+  ],
+  "glasses": [
+    {"label": "none", "w": 75},
+    {"label": "round tortoiseshell glasses", "w": 10},
+    {"label": "round wire-rimmed glasses", "w": 8},
+    {"label": "cat-eye glasses", "w": 5, "g": ["female", "nonbinary"]},
+    {"label": "a monocle", "w": 2}
+  ],
+  "distinguishing": [
+    {"label": "none", "w": 48},
+    {"label": "freckles across the nose", "w": 6},
+    {"label": "a small mole on the cheek", "w": 4},
+    {"label": "a thin scar along the jaw", "w": 4},
+    {"label": "a crooked, once-broken nose", "w": 5},
+    {"label": "nicotine-stained fingertips", "w": 6},
+    {"label": "a fading bruise under one eye", "w": 4},
+    {"label": "dimples", "w": 3},
+    {"label": "a chipped front tooth", "w": 2},
+    {"label": "a birthmark on the neck", "w": 2},
+    {"label": "tired eyes with deep circles", "w": 6}
+  ],
+
+  "occupations": [
+    {"id": "pi", "label": "private investigator", "weight": 1.5, "min_age": 26, "outfits": ["a rumpled trench coat over a shirt and loosened tie, dark trousers and worn oxfords, a revolver in a shoulder holster"]},
+    {"id": "detective", "label": "police detective", "weight": 1.2, "min_age": 27, "outfits": ["a sharp overcoat over a shirt and tie, a badge clipped to the lapel and polished oxfords"]},
+    {"id": "beatcop", "label": "beat cop", "weight": 2, "min_age": 21, "outfits": ["a dark blue wool uniform with brass buttons, a peaked cap and heavy boots"]},
+    {"id": "captain", "label": "police captain", "weight": 0.5, "min_age": 38, "outfits": ["a decorated dark uniform coat, a peaked cap with braid trim and polished shoes"]},
+    {"id": "enforcer", "label": "mob enforcer", "weight": 1.2, "min_age": 22, "outfits": ["a double-breasted pinstripe suit, a wide-brimmed fedora and polished spats"]},
+    {"id": "mobboss", "label": "mob boss", "weight": 0.5, "min_age": 35, "outfits": ["a sharply tailored charcoal suit, a silk tie, a gold pocket watch and polished wingtips"]},
+    {"id": "singer", "label": "nightclub singer", "weight": 1, "min_age": 20, "outfits": ["a fitted sequined gown with a slit skirt, long gloves and satin heels"]},
+    {"id": "cigarettegirl", "label": "cigarette girl", "weight": 0.8, "min_age": 18, "max_age": 30, "outfits": ["a short pillbox hat, a fitted vest, a tray on a neck strap and seamed stockings"]},
+    {"id": "bartender", "label": "bartender", "weight": 1.5, "min_age": 21, "outfits": ["a white shirt with sleeve garters, a black vest and a long white apron"]},
+    {"id": "clubowner", "label": "nightclub owner", "weight": 0.6, "min_age": 30, "outfits": ["a velvet dinner jacket over a crisp shirt, a bow tie and polished patent shoes"]},
+    {"id": "reporter", "label": "newspaper reporter", "weight": 1.5, "outfits": ["a rumpled shirt with rolled sleeves, a loosened tie, suspenders and scuffed shoes, a press badge in the hatband"]},
+    {"id": "editor", "label": "newspaper editor", "weight": 0.5, "min_age": 35, "outfits": ["a waistcoat over a starched shirt, sleeve garters and a green eyeshade"]},
+    {"id": "pawnbroker", "label": "pawnbroker", "weight": 0.7, "min_age": 30, "outfits": ["a worn cardigan over a shirt, wire spectacles and a loupe on a cord"]},
+    {"id": "tailor", "label": "tailor", "weight": 0.6, "outfits": ["a fine waistcoat with a pincushion at the wrist, a measuring tape around the neck"]},
+    {"id": "cabdriver", "label": "cab driver", "weight": 1.5, "outfits": ["a flat cap, a worn wool jacket over a sweater vest and scuffed shoes"]},
+    {"id": "switchboard", "label": "switchboard operator", "weight": 1, "min_age": 18, "outfits": ["a fitted blouse with a headset, a pencil skirt and low pumps"]},
+    {"id": "secretary", "label": "secretary", "weight": 1.5, "min_age": 18, "outfits": [
+      {"t": "a tailored blouse and pencil skirt, seamed stockings and low pumps", "g": "female"},
+      {"t": "a shirt and tie under a cardigan, trousers and oxford shoes", "g": "male"}]},
+    {"id": "coroner", "label": "coroner", "weight": 0.5, "min_age": 30, "outfits": ["a white coat over a shirt and tie, thin rubber gloves and worn oxfords"]},
+    {"id": "judge", "label": "judge", "weight": 0.4, "min_age": 45, "outfits": ["a black robe over a crisp shirt and tie, half-moon spectacles"]},
+    {"id": "attorney", "label": "defense attorney", "weight": 0.6, "min_age": 28, "outfits": ["a sharp pinstripe suit, a silk tie and polished oxfords, carrying a leather briefcase"]},
+    {"id": "guard", "label": "prison guard", "weight": 0.6, "min_age": 24, "outfits": ["a dark gray uniform with a badge, a baton at the belt and heavy boots"]},
+    {"id": "boxer", "label": "boxer", "weight": 0.8, "min_age": 18, "max_age": 40, "outfits": ["a worn robe over strapped hands, loose trousers and canvas shoes"]},
+    {"id": "musician", "label": "jazz musician", "weight": 1, "outfits": ["a sharp suit with a loosened tie and two-tone shoes, carrying a battered instrument case"]},
+    {"id": "photographer", "label": "press photographer", "weight": 0.6, "outfits": ["a rumpled jacket over a shirt, a press pass in the hatband, carrying a large flash camera"]},
+    {"id": "doorman", "label": "hotel doorman", "weight": 0.6, "outfits": ["a braided uniform coat with brass buttons and a peaked cap"]},
+    {"id": "socialite", "label": "socialite", "weight": 0.8, "min_age": 20, "outfits": [
+      {"t": "a fitted satin evening gown with elbow-length gloves and a fur stole", "g": "female"},
+      {"t": "a black tuxedo with a silk-lined cape and polished patent shoes", "g": "male"}]},
+    {"id": "politician", "label": "city politician", "weight": 0.5, "min_age": 40, "outfits": ["a fine wool suit with a silk pocket square, a boutonniere and polished shoes"]},
+    {"id": "bootlegger", "label": "small-time bootlegger", "weight": 0.8, "min_age": 20, "outfits": ["a scuffed leather jacket over a sweater vest, canvas trousers and worn boots"]},
+    {"id": "informant", "label": "informant", "weight": 0.8, "outfits": ["a shabby overcoat over a thin sweater, patched trousers and worn shoes"]},
+    {"id": "retiredcop", "label": "retired cop", "weight": 0.6, "min_age": 55, "outfits": ["a faded uniform cardigan over a shirt, plain trousers and worn shoes, carrying a cane"]}
+  ]
+}

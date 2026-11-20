@@ -1,0 +1,46 @@
+{
+  "_readme": "How a character's sheet becomes the skin marks of a designed body (npcgen/marks.py). The Body Designer paints six kinds of permanent skin marks in eleven places (bodydesigner/skin_marks.py: its size ranges are read from its catalogue, never copied here); this table says which words of the sheet's distinguishing and extra fields name which kind (`kinds`), which name something it does not paint (`unmade`: said, never guessed), which name a place (`places`) and which name a place it has no equivalent for (`no_place`: the mark is left out and said), what a mark starts as (`defaults`: its size in millimetres, its strength, and where it goes when the sheet names no place: freckles and vitiligo are spread over the skin, so they have places; a scar, a mole, a beauty mark or a birthmark is somewhere in particular, so when `place_required` is set and the sheet names none it is left out and said) and how a word like 'small' or 'faded' changes it (`modifiers`: factors for the size and the strength). A place word belongs to the mark word before it, for at most `reach` words and only through a list of places ('the nose, cheeks and shoulders'), or to the one right after it ('a cheek scar'); a sentence or a semicolon ends a reading, so 'a scar across the brow and a small mole on the cheek' is two marks. Left and right are the character's own. Read fresh on every request.",
+  "reach": 8,
+  "kinds": {
+    "beauty_mark": ["beauty mark", "beauty marks", "beauty spot", "beauty spots"],
+    "birthmark": ["birthmark", "birthmarks", "birth mark", "port wine stain"],
+    "vitiligo": ["vitiligo"],
+    "freckles": ["freckles", "freckle", "freckled", "freckly"],
+    "mole": ["moles", "mole"],
+    "scar": ["scars", "scarred", "scarring", "scar"]
+  },
+  "unmade": ["tattoos", "tattoo", "tattooed", "burns", "burn", "dimples", "dimple", "acne", "pimples", "blemishes", "bioluminescent", "spots", "markings"],
+  "places": {
+    "face": "face", "nose": "nose",
+    "cheek": "cheeks", "cheeks": "cheeks", "cheekbone": "cheeks", "cheekbones": "cheeks",
+    "forehead": "forehead", "brow": "forehead", "brows": "forehead", "eyebrow": "forehead", "eyebrows": "forehead", "hairline": "forehead", "temple": "forehead", "temples": "forehead",
+    "neck": "neck", "throat": "neck",
+    "shoulder": "shoulders", "shoulders": "shoulders",
+    "arm": "arms", "arms": "arms", "forearm": "arms", "forearms": "arms", "wrist": "arms", "wrists": "arms", "elbow": "arms", "elbows": "arms",
+    "hand": "hands", "hands": "hands", "knuckle": "hands", "knuckles": "hands", "finger": "hands", "fingers": "hands",
+    "chest": "chest", "back": "back",
+    "leg": "legs", "legs": "legs", "thigh": "legs", "thighs": "legs", "knee": "legs", "knees": "legs", "calf": "legs", "calves": "legs", "shin": "legs", "shins": "legs"
+  },
+  "no_place": ["lip", "lips", "mouth", "chin", "jaw", "ear", "ears", "eye", "eyes", "eyelid", "eyelids", "scalp", "head", "belly", "stomach", "abdomen", "torso", "waist", "hip", "hips", "foot", "feet", "ankle", "ankles", "toe", "toes", "buttocks", "palm", "palms"],
+  "defaults": {
+    "freckles": {"size": 45, "strength": 0.65, "places": [{"place": "nose"}, {"place": "cheeks", "side": "both"}]},
+    "vitiligo": {"size": 38, "strength": 1.0, "places": [{"place": "hands", "side": "both", "size": 30}, {"place": "cheeks", "side": "one", "size": 34}, {"place": "arms", "side": "one", "size": 42}]},
+    "mole": {"size": 5, "strength": 1.0, "place_required": true},
+    "beauty_mark": {"size": 4, "strength": 1.0, "place_required": true},
+    "birthmark": {"size": 30, "strength": 0.85, "place_required": true},
+    "scar": {"size": 36, "strength": 1.0, "place_required": true}
+  },
+  "modifiers": {
+    "tiny": {"size": 0.5}, "small": {"size": 0.7}, "little": {"size": 0.7}, "short": {"size": 0.7}, "thin": {"size": 0.9, "strength": 0.85},
+    "large": {"size": 1.4}, "big": {"size": 1.4}, "long": {"size": 1.4}, "wide": {"size": 1.3}, "huge": {"size": 1.8}, "jagged": {"size": 1.2},
+    "faint": {"strength": 0.7}, "faded": {"strength": 0.7}, "slight": {"strength": 0.7}, "subtle": {"strength": 0.7},
+    "heavy": {"strength": 1.4}, "dense": {"strength": 1.4}, "prominent": {"strength": 1.3}, "deep": {"strength": 1.2}
+  },
+  "scar": {
+    "direction": {"cheeks": 35, "forehead": 90, "face": 25, "neck": 80, "shoulders": 60, "arms": 0, "hands": 70, "chest": 60, "back": 0, "legs": 0, "nose": 0},
+    "across_direction": {"cheeks": 60, "forehead": 90, "face": 90, "neck": 90, "shoulders": 90, "arms": 90, "hands": 90, "chest": 90, "back": 90, "legs": 90, "nose": 90},
+    "dark": ["fresh", "livid", "angry", "red", "recent", "raw"],
+    "pale": ["old", "faded", "white", "pale", "silvery", "healed", "faint"]
+  },
+  "phrase_starts": ["a", "an", "the", "his", "her", "their", "several", "some", "many", "few", "tiny", "small", "little", "short", "thin", "large", "big", "long", "wide", "huge", "jagged", "faint", "faded", "slight", "subtle", "heavy", "dense", "prominent", "deep", "old", "fresh", "pale", "white", "dueling", "duelling"]
+}

@@ -1,0 +1,162 @@
+{
+  "label": "Steampunk",
+  "short": "Steampunk",
+  "blurb": "Brass, steam and clockwork: airship captains, sky pirates, gadget-slinging outlaws and inventors on a lawless frontier where the railway ends and the smog begins.",
+  "order": 17,
+  "place": "airship port",
+  "context": "steampunk character, Victorian-inspired clothing with brass and leather details",
+  "origin_label": "Heritage",
+
+  "names": {
+    "female": ["Adelaide", "Beatrice", "Cordelia", "Evangeline", "Florence", "Georgiana", "Harriet", "Imogen", "Lavinia", "Millicent",
+               "Octavia", "Philippa", "Rosamund", "Temperance", "Victoria", "Winifred", "Ada", "Clara", "Edith", "Josephine", "Lucinda", "Nell"],
+    "male": ["Archibald", "Bartholomew", "Cornelius", "Ebenezer", "Fitzgerald", "Gideon", "Horatio", "Jeremiah", "Leopold", "Montgomery",
+             "Nathaniel", "Percival", "Rupert", "Septimus", "Thaddeus", "Wellington", "Albert", "Edmund", "Isaac", "Jasper", "Silas", "Virgil"],
+    "neutral": ["Ashby", "Brass", "Cinder", "Emory", "Kit", "Marlowe", "Quill", "Sterling"],
+    "surnames": ["Cogsworth", "Brassington", "Fairweather", "Blackwood", "Thornbury", "Pemberton", "Ashcombe", "Gearhart", "Whitlock",
+                 "Coppersmith", "Hargreaves", "Kettleby", "Ironside", "Steamwright", "Harrowgate", "Merriweather", "Quimby", "Rivets",
+                 "Valentine", "Wolcott", "Crankshaw", "Everhart", "Holloway", "Sprocket", "Tinsley", "Winterbourne"]
+  },
+
+  "hobbies": [
+    "tinkering with a pocket-watch that tells more than time", "sketching airship designs on napkins", "racing steam velocipedes",
+    "collecting rare brass gears", "reading penny dreadfuls", "cataloguing beetles under a brass microscope", "fencing at the club",
+    "playing cards on the observation deck", "building clockwork birds", "flying kites from the airship mooring tower",
+    "brewing strong tea in a copper samovar", "writing letters to the Royal Society", "sharpshooting at bottles",
+    "reading the stars with a brass sextant", "tuning an old player piano", "trading tall tales at the dockside pub",
+    "polishing goggle lenses", "sketching maps of uncharted skies"
+  ],
+  "quirks": [
+    "winding {poss} pocket-watch whenever nervous", "wearing goggles pushed up even indoors", "tapping every pipe to hear if it rings true",
+    "quoting obscure patents from memory", "never trusting anything without rivets", "checking the barometer before every decision",
+    "taking notes in a tiny leather notebook", "sniffing the air for coal smoke", "tipping {poss} hat to machines",
+    "carrying a spanner everywhere, just in case", "talking to {poss} airship as if it were a horse", "adjusting {poss} cravat constantly"
+  ],
+  "goals": [
+    "building an airship faster than any other", "patenting an invention before a rival steals it", "finding the lost sky city",
+    "paying off the debt on {poss} workshop", "clearing {poss} name of a crime {subj} didn't commit", "winning the great aether race",
+    "earning a seat at the Inventors' Guild", "mapping the storm fronts beyond the frontier", "tracking down the outlaw who robbed {poss} family",
+    "opening a clockwork repair shop of {poss} own", "proving that engines can think", "retiring to a quiet cottage without a single gear in it"
+  ],
+  "peeves": [
+    "a whistle that won't stop screeching", "cheap brass that turns green", "smog on laundry day", "someone touching {poss} tools",
+    "a pocket-watch running two minutes slow", "boiler explosions", "sky pirates who don't keep their word", "tea gone cold",
+    "people who call it 'just a machine'", "leaky valves"
+  ],
+  "accessories": [
+    "brass goggles pushed up on the forehead", "a top hat with a small gear band", "a mechanical arm brace of polished brass",
+    "a pocket-watch on a long gold chain", "a leather tool roll on the belt", "a clockwork bird perched on one shoulder",
+    "a brass spyglass on a strap", "a pistol with copper coils in a hip holster", "a leather satchel of blueprints",
+    "a monocle with extra magnifying lenses", "a steam-powered backpack with small pipes", "a mechanical pet beetle in one hand",
+    "a cane with a brass gear-shaped head", "a parasol lined with copper wire"
+  ],
+  "default_outfits": [
+    "a brown leather waistcoat over a linen shirt with rolled sleeves, trousers with braces and buckled boots",
+    {"t": "a brown leather corset over a high-collared blouse, a bustled skirt and buckled boots", "g": "female"},
+    {"t": "a tweed waistcoat over a collarless shirt, a cravat, trousers and buckled boots", "g": "male"}
+  ],
+
+  "_tables": "The next entries replace the shared tables in common.json for this setting only (same shape): Victorian-inspired hair, whiskers, goggles and brass marks, and no modern dyed colours. Every hair label names 'hair' so the roller never adds ' hairstyle'.",
+  "dyed_hair_colors": [],
+  "hair_styles": [
+    {"label": "hair pinned up in a loose Victorian bun", "w": [4, 0, 0.5], "tex": true},
+    {"label": "long hair in a braided crown", "w": [2, 0, 0.3], "tex": true},
+    {"label": "ringlet curls of hair tied with a ribbon", "w": [2, 0, 0.3], "tex": true},
+    {"label": "hair in a windswept aviator's bob", "w": [2, 0.2, 1], "tex": true},
+    {"label": "long hair loose under a flying cap", "w": [1.5, 0.3, 1], "tex": true},
+    {"label": "short hair neatly oiled and side-parted", "w": [0.2, 4, 1], "tex": true},
+    {"label": "wild, soot-streaked hair sticking up at the back", "w": [1, 2, 1], "tex": true},
+    {"label": "hair tied back in a short tail", "w": [1, 2, 1], "tex": true},
+    {"label": "close-cropped hair", "w": [0.3, 2, 1], "tex": false},
+    {"label": "hair in braids pinned up with brass clips", "w": [0.8, 0, 0.3], "tex": false, "only": ["coily", "curly"]},
+    {"label": "natural curly hair under a goggled flying cap", "w": [0.6, 0.6, 0.5], "tex": false, "only": ["coily", "curly"]},
+    {"label": "bald", "w": [0, 1, 0.2], "bald": true}
+  ],
+  "facial_hair": [
+    {"label": "clean-shaven", "w": 40},
+    {"label": "a waxed handlebar mustache", "w": 14},
+    {"label": "mutton chops", "w": 10},
+    {"label": "a neat goatee", "w": 6},
+    {"label": "a full bushy beard", "w": 8},
+    {"label": "a thin mustache", "w": 8},
+    {"label": "light stubble", "w": 8},
+    {"label": "sideburns joined by a mustache", "w": 6}
+  ],
+  "glasses": [
+    {"label": "none", "w": 60},
+    {"label": "brass aviator goggles over the eyes", "w": 14},
+    {"label": "small round tinted spectacles", "w": 10},
+    {"label": "a monocle", "w": 6},
+    {"label": "multi-lens magnifying goggles", "w": 6},
+    {"label": "wire-rimmed spectacles", "w": 4}
+  ],
+  "distinguishing": [
+    {"label": "none", "w": 45},
+    {"label": "a brass mechanical eye", "w": 5},
+    {"label": "soot smudges on the cheek", "w": 8},
+    {"label": "a scar from a boiler burn along the jaw", "w": 4},
+    {"label": "freckles across the nose", "w": 6},
+    {"label": "grease-stained fingers", "w": 6},
+    {"label": "a copper plate riveted at the temple", "w": 3},
+    {"label": "a pale line where goggles usually sit", "w": 5},
+    {"label": "a dueling scar on one cheek", "w": 3},
+    {"label": "a small gear tattoo behind the ear", "w": 4}
+  ],
+
+  "occupations": [
+    {"id": "captain", "label": "airship captain", "weight": 1.2, "min_age": 30, "outfits": [
+      "a long navy greatcoat with brass buttons and epaulettes, a captain's hat with goggles, a white shirt and tall boots"]},
+    {"id": "skypirate", "label": "sky pirate", "weight": 2, "outfits": [
+      "a patched leather flight coat, a striped shirt, a bandolier of tools and pistols, goggles and tall buckled boots",
+      {"t": "a leather corset over a loose shirt, a patched flight coat, a bandolier and tall buckled boots", "g": "female"}]},
+    {"id": "aeronaut", "label": "aeronaut", "weight": 1.5, "min_age": 20, "outfits": [
+      "a fleece-lined leather flying jacket, a scarf, a leather flying cap with goggles, jodhpurs and lace-up boots"]},
+    {"id": "inventor", "label": "inventor", "weight": 2, "outfits": [
+      "a scorched leather apron over a waistcoat and rolled shirt sleeves, a belt of tiny tools, goggles and heavy boots"]},
+    {"id": "engineer", "label": "boiler engineer", "weight": 1.5, "outfits": [
+      "soot-stained overalls over a vest, thick gloves, a large wrench and hobnailed boots"]},
+    {"id": "clockmaker", "label": "clockmaker", "weight": 1, "min_age": 25, "outfits": [
+      "a velvet waistcoat, sleeve garters, a loupe on a chain, pinstripe trousers and polished shoes"]},
+    {"id": "outlaw", "label": "clockwork outlaw", "weight": 1.5, "min_age": 18, "outfits": [
+      "a long dusty duster coat, a bandana, a brass-plated gun arm, a wide-brimmed hat and spurred boots"]},
+    {"id": "bountyhunter", "label": "bounty hunter", "weight": 1, "min_age": 22, "outfits": [
+      "a dark leather coat with brass buckles, a crossbow with a clockwork crank on the back, a bowler hat and heavy boots"]},
+    {"id": "gearknight", "label": "steam knight", "weight": 0.6, "min_age": 22, "outfits": [
+      "steam-powered brass armour with pipes on the back and a riveted breastplate, the helmet off, and heavy iron boots"]},
+    {"id": "aristocrat", "label": "aristocrat", "weight": 0.8, "min_age": 20, "outfits": [
+      {"t": "an elegant bustled gown in plum silk with brass clockwork jewellery and lace gloves, with button boots", "g": "female"},
+      {"t": "a tailored frock coat with a silk cravat, a brass-buttoned waistcoat, a top hat and polished shoes", "g": "male"}]},
+    {"id": "detective", "label": "consulting detective", "weight": 0.8, "min_age": 25, "outfits": [
+      "a tweed inverness cape, a deerstalker hat with a small lens attachment, a waistcoat, trousers and brogues"]},
+    {"id": "alchemist", "label": "aether alchemist", "weight": 0.8, "min_age": 22, "outfits": [
+      "a long lab coat with brass buttons, glowing vials on a bandolier, rubber gloves, goggles and boots"]},
+    {"id": "mechanic", "label": "automaton mechanic", "weight": 1.2, "outfits": [
+      "grease-stained coveralls with rolled sleeves, a utility belt full of screwdrivers, goggles and work boots"]},
+    {"id": "railway", "label": "railway conductor", "weight": 0.8, "min_age": 25, "outfits": [
+      "a navy conductor's uniform with brass buttons, a peaked cap, a ticket punch and polished boots"]},
+    {"id": "smuggler", "label": "smuggler", "weight": 1, "min_age": 18, "outfits": [
+      "a hooded oilskin coat with hidden pockets, fingerless gloves, a scarf over the chin and soft boots"]},
+    {"id": "barkeep", "label": "airship tavern keeper", "weight": 1, "min_age": 25, "outfits": [
+      "a striped waistcoat over a white shirt with sleeve garters, a long apron and sturdy boots"]},
+    {"id": "courier", "label": "pneumatic post courier", "weight": 1, "max_age": 45, "outfits": [
+      "a fitted jacket with brass buttons, a message canister satchel, a peaked cap and lace-up boots"]},
+    {"id": "miner", "label": "aether crystal miner", "weight": 1, "outfits": [
+      "dusty overalls, a helmet with a brass lamp, thick gloves and heavy boots"]},
+    {"id": "surgeon", "label": "prosthetics surgeon", "weight": 0.6, "min_age": 30, "outfits": [
+      "a blood-flecked apron over a waistcoat, magnifying goggles, rubber gloves and polished shoes"]},
+    {"id": "showman", "label": "travelling showman", "weight": 0.6, "min_age": 25, "outfits": [
+      "a red ringmaster's tailcoat with gold braid, a top hat with gears, white gloves and shiny boots"]},
+    {"id": "gunsmith", "label": "gunsmith", "weight": 0.8, "min_age": 22, "outfits": [
+      "a leather apron over a collarless shirt, sleeve garters, a jeweller's loupe and heavy boots"]},
+    {"id": "scholar", "label": "royal society scholar", "weight": 0.6, "min_age": 28, "outfits": [
+      "a tweed jacket with elbow patches, a bow tie, spectacles on a chain, trousers and brogues"]},
+    {"id": "streetvendor", "label": "street vendor", "weight": 1, "outfits": [
+      "a patched coat over a knitted vest, a flat cap, fingerless gloves and worn boots"]},
+    {"id": "retired", "label": "retired aeronaut", "weight": 0.8, "min_age": 55, "max_age": 99, "outfits": [
+      "a faded flying jacket over a knitted cardigan, a scarf, trousers and slippers"]},
+    {"id": "urchin", "label": "chimney sweep urchin", "weight": 1, "min_age": 7, "max_age": 12, "outfits": [
+      "a sooty oversized coat, a flat cap, fingerless gloves and worn boots"]},
+    {"id": "apprentice", "label": "workshop apprentice", "weight": 1, "min_age": 13, "max_age": 17, "outfits": [
+      "an oversized leather apron over a shirt, too-big goggles and scuffed boots"]}
+  ]
+}

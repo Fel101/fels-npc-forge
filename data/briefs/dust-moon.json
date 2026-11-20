@@ -1,0 +1,22 @@
+[
+  {
+    "key": "dustmoon-burrower",
+    "id": "DUSTMOON-BURROWER",
+    "project": "dust-moon",
+    "name": "Burrower",
+    "form": "Burrower, a segmented sand worm (Dust Moon raider)",
+    "shore": "",
+    "body_plan": "serpentine",
+    "rigged": true,
+    "makeable": true,
+    "tier": null,
+    "route": "Trellis2, serpentine rig",
+    "prompt": "Stylised 3D game concept art, render3d style, Burrower, a segmented sand worm about two metres long, slung low along the ground and seen from the side, head on the left and a thin tail on the right. A round head with a beak of three hard plates, sandy orange segments ringed with dark brown bands, and short bristles along the belly. Soft even studio light, the full creature visible, centred, no ground shadow. Flat solid green background.",
+    "brief": "A segmented sand worm about two metres long, slung low along the ground and seen from the side, head on the left and a thin tail on the right. A round head with a beak of three hard plates, sandy orange segments ringed with dark brown bands, and short bristles along the belly.",
+    "length_m": 2.0,
+    "role": "raider: it surfaces under camps and drags supplies away",
+    "silhouette": "a low segmented worm, head on the left and a thin tail on the right, about 2.3 times as long as it is high",
+    "size": "2.0 m long, about 0.8 m high at its tallest",
+    "palette": "sandy orange segments with dark brown bands, and one cool colour: a pale blue-grey beak"
+  }
+]

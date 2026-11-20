@@ -1,0 +1,91 @@
+{
+  "_readme": "What the clothing designer (npcgen/clothing.py) offers on top of the Body Designer's garments (bodydesigner/garments.py, which owns the kinds, their defaults and the ranges of looseness and length: they are read from its catalogue, never copied here). The Body Designer also says what it does not offer and why (`control_notes`, shown under the slider), and what it still reads of a design saved earlier. `fields` are the labels, units, steps and hints the editor shows; `choices` the cloth lists; `colours` the swatches (the colours of data/outfit.json, so a sheet's outfit and a designed garment use the same ones); `words` are what 'Set the controls from my words' understands: `ease` words set the looseness in millimetres, `length` words the length as a multiple of the usual one, `cloth` words the cloth. A word that is not here changes nothing. Read fresh on every request.",
+  "fields": {
+    "ease_mm": {"label": "Looseness", "unit": "mm", "step": 0.5, "hint": "How far the cloth stands off the body. 0 is skin tight; a shirt is usually 8 to 16 mm, trousers 2 to 6 mm; a jacket, an apron, a skirt and a dress start at 0."},
+    "length": {"label": "Length", "unit": "×", "step": 0.01, "hint": "The hem, as a multiple of the usual length: below 1 is shorter, above 1 longer. The ends of the slider are the lengths the Body Designer fits."}
+  },
+  "choices": {
+    "texture": {"plain": "Plain", "weave": "Woven (a faint weave in the cloth)"}
+  },
+  "colours": [
+    {"id": "white", "label": "White", "hex": "#e6e3dc"},
+    {"id": "cream", "label": "Cream", "hex": "#e8dcc0"},
+    {"id": "beige", "label": "Beige", "hex": "#d2bf9d"},
+    {"id": "tan", "label": "Tan", "hex": "#b89468"},
+    {"id": "camel", "label": "Camel", "hex": "#b98a5a"},
+    {"id": "khaki", "label": "Khaki", "hex": "#a89a6a"},
+    {"id": "olive", "label": "Olive", "hex": "#6b6e3a"},
+    {"id": "sage", "label": "Sage", "hex": "#8d9f84"},
+    {"id": "green", "label": "Green", "hex": "#4a7a4c"},
+    {"id": "forest", "label": "Forest green", "hex": "#2f5a3a"},
+    {"id": "teal", "label": "Teal", "hex": "#2f7a80"},
+    {"id": "sky", "label": "Sky blue", "hex": "#8fb4d8"},
+    {"id": "blue", "label": "Blue", "hex": "#3f6ba8"},
+    {"id": "navy", "label": "Navy", "hex": "#243456"},
+    {"id": "indigo", "label": "Indigo", "hex": "#2f3a78"},
+    {"id": "lavender", "label": "Lavender", "hex": "#b3a0d0"},
+    {"id": "purple", "label": "Purple", "hex": "#6f4a8e"},
+    {"id": "burgundy", "label": "Burgundy", "hex": "#6c2232"},
+    {"id": "red", "label": "Red", "hex": "#b03a35"},
+    {"id": "rust", "label": "Rust", "hex": "#9a4a2a"},
+    {"id": "orange", "label": "Orange", "hex": "#cf7a35"},
+    {"id": "mustard", "label": "Mustard", "hex": "#c49a2c"},
+    {"id": "pink", "label": "Pink", "hex": "#d98aa0"},
+    {"id": "brown", "label": "Brown", "hex": "#6e4a32"},
+    {"id": "gray", "label": "Gray", "hex": "#7d8084"},
+    {"id": "charcoal", "label": "Charcoal", "hex": "#3b3d42"},
+    {"id": "black", "label": "Black", "hex": "#26272b"}
+  ],
+  "refusals": [
+    {"code": "cut.volume", "plain": "the Body Designer could not close the cloth at this length on this body"},
+    {"code": "garment.fit.underwear", "plain": "the garment would sit inside this body's underwear"},
+    {"code": "garment.fit.clearance", "plain": "the garment would cut into this body at rest"},
+    {"code": "garment.fit.shoulder", "plain": "this body's shoulders leave no place for the straps"},
+    {"code": "garment.fit.neck", "plain": "this body's neck leaves no place for the neckline"},
+    {"code": "garment.body", "plain": "this is not a body the Body Designer can dress"},
+    {"code": "garment.dress", "plain": "the garment could not be added to this body's file"},
+    {"code": "garment.recipe", "plain": "the Body Designer did not accept these settings"},
+    {"code": "jacket.fit.clearance", "plain": "the jacket would cut into this body at rest"},
+    {"code": "jacket.fit.underwear", "plain": "the jacket would sit inside this body's underwear"},
+    {"code": "jacket.fit.torso", "plain": "this body's chest and neck leave the jacket no place to sit"},
+    {"code": "jacket.fit.budget", "plain": "this body needs more cloth for the jacket than the Body Designer allows"},
+    {"code": "jacket.cut", "plain": "the Body Designer could not close the cloth of the jacket for this body"},
+    {"code": "jacket.pattern", "plain": "the Body Designer could not close the cloth of the jacket for this body"},
+    {"code": "jacket.fit.hem", "plain": "this body needs more room at the jacket's side seams than the jacket has"},
+    {"code": "apron.fit.clearance", "plain": "the apron would cut into this body at rest"},
+    {"code": "apron.fit.bib", "plain": "this body's chest leaves no place for the apron's bib"},
+    {"code": "apron.fit.neck", "plain": "this body's neck leaves no place for the apron's neck loop"},
+    {"code": "apron.fit.sections", "plain": "the Body Designer could not cut the apron for this body's trunk and legs"},
+    {"code": "apron.pattern", "plain": "the Body Designer could not close the cloth of the apron for this body"},
+    {"code": "skirt.fit.waist", "plain": "this body's waist leaves no place for the skirt's waistband at this looseness"},
+    {"code": "skirt.fit.section", "plain": "the Body Designer could not find this body's hips and legs to cut the skirt"},
+    {"code": "skirt.fit.clearance", "plain": "the skirt would cut into this body at rest"},
+    {"code": "skirt.pattern", "plain": "the Body Designer could not close the cloth of the skirt for this body"},
+    {"code": "dress.fit.waist", "plain": "the Body Designer could not wrap the dress around this body's waist"},
+    {"code": "dress.fit.upper", "plain": "this body's torso leaves no place for the dress's bodice"},
+    {"code": "dress.fit.lower", "plain": "the dress's skirt cannot clear this body at the waist"},
+    {"code": "dress.fit.hem", "plain": "the Body Designer could not close the hem and the opening of the dress for this body"},
+    {"code": "dress.fit.fabric", "plain": "the dress folds or closes unevenly on this body"},
+    {"code": "dress.fit.topology", "plain": "the Body Designer could not sew the upper cloth of the dress for this body"},
+    {"code": "dress.fit.clearance", "plain": "the dress would cut into this body or its underwear at rest"},
+    {"code": "dress.pattern", "plain": "the Body Designer could not close the cloth of the dress"}
+  ],
+  "words": {
+    "ease": [
+      {"say": "skin tight", "mm": 0.0, "phrases": ["skin tight", "skintight", "second skin", "clingy", "very tight", "tight"]},
+      {"say": "snug", "mm": 3.0, "phrases": ["snug", "fitted", "form fitting", "close fitting", "slim fit", "slim", "tailored"]},
+      {"say": "relaxed", "mm": 15.0, "phrases": ["relaxed", "loose fitting", "loose", "roomy", "comfortable", "generous"]},
+      {"say": "baggy", "mm": 20.0, "phrases": ["baggy", "oversized", "very loose", "billowy", "boxy"]}
+    ],
+    "length": [
+      {"say": "cropped", "length": 0.8, "phrases": ["cropped", "crop", "very short", "extra short"]},
+      {"say": "shorter", "length": 0.9, "phrases": ["short", "shorter", "short length"]},
+      {"say": "longer", "length": 1.1, "phrases": ["long", "longer", "full length", "ankle length", "tunic length"]},
+      {"say": "extra long", "length": 1.2, "phrases": ["extra long", "very long", "floor length"]}
+    ],
+    "cloth": [
+      {"say": "woven cloth", "texture": "weave", "phrases": ["woven", "weave", "tweed", "canvas", "linen", "wool", "woollen", "woolen", "homespun", "textured", "coarse", "rough", "burlap"]},
+      {"say": "plain cloth", "texture": "plain", "phrases": ["plain", "smooth", "flat", "solid colour", "solid color", "silky", "satin", "silk"]}
+    ]
+  }
+}

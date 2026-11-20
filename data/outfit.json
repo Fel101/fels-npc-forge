@@ -1,0 +1,30 @@
+{
+  "_readme": "How a character's outfit text becomes the garments of a designed body (npcgen/outfit.py). The Body Designer makes a sleeveless shirt, fitted trousers, an open jacket, a bib apron, a knee-length skirt and a sleeveless knee-length dress, so this table says which words of a sheet name a shirt, which name trousers, which name a jacket, an apron, a skirt or a dress (`makes`), and which name something it cannot make yet (said, never guessed). `top`: a shirt-like word. `cover`: a sleeveless layer that covers the chest (a vest, a bodice): its colour is the chest's. `outer`: a jacket or a coat, which shows the shirt: a stand-in for one only when none is named. `wrap`: a cloak or an apron, never a stand-in. `makes`: which of those words are put on as the Body Designer's open jacket (a short jacket open at the front: jacket, blazer, cardigan) and its bib apron (apron), as its knee-length skirt (skirt: a kilt, shorts, a sarong and a loincloth are not skirts, so they are said and not made) and as its sleeveless dress (dress and gown: a robe, a toga, a kimono, a cassock, a swimsuit, a bikini and a leotard are not that dress, so they are said and not made); a coat is longer and is not made, and a word of `makes` stands in for the colour of the shirt only when it is not put on (put on, the jacket goes over a shirt that keeps its own colour). A word of `makes` in a part of the text that also names a dress ('a blazer dress') belongs to the dress and is not put on. A skirt takes the place of trousers (a sheet that names both gets the skirt, and says so) and is worn with a shirt; a dress takes the place of the shirt and the trousers, and is worn on its own. The skirt of a gown is the gown's own. `armour`: worn over everything, not made. `bottom`: trousers. `whole`: one garment for the chest and the legs (a uniform: a shirt and trousers in its colour). `dress`: covers the chest and the legs, so no stand-in is put on; `skirt`: covers the legs only. `ignore` are phrases that only look like garments ('top hat'). `rename` are phrases with a dress word in them that name something else ('dress shoes', 'a dress shirt', 'a dress uniform', 'a surgical gown'): they are read as what they are (`shoes`, `shirt`, `uniform`, `robe`), so that dress shoes are never taken for a dress. A word also names its plural. A garment's colour is read from its own part of the text (the parts are split at a comma, 'and', 'over', 'with'...): the colour words and modifiers of `cloth`, the explicit ones before the colour of a material the part names (`materials`: 'canvas' is tan, 'jeans' denim), in the order cover, top, outer, whole; when it names none, the Body Designer's plain colour is used.",
+  "ignore": ["top hat", "top hats", "top boots", "top knot", "suit of", "tank engine"],
+  "rename": {"dress shoes": "shoes", "dress shoe": "shoes", "dress boots": "boots", "dress boot": "boots", "dress shirts": "shirts", "dress shirt": "shirt", "dress pants": "pants", "dress trousers": "trousers", "dress slacks": "slacks", "dress uniform": "uniform", "dress coat": "coat", "dress jacket": "jacket", "dress gloves": "gloves", "dress hat": "hat", "dressing gown": "robe", "hospital gown": "robe", "surgical gown": "robe", "medical gown": "robe", "lab gown": "robe"},
+  "top": ["shirt", "blouse", "tank top", "tank", "crop top", "halter top", "top", "tee", "t shirt", "tunic", "sweater", "jumper", "jersey", "henley", "polo", "camisole", "sweatshirt", "pullover", "undershirt", "smock", "turtleneck"],
+  "cover": ["vest", "waistcoat", "gilet", "jerkin", "bodice", "corset", "tabard"],
+  "outer": ["jacket", "coat", "blazer", "cardigan", "hoodie", "tailcoat", "overcoat", "greatcoat", "raincoat", "parka", "windbreaker", "duster"],
+  "wrap": ["cloak", "cape", "apron", "shawl", "poncho", "scarf"],
+  "armour": ["armor", "armour", "breastplate", "chainmail", "hauberk", "cuirass"],
+  "bottom": ["trousers", "pants", "jeans", "slacks", "breeches", "britches", "leggings", "chinos", "cargos", "sweatpants", "joggers", "pantaloons", "culottes"],
+  "whole": ["coveralls", "jumpsuit", "bodysuit", "overalls", "dungarees", "uniform", "fatigues", "scrubs", "suit", "boilersuit", "flight suit", "catsuit", "tracksuit", "wetsuit", "unitard"],
+  "dress": ["dress", "gown", "robe", "toga", "kimono", "cassock", "swimsuit", "bikini", "leotard"],
+  "skirt": ["skirt", "kilt", "shorts", "sarong", "loincloth"],
+  "makes": {"jacket": ["jacket", "blazer", "cardigan"], "apron": ["apron"], "skirt": ["skirt"], "dress": ["dress", "gown"]},
+  "cloth": {
+    "phrases": {"navy blue": "#243456", "sky blue": "#8fb4d8", "royal blue": "#2f4fae", "forest green": "#2f5a3a", "olive green": "#6b6e3a", "bottle green": "#2f5a44", "blood red": "#8f1f1f", "burnt orange": "#b8602a"},
+    "colours": {
+      "white": "#e6e3dc", "black": "#26272b", "gray": "#7d8084", "grey": "#7d8084", "charcoal": "#3b3d42", "silver": "#aeb2b8", "navy": "#243456", "blue": "#3f6ba8", "indigo": "#2f3a78",
+      "teal": "#2f7a80", "turquoise": "#3aa6a0", "green": "#4a7a4c", "olive": "#6b6e3a", "sage": "#8d9f84", "mint": "#9fd0b8", "yellow": "#d6b73c", "mustard": "#c49a2c", "gold": "#c9a23a",
+      "ochre": "#b98a2e", "orange": "#cf7a35", "rust": "#9a4a2a", "rusty": "#9a4a2a", "red": "#b03a35", "crimson": "#8f2438", "burgundy": "#6c2232", "maroon": "#6a2430", "pink": "#d98aa0",
+      "purple": "#6f4a8e", "violet": "#7a5aa4", "lavender": "#b3a0d0", "lilac": "#b9a0c8", "brown": "#6e4a32", "tan": "#b89468", "camel": "#b98a5a", "khaki": "#a89a6a", "beige": "#d2bf9d",
+      "cream": "#e8dcc0", "ivory": "#efe6d2", "copper": "#a8603a", "bronze": "#9a6a38"
+    },
+    "modifiers": {
+      "dark": [-0.14, 0.0], "light": [0.12, -0.05], "pale": [0.16, -0.12], "faded": [0.06, -0.15], "bright": [0.0, 0.2], "deep": [-0.1, 0.1], "dusty": [0.0, -0.15], "muted": [0.0, -0.15],
+      "washed": [0.08, -0.15], "rich": [-0.05, 0.1], "vivid": [0.0, 0.25], "pastel": [0.2, -0.1], "dull": [0.0, -0.12]
+    }
+  },
+  "materials": {"canvas": "#b5a583", "linen": "#d9cdb2", "leather": "#5b3d28", "homespun": "#c9b99a", "oilcloth": "#5a5a3a", "fur": "#6b5038", "jeans": "#3f5578", "denim": "#3f5578"}
+}

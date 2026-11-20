@@ -1,0 +1,27 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  pytest:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ["3.10", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - run: python -m pip install -r requirements.txt pytest
+      # The suite needs no GPU and no ComfyUI: the API tests point ComfyUI at a closed port on purpose.
+      - run: python -m pytest
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      # The page's own modules, run under Node (the *_real checks need a running NPC Forge and are not run here).
+      - run: node --test scripts/check_scene_studio.mjs scripts/check_scene_history.mjs scripts/check_soft_preview.mjs scripts/check_scene_director.mjs scripts/check_scene_motion.mjs scripts/check_voice_workspace.mjs

@@ -1,0 +1,413 @@
+{
+  "checked": "2026-10-13",
+  "disclaimer": "This is what each model's own page or licence file declares, read on the date shown, in plain words. It is not legal advice and it does not cover the law of your country (for instance whether pictures made by an AI can be protected by copyright, or what a lookalike of someone else's character can cost you). Read the licence itself before you ship anything.",
+  "statuses": [
+    {"id": "yes", "label": "Commercial use allowed", "short": "OK for commercial work", "meaning": "The licence puts no limit on commercial use beyond keeping its notice (Apache-2.0, MIT, BSD, CC0)."},
+    {"id": "conditions", "label": "Allowed, with conditions", "short": "Check the conditions", "meaning": "Commercial use is allowed, but the licence adds conditions you must read: where it applies, how many users you may have, uses that are forbidden."},
+    {"id": "unclear", "label": "Not cleared", "short": "Not cleared", "meaning": "The licence text and the authors' own statements disagree, or the licence depends on something this program cannot know. Do not rely on it for work you sell."},
+    {"id": "no", "label": "Non-commercial only", "short": "Not for commercial work", "meaning": "The licence allows research, evaluation or personal use only. Using it for work you sell needs a separate licence from its owner."}
+  ],
+  "kinds": [
+    {"id": "picture", "label": "Pictures: drawing and editing"},
+    {"id": "three_d", "label": "3D models"},
+    {"id": "voice", "label": "Voices"},
+    {"id": "tool", "label": "Helpers: finding joints and hair, sharpening, checking"},
+    {"id": "data", "label": "Ready-made animation and body data"}
+  ],
+  "notes": [
+    "ComfyUI (GPL-3.0) and Blender (GPL-3.0) are programs NPC Forge runs; their licences cover the programs, not what they make. Blender says what you export is yours.",
+    "LM Studio and the model you load there only write an opinion for the optional 3D check: none of it is part of a character, and its licence is whatever the model you choose carries.",
+    "The photo of a real person you may give NPC Forge is your responsibility: only use photos you have the right to use, of people who agreed."
+  ],
+  "models": [
+    {
+      "id": "mage", "kind": "picture", "role": "creates",
+      "name": "Mage-Flow and Mage-Flow-Edit (built in)",
+      "licence": "MIT licence, but its authors say research use only",
+      "status": "unclear",
+      "short": "Microsoft says it is for research, not for products or services",
+      "summary": "The licence file is MIT, which would allow commercial use, but Microsoft's own README says the models are released for research purposes only and are not intended for product or service deployment. The two statements disagree, and nothing says who owns what it draws. Until that is settled, do not rely on it for work you sell: draw with Qwen-Image 2512 (the default) or Z-Image Turbo, and edit with Qwen-Image-Edit 2511 (the default).",
+      "used_for": "Pictures and edits when it is chosen in Models (the Scenes tab's 3D stage backgrounds follow that choice too), and the picture another engine could not draw when the fallback is switched on (it is off by default since 2026-10-13, and Qwen-Image 2512 and Qwen-Image-Edit 2511 are the default engines).",
+      "links": [{"label": "Mage on GitHub", "url": "https://github.com/microsoft/Mage"}],
+      "licence_url": "https://github.com/microsoft/Mage#license",
+      "checked": "2026-10-13",
+      "selectors": ["image:mage", "edit:mage"]
+    },
+    {
+      "id": "zimage", "kind": "picture", "role": "creates",
+      "name": "Z-Image Turbo",
+      "licence": "Apache-2.0",
+      "status": "yes",
+      "short": "Free for commercial use",
+      "summary": "Apache-2.0: free to use commercially, no royalty, and the licence puts no limit on what you do with the pictures. The text encoder it loads (Qwen3-4B) is Apache-2.0 too. It leans toward famous characters (a long-haired pirate captain came out as Jack Sparrow every time), so look at its pictures for lookalikes of someone else's character before you ship them.",
+      "used_for": "Pictures from a description (portraits, sprites drawn from the description).",
+      "links": [{"label": "Z-Image Turbo", "url": "https://huggingface.co/Tongyi-MAI/Z-Image-Turbo"}],
+      "licence_url": "https://www.apache.org/licenses/LICENSE-2.0",
+      "checked": "2026-10-13",
+      "selectors": ["image:zimage"]
+    },
+    {
+      "id": "qwen2512", "kind": "picture", "role": "creates",
+      "name": "Qwen-Image 2512 + Lightning 4-step LoRA",
+      "licence": "Apache-2.0",
+      "status": "yes",
+      "short": "Free for commercial use",
+      "summary": "Apache-2.0 for the model, its Lightning speed-up LoRA and the text encoder it loads (Qwen2.5-VL 7B): free to use commercially, with no limit on what you do with the pictures. Not to be confused with Qwen Image 2.1, which is a different model with a non-commercial licence.",
+      "used_for": "Pictures from a description (portraits, sprites drawn from the description).",
+      "links": [{"label": "Qwen-Image 2512", "url": "https://huggingface.co/Qwen/Qwen-Image-2512"}, {"label": "Lightning LoRA", "url": "https://huggingface.co/lightx2v/Qwen-Image-Lightning"}],
+      "licence_url": "https://www.apache.org/licenses/LICENSE-2.0",
+      "checked": "2026-10-13",
+      "selectors": ["image:qwen2512"]
+    },
+    {
+      "id": "qwen2511", "kind": "picture", "role": "creates",
+      "name": "Qwen-Image-Edit 2511 + Lightning 4-step LoRA",
+      "licence": "Apache-2.0",
+      "status": "yes",
+      "short": "Free for commercial use",
+      "summary": "Apache-2.0 for the model, its Lightning speed-up LoRA and the text encoder it loads (Qwen2.5-VL 7B): free to use commercially, with no limit on what you do with the pictures. Not to be confused with Qwen Image 2.1 Edit, which has a non-commercial licence.",
+      "used_for": "Editing pictures: sprites matched to the portrait, expressions, model-sheet views, animation frames, 3D-model pictures.",
+      "links": [{"label": "Qwen-Image-Edit 2511", "url": "https://huggingface.co/Qwen/Qwen-Image-Edit-2511"}, {"label": "Lightning edit LoRA", "url": "https://huggingface.co/lightx2v/Qwen-Image-Edit-2511-Lightning"}],
+      "licence_url": "https://www.apache.org/licenses/LICENSE-2.0",
+      "checked": "2026-10-13",
+      "selectors": ["edit:qwen2511"]
+    },
+    {
+      "id": "qwen2511_realism", "kind": "picture", "role": "creates",
+      "name": "Ultra-Realistic Portrait LoRA for Qwen-Image-Edit 2511",
+      "licence": "Apache-2.0", "status": "yes", "short": "Free for commercial use",
+      "summary": "Apache-2.0: free to use commercially. An optional add-on to Qwen-Image-Edit 2511 (whose own terms are on its entry) that makes skin, fabric and light more photographic. Only the Adult studio offers it, and only when it is picked.",
+      "used_for": "Adult studio pictures, when the 'Qwen + realism LoRA' engine is chosen.",
+      "uses": ["qwen2511"],
+      "links": [{"label": "Ultra-Realistic Portrait LoRA", "url": "https://huggingface.co/prithivMLmods/Qwen-Image-Edit-2511-Ultra-Realistic-Portrait"}],
+      "licence_url": "https://www.apache.org/licenses/LICENSE-2.0",
+      "checked": "2026-11-20",
+      "selectors": ["edit:qwen2511_realism"]
+    },
+    {
+      "id": "qwen21", "kind": "picture", "role": "creates",
+      "name": "Qwen Image 2.1 and Qwen Image 2.1 Edit",
+      "licence": "Qwen Research License (non-commercial)",
+      "status": "no",
+      "short": "Research and evaluation only: not for work you sell",
+      "summary": "The Qwen Research License allows research and evaluation only: using the model for any commercial purpose needs a separate licence from Alibaba's Tongyi Lab. Pictures drawn with it must not go into a game or product you sell. It is a different model from Qwen-Image 2512 and Qwen-Image-Edit 2511, which are Apache-2.0: pick those for commercial work.",
+      "used_for": "Pictures from a description (Qwen Image 2.1) and picture edits (Qwen Image 2.1 Edit).",
+      "links": [{"label": "Qwen Image 2.1", "url": "https://huggingface.co/Qwen/Qwen-Image-2.1"}],
+      "licence_url": "https://huggingface.co/Qwen/Qwen-Image-2.1/blob/main/LICENSE",
+      "checked": "2026-10-13",
+      "selectors": ["image:qwen21", "edit:qwen21_edit"]
+    },
+    {
+      "id": "hunyuan21", "kind": "three_d", "role": "creates",
+      "name": "Hunyuan3D v2.1",
+      "licence": "Tencent Hunyuan Community License",
+      "status": "conditions",
+      "short": "Not licensed in the EU, UK and South Korea",
+      "summary": "What it makes may be used commercially, but only in the licence's Territory: everywhere except the European Union, the United Kingdom and South Korea. Using the model or its output there is unlicensed, so a game sold in those places cannot use models made with it. A product or service with more than 1 million monthly active users needs Tencent's approval first, and its output must not be used to improve other AI models.",
+      "used_for": "3D shapes made from the sprite or the model sheet's front picture.",
+      "links": [{"label": "Hunyuan3D 2.1", "url": "https://huggingface.co/tencent/Hunyuan3D-2.1"}],
+      "licence_url": "https://github.com/Tencent-Hunyuan/Hunyuan3D-2.1/blob/main/LICENSE",
+      "checked": "2026-10-13",
+      "selectors": ["three_d:hunyuan21"]
+    },
+    {
+      "id": "pixal3d", "kind": "three_d", "role": "creates",
+      "name": "Pixal3D multi-view",
+      "licence": "MIT",
+      "status": "yes",
+      "short": "Free for commercial use (it reads DINOv3, which has its own conditions)",
+      "summary": "MIT (Copyright 2026 Tencent): free to use commercially. It reads image features from DINOv3, which has its own conditions (see DINOv3), so a model made with it is rated by the stricter of the two.",
+      "used_for": "3D models made from the four model-sheet pictures, and the detailed head.",
+      "links": [{"label": "Pixal3D", "url": "https://huggingface.co/TencentARC/Pixal3D"}],
+      "licence_url": "https://huggingface.co/TencentARC/Pixal3D/blob/main/LICENSE",
+      "checked": "2026-10-13",
+      "selectors": ["three_d:pixal3d"],
+      "uses": ["dinov3"]
+    },
+    {
+      "id": "trellis2", "kind": "three_d", "role": "creates",
+      "name": "Trellis2 four pictures (TRELLIS.2-4B and its node pack)",
+      "licence": "MIT",
+      "status": "yes",
+      "short": "Free for commercial use (it reads DINOv3, which has its own conditions)",
+      "summary": "TRELLIS.2-4B (Microsoft) and the ComfyUI node pack are MIT: free to use commercially. The generator also loads Pixal3D's multi-view model (MIT), DINOv3 features (its own conditions) and BiRefNet to cut the pictures out (MIT), so a model made with it is rated by the strictest of them.",
+      "used_for": "3D shapes made from the four model-sheet pictures (painted afterwards by the clean-up).",
+      "links": [{"label": "TRELLIS.2-4B", "url": "https://huggingface.co/microsoft/TRELLIS.2-4B"}, {"label": "Node pack", "url": "https://github.com/visualbruno/ComfyUI-Trellis2"}],
+      "licence_url": "https://github.com/visualbruno/ComfyUI-Trellis2/blob/HEAD/LICENSE",
+      "checked": "2026-10-13",
+      "selectors": ["three_d:trellis2"],
+      "uses": ["pixal3d", "dinov3", "birefnet"]
+    },
+    {
+      "id": "trellis2_single", "kind": "three_d", "role": "creates",
+      "name": "Trellis2 one picture (the creature route: TRELLIS.2-4B and its node pack)",
+      "licence": "MIT",
+      "status": "yes",
+      "short": "Free for commercial use (it reads DINOv3, which has its own conditions)",
+      "summary": "The creature route runs TRELLIS.2-4B (Microsoft) from one concept picture, through the same MIT node pack as Trellis2 four pictures. It reads DINOv3 features (its own conditions) and cuts the picture out with BiRefNet (MIT), so a creature made with it is rated by the strictest of them.",
+      "used_for": "Creatures (NPC Forge's Creatures tab): a 3D shape made from one concept picture, before the game-model step.",
+      "links": [{"label": "TRELLIS.2-4B", "url": "https://huggingface.co/microsoft/TRELLIS.2-4B"}, {"label": "Node pack", "url": "https://github.com/visualbruno/ComfyUI-Trellis2"}],
+      "licence_url": "https://github.com/visualbruno/ComfyUI-Trellis2/blob/HEAD/LICENSE",
+      "checked": "2026-10-13",
+      "selectors": ["three_d:trellis2_single"],
+      "uses": ["dinov3", "birefnet"]
+    },
+    {
+      "id": "imported", "kind": "three_d", "role": "creates",
+      "name": "A 3D model made elsewhere (imported)",
+      "licence": "Whatever licence it came with",
+      "status": "unclear",
+      "short": "Depends on where the model came from",
+      "summary": "A model you bring in keeps its own licence, which NPC Forge cannot see. Check where it came from (a generator's terms, a marketplace licence, your own work) before you rely on it.",
+      "used_for": "Characters whose 3D model was imported with 'Import a 3D model made elsewhere'.",
+      "links": [],
+      "licence_url": "",
+      "checked": "2026-10-13",
+      "selectors": ["three_d:import"]
+    },
+    {
+      "id": "dinov3", "kind": "three_d", "role": "creates",
+      "name": "DINOv3 image features",
+      "licence": "DINOv3 License (Meta)",
+      "status": "conditions",
+      "short": "Commercial use allowed; no military or weapons uses",
+      "summary": "Commercial use is allowed. The licence forbids uses that break export or sanctions rules, and uses for military or warfare, nuclear industries, espionage, guns or illegal weapons. Anyone you pass the weights to gets the same licence. NPC Forge does not pass them on: you download them yourself.",
+      "used_for": "The image features Pixal3D and Trellis2 read from the pictures when they make a 3D shape.",
+      "links": [{"label": "DINOv3 ViT-L/16", "url": "https://huggingface.co/facebook/dinov3-vitl16-pretrain-lvd1689m"}],
+      "licence_url": "https://ai.meta.com/resources/models-and-libraries/dinov3-license/",
+      "checked": "2026-10-13",
+      "selectors": []
+    },
+    {
+      "id": "birefnet", "kind": "three_d", "role": "helper",
+      "name": "BiRefNet (cuts the pictures out)",
+      "licence": "MIT",
+      "status": "yes",
+      "short": "Free for commercial use",
+      "summary": "MIT: free to use commercially. It only cuts the figure out of the pictures the Trellis2 generator reads.",
+      "used_for": "Removing the backdrop from the pictures a 3D generator reads.",
+      "links": [{"label": "BiRefNet", "url": "https://huggingface.co/ZhengPeng7/BiRefNet"}],
+      "licence_url": "https://huggingface.co/ZhengPeng7/BiRefNet",
+      "checked": "2026-10-13",
+      "selectors": []
+    },
+    {
+      "id": "qwen3tts", "kind": "voice", "role": "creates",
+      "name": "Qwen3-TTS 1.7B (VoiceDesign, Base and CustomVoice)",
+      "licence": "Apache-2.0",
+      "status": "yes",
+      "short": "Free for commercial use",
+      "summary": "Apache-2.0 for all three checkpoints, and MIT for the faster-qwen3-tts runtime NPC Forge uses: free to use commercially. Never clone a real person's voice without their permission: that is a separate matter from the model's licence.",
+      "used_for": "Voices made from a description, cloned voices, and preset speakers (the default voice engine).",
+      "links": [{"label": "VoiceDesign", "url": "https://huggingface.co/Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign"}, {"label": "Base", "url": "https://huggingface.co/Qwen/Qwen3-TTS-12Hz-1.7B-Base"}, {"label": "CustomVoice", "url": "https://huggingface.co/Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice"}],
+      "licence_url": "https://www.apache.org/licenses/LICENSE-2.0",
+      "checked": "2026-10-13",
+      "selectors": ["voice:qwen", "voice:qwen_custom"]
+    },
+    {
+      "id": "kokoro", "kind": "voice", "role": "creates",
+      "name": "Kokoro 82M (stock voices)",
+      "licence": "Apache-2.0",
+      "status": "yes",
+      "short": "Free for commercial use",
+      "summary": "Apache-2.0: free to use commercially.",
+      "used_for": "Ready-made English stock voices.",
+      "links": [{"label": "Kokoro 82M", "url": "https://huggingface.co/hexgrad/Kokoro-82M"}],
+      "licence_url": "https://www.apache.org/licenses/LICENSE-2.0",
+      "checked": "2026-10-13",
+      "selectors": ["voice:kokoro"]
+    },
+    {
+      "id": "chatterbox", "kind": "voice", "role": "creates",
+      "name": "Chatterbox Turbo and Chatterbox Original",
+      "licence": "MIT",
+      "status": "yes",
+      "short": "Free for commercial use",
+      "summary": "MIT: free to use commercially. Every clip carries Resemble AI's inaudible Perth watermark, which marks the audio as AI-made. Never clone a real person's voice without their permission: that is a separate matter from the model's licence.",
+      "used_for": "Speaking in a copied voice (a designed take, a recording, another character's).",
+      "links": [{"label": "Chatterbox", "url": "https://huggingface.co/ResembleAI/chatterbox"}, {"label": "Chatterbox Turbo", "url": "https://huggingface.co/ResembleAI/chatterbox-turbo"}],
+      "licence_url": "https://github.com/resemble-ai/chatterbox/blob/HEAD/LICENSE",
+      "checked": "2026-10-13",
+      "selectors": ["voice:chatterbox", "voice:chatterbox_original"]
+    },
+    {
+      "id": "voxcpm2", "kind": "voice", "role": "creates",
+      "name": "VoxCPM2",
+      "licence": "Apache-2.0",
+      "status": "yes",
+      "short": "Free for commercial use",
+      "summary": "Apache-2.0: free to use commercially. Never clone a real person's voice without their permission: that is a separate matter from the model's licence.",
+      "used_for": "Voices designed or cloned in the Voice Lab engine.",
+      "links": [{"label": "VoxCPM2", "url": "https://huggingface.co/openbmb/VoxCPM2"}],
+      "licence_url": "https://www.apache.org/licenses/LICENSE-2.0",
+      "checked": "2026-10-13",
+      "selectors": ["voice:voxcpm2"]
+    },
+    {
+      "id": "breeze", "kind": "voice", "role": "creates",
+      "name": "Breeze TTS 2",
+      "licence": "BreezeBlue Research and Non-Commercial License",
+      "status": "no",
+      "short": "Research and non-commercial use only: not for work you sell",
+      "summary": "The licence grants research and non-commercial use only and says outright that it gives no commercial rights: using its voices in a game or product you sell, or having it speak lines you ship, needs a separate written licence from BreezeBlue. The voice designer marks every voice it made.",
+      "used_for": "Voices and spoken lines made with the Breeze engine.",
+      "links": [{"label": "Breeze TTS 2 weights", "url": "https://huggingface.co/drbaph/Breeze-TTS-2-comfyui"}],
+      "licence_url": "https://huggingface.co/BreezeBlue/Breeze-TTS-2/blob/main/LICENSE",
+      "checked": "2026-10-13",
+      "selectors": ["voice:breeze"]
+    },
+    {
+      "id": "drama3", "kind": "voice", "role": "creates",
+      "name": "Fish Audio Drama 3",
+      "licence": "Fish Audio Community License 1.0",
+      "status": "conditions",
+      "short": "Commercial use has conditions: revenue under USD 500,000 a year",
+      "summary": "Free for research and non-commercial use. Commercial use is allowed while you (with your affiliates) earn less than USD 500,000 a year in total; above that you need a written licence from Fish Audio. Offering it to others as a speech or voice-cloning service always needs a separate licence, but voicing your own game's characters does not count as one. A product that uses it must show \"Built with Fish Audio\". Its output may not be used to train another speech model, and never clone a real person's voice without their permission.",
+      "used_for": "Voices designed or cloned with the Drama 3 engine, and acted dialogue in its studio.",
+      "links": [{"label": "Drama 3", "url": "https://huggingface.co/fishaudio/drama-3"}],
+      "licence_url": "https://huggingface.co/fishaudio/drama-3/blob/main/LICENSE",
+      "checked": "2026-11-20",
+      "selectors": ["voice:drama3"]
+    },
+    {
+      "id": "sdpose", "kind": "tool", "role": "helper",
+      "name": "SDPose whole-body (finds joints, hands and faces)",
+      "licence": "MIT (SDPose); built from Stable Diffusion 2 weights under CreativeML Open RAIL++-M",
+      "status": "yes",
+      "short": "Free to use; its output is only measurements",
+      "summary": "SDPose is MIT. Its network started from Stable Diffusion 2 weights, which are under the CreativeML Open RAIL++-M licence: commercial use is allowed, with that licence's list of forbidden uses. Its output is joint positions, not art: none of it is in a character's pictures or model.",
+      "used_for": "Placing a skeleton's joints, finding the hands (Clean hands) and the faces (Attach the detailed head, fitting glasses).",
+      "links": [{"label": "SDPose whole-body", "url": "https://huggingface.co/Comfy-Org/SDPose"}],
+      "licence_url": "https://huggingface.co/teemosliang/SDPose-Wholebody",
+      "checked": "2026-10-13",
+      "selectors": ["feature:pose"]
+    },
+    {
+      "id": "sam31", "kind": "tool", "role": "helper",
+      "name": "SAM 3.1 (finds the hair)",
+      "licence": "SAM License (Meta)",
+      "status": "conditions",
+      "short": "Commercial use allowed; no military or weapons uses",
+      "summary": "Commercial use is allowed. The licence forbids uses that break export or sanctions rules, and uses for military or warfare, nuclear industries, espionage or weapons, and anyone you give the weights to must get the licence with them. Its output is a hair mask, not art: it only decides which pixels the paint step trusts.",
+      "used_for": "Matching the hair of a 3D model to the pictures.",
+      "links": [{"label": "SAM 3.1", "url": "https://huggingface.co/Comfy-Org/sam3.1"}],
+      "licence_url": "https://huggingface.co/Comfy-Org/sam3.1/blob/main/LICENSE",
+      "checked": "2026-10-13",
+      "selectors": ["feature:hair_mask"]
+    },
+    {
+      "id": "realesrgan", "kind": "tool", "role": "creates",
+      "name": "RealESRGAN x4plus (sharpens the head texture)",
+      "licence": "BSD-3-Clause",
+      "status": "yes",
+      "short": "Free for commercial use",
+      "summary": "BSD-3-Clause: free to use commercially, keeping its copyright notice.",
+      "used_for": "Upscaling the head close-ups for the sharper face's texture (the default upscaler).",
+      "links": [{"label": "Real-ESRGAN", "url": "https://github.com/xinntao/Real-ESRGAN"}],
+      "licence_url": "https://github.com/xinntao/Real-ESRGAN/blob/HEAD/LICENSE",
+      "checked": "2026-10-13",
+      "selectors": ["upscaler:RealESRGAN_x4plus.pth"]
+    },
+    {
+      "id": "ultrasharp", "kind": "tool", "role": "creates",
+      "name": "4x-UltraSharp (optional upscaler)",
+      "licence": "CC BY-NC-SA 4.0",
+      "status": "no",
+      "short": "Non-commercial only",
+      "summary": "Creative Commons Attribution-NonCommercial-ShareAlike 4.0: non-commercial use only, and anything made from it must be shared under the same terms. Only used if you set it as the face upscaler in config.json: leave it off for work you sell.",
+      "used_for": "An optional upscaler for the sharper face's texture (config.json: face_upscaler).",
+      "links": [{"label": "UltraSharp", "url": "https://huggingface.co/Kim2091/UltraSharp"}],
+      "licence_url": "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+      "checked": "2026-10-13",
+      "selectors": ["upscaler:4x-UltraSharp.pth"]
+    },
+    {
+      "id": "whisper", "kind": "tool", "role": "helper",
+      "name": "faster-whisper tiny (checks a voice says the words)",
+      "licence": "MIT",
+      "status": "yes",
+      "short": "Free for commercial use",
+      "summary": "MIT: free to use commercially. It only listens to a take to count wrong words; nothing it makes is kept in a character.",
+      "used_for": "The voice designer's word-accuracy check of each take.",
+      "links": [{"label": "faster-whisper tiny", "url": "https://huggingface.co/Systran/faster-whisper-tiny"}],
+      "licence_url": "https://huggingface.co/Systran/faster-whisper-tiny",
+      "checked": "2026-10-13",
+      "selectors": ["feature:voice_check"]
+    },
+    {
+      "id": "quaternius", "kind": "data", "role": "creates",
+      "name": "Quaternius Universal Animation Library 1 and 2 (Standard)",
+      "licence": "CC0 1.0",
+      "status": "yes",
+      "short": "Free for any use, no credit needed",
+      "summary": "CC0 1.0, a public-domain dedication: free to use, change and sell, with no credit required (NPC Forge credits Quaternius anyway, with thanks). A rigged model carries the clips copied onto its own skeleton.",
+      "used_for": "The 85 animation clips a skeleton can carry.",
+      "links": [{"label": "Universal Animation Library", "url": "https://quaternius.com/packs/universalanimationlibrary.html"}],
+      "licence_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "checked": "2026-10-13",
+      "selectors": ["feature:animation_library"]
+    },
+    {
+      "id": "mpfb2", "kind": "data", "role": "creates",
+      "name": "MPFB2 body data (the Body Designer's bodies)",
+      "licence": "CC0 1.0 for the assets (the add-on's code is GPL-3.0 and is not used)",
+      "status": "yes",
+      "short": "Free for any use",
+      "summary": "The MakeHuman community releases MPFB2's assets (base meshes, UV layouts, rig data, skin weights, morph targets) under CC0 1.0, and says outright that it claims nothing over what is made from them. Only that data is used; none of MPFB2's GPL-3.0 program code is installed or imported.",
+      "used_for": "Designed bodies (the Body page).",
+      "links": [{"label": "MPFB2", "url": "https://github.com/makehumancommunity/mpfb2"}],
+      "licence_url": "https://github.com/makehumancommunity/mpfb2/blob/HEAD/LICENSE.md",
+      "checked": "2026-10-13",
+      "selectors": ["feature:designed_body"]
+    },
+    {
+      "id": "dramabox-gemma",
+      "kind": "tool",
+      "role": "helper",
+      "name": "Gemma 3 12B NF4 (DramaBox text encoder)",
+      "licence": "Gemma terms",
+      "status": "conditions",
+      "short": "Commercial use subject to Gemma terms",
+      "summary": "The DramaBox prompt encoder uses Gemma 3 under its separate Gemma terms and use restrictions. Preserve notices and applicable restrictions when using or distributing the model.",
+      "used_for": "Encoding English dialogue and stage directions for DramaBox.",
+      "links": [
+        {
+          "label": "Pinned encoder",
+          "url": "https://huggingface.co/unsloth/gemma-3-12b-it-bnb-4bit/tree/826e729dbaeea4ecb143738eed2bcf3539ebf7bf"
+        }
+      ],
+      "licence_url": "https://ai.google.dev/gemma/terms",
+      "checked": "2026-10-13",
+      "selectors": []
+    },
+    {
+      "id": "dramabox",
+      "kind": "voice",
+      "role": "creates",
+      "name": "DramaBox expressive English speech",
+      "licence": "LTX-2 Community License",
+      "status": "conditions",
+      "short": "Commercial use has conditions; Gemma terms also apply",
+      "summary": "LTX-2 Community License: retain notices and comply with use restrictions. Entities with annual revenue of at least $10 million need a paid commercial license. The Gemma encoder has separate terms. Optional non-commercial RE-USE denoising is disabled in Forge.",
+      "used_for": "Voice design, reference cloning and acted English dialogue.",
+      "links": [
+        {
+          "label": "Model",
+          "url": "https://huggingface.co/ResembleAI/Dramabox"
+        },
+        {
+          "label": "Source",
+          "url": "https://github.com/resemble-ai/DramaBox"
+        }
+      ],
+      "licence_url": "https://github.com/resemble-ai/DramaBox/blob/a70a5818e103c1c9fef22409c1e0c707ebf4f8a7/LICENSE",
+      "checked": "2026-10-13",
+      "selectors": [
+        "voice:dramabox"
+      ],
+      "uses": [
+        "dramabox-gemma"
+      ]
+    }
+  ]
+}

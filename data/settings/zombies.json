@@ -1,0 +1,152 @@
+{
+  "label": "Zombie outbreak",
+  "short": "Zombies",
+  "blurb": "The infected of a zombie survival world: shambling former neighbors still wearing the tattered clothes of their old jobs -- built for horde-crafting survival games like 7 Days to Die.",
+  "order": 13,
+  "place": "overrun town",
+  "context": "zombie survival horror character, decayed and tattered, post-outbreak infected",
+  "origin_label": "Heritage",
+  "min_age": 18,
+
+  "hobbies": [
+    "shuffling in slow circles near the old bus stop", "scratching at locked doors for hours",
+    "standing motionless until something moves", "banging on glass that never breaks",
+    "following the sound of distant footsteps", "groaning at passing headlights", "pawing at a chain-link fence",
+    "circling the same parked car endlessly", "clawing at a boarded-up window", "trailing after birds that land too close",
+    "pressing {poss} face to a dark window", "wandering the same block, night after night"
+  ],
+  "quirks": [
+    "still wearing a wedding ring on a rotted finger", "clutching a child's toy that never gets set down",
+    "saluting anything that moves fast, out of old habit", "humming three broken notes of a half-remembered tune",
+    "reaching for a phone that fell apart long ago", "flinching, just slightly, at loud engine noise",
+    "returning again and again to the same front door", "dragging one foot from an old, healed-wrong injury",
+    "twitching toward the smell of anything cooking", "wearing a name tag no one can read anymore",
+    "recoiling half a step from open flame", "pawing at the same doorknob, over and over",
+    "standing motionless in doorways for hours"
+  ],
+  "goals": [
+    "finding {poss} way back to the house {subj} can no longer recognize", "reaching the sound of the old dinner bell",
+    "following the road {subj} walked every day, once", "returning to a door that's boarded shut now",
+    "chasing the smell of anything still cooking", "reaching the light that's always just out of reach",
+    "following the last voice {subj} ever heard", "crossing the yard {subj} used to mow every Sunday",
+    "reaching the school {poss} kids went to", "finding whoever used to call {poss} name",
+    "getting back to a car that hasn't started in months", "reaching the church bell {subj} used to ring"
+  ],
+  "peeves": [
+    "loud engine noise", "bright flashing lights", "open flame", "sudden movement nearby", "the smell of smoke",
+    "car alarms", "gunshots in the distance", "barking dogs", "flashlight beams", "slamming doors"
+  ],
+  "accessories": [
+    "a broken wristwatch stopped at a fixed time", "a shredded backpack with one broken strap",
+    "a fogged pair of sunglasses hanging from a torn collar", "a tarnished wedding ring on a bony finger",
+    "a cracked phone screen glowing faintly in a pocket", "a rusted keyring still clipped to a belt loop",
+    "a half-melted ID badge on a lanyard", "a torn photograph stuck in a shirt pocket",
+    "a broken umbrella still gripped in one hand", "a shredded tote bag with a strap over one shoulder"
+  ],
+  "default_outfits": [
+    "a torn, filthy shirt and trousers, one shoe missing, stained dark down the front",
+    {"t": "a torn, filthy blouse and skirt, one shoe missing, stained dark down the front", "g": "female"},
+    "a shredded jacket over a stained shirt, ragged trousers and a single worn boot"
+  ],
+
+  "_tables": "The next seven entries replace the shared tables in common.json for this setting only (same shape): decayed builds, patchy/matted hair, cracked or missing eyewear, wounds and rot instead of ordinary marks, a personality-word pool that skips every word trait_looks turns into a living facial expression (so the vacant default_expression below always wins), and past-tense bio templates -- these still are not what they were.",
+  "dyed_hair_colors": [],
+  "builds": [
+    {"label": "gaunt and emaciated", "w": 4},
+    {"label": "bloated and swollen", "w": 2.5},
+    {"label": "lean and sinewy", "w": 3},
+    {"label": "hunched and stooped", "w": 2.5},
+    {"label": "heavyset", "w": 1.5},
+    {"label": "average build gone slack", "w": 1.5},
+    {"label": "wiry and desiccated", "w": 2}
+  ],
+  "hair_styles": [
+    {"label": "patchy hair falling out in clumps", "w": [2, 2, 2], "tex": false},
+    {"label": "matted, blood-crusted hair", "w": [2, 2, 2], "tex": false},
+    {"label": "singed, burnt-down hair", "w": [1, 1, 1], "tex": false},
+    {"label": "long hair caked with grime, loosely tied back", "w": [2, 0.5, 1], "tex": true},
+    {"label": "short hair matted with dried filth", "w": [1, 2, 1], "tex": false},
+    {"label": "thin wisps of brittle, graying hair", "w": [1.5, 1.5, 1.5], "tex": false},
+    {"label": "bald", "w": [1, 1.5, 1], "bald": true}
+  ],
+  "facial_hair": [
+    {"label": "clean-shaven", "w": 40},
+    {"label": "patchy stubble", "w": 25},
+    {"label": "an unkempt beard matted with grime", "w": 15},
+    {"label": "a full wild beard", "w": 10},
+    {"label": "a thin mustache", "w": 6},
+    {"label": "sparse scraggly hairs", "w": 4}
+  ],
+  "glasses": [
+    {"label": "none", "w": 80},
+    {"label": "cracked spectacles hanging from one ear", "w": 8},
+    {"label": "a shattered lens in a bent frame", "w": 6},
+    {"label": "fogged safety goggles pushed up on the forehead", "w": 4},
+    {"label": "glasses with one lens missing entirely", "w": 2}
+  ],
+  "distinguishing": [
+    {"label": "none", "w": 8},
+    {"label": "grayish-green necrotic skin", "w": 10},
+    {"label": "a gaping wound across one shoulder", "w": 6},
+    {"label": "exposed ribs showing through a torn shirt", "w": 5},
+    {"label": "a jaw hanging slightly loose", "w": 5},
+    {"label": "clouded, milky-white eyes", "w": 8},
+    {"label": "dried blood down the chin and neck", "w": 7},
+    {"label": "patches of exposed bone at the knuckles", "w": 4},
+    {"label": "blackened, cracked fingertips", "w": 5},
+    {"label": "a deep bite scar on the forearm", "w": 6},
+    {"label": "bloated, discolored skin", "w": 5},
+    {"label": "a sunken, hollow-eyed stare", "w": 6},
+    {"label": "patchy burns across one side of the face", "w": 3},
+    {"label": "a mangled ear, half torn away", "w": 3}
+  ],
+  "traits": ["outgoing", "ambitious", "lazy", "creative", "practical", "stubborn", "generous", "frugal", "romantic", "cynical",
+             "optimistic", "loyal", "gossipy", "perfectionist", "easygoing", "adventurous", "cautious", "sarcastic", "honest",
+             "blunt", "polite", "dramatic", "thoughtful", "competitive", "patient", "impulsive", "nostalgic", "superstitious",
+             "tidy", "messy", "forgiving"],
+  "default_expression": "a slack-jawed, vacant stare",
+  "bio_templates": [
+    "{first} was {occ_a}, with a reputation for being {t1} and {t2}. These days {subj} {v:spend} every hour {h1} and {h2}. Somewhere underneath, {subj} still {v:dream} of {goal}.",
+    "Once {a_t1}, {t3} {occ} in the {place}, {first} is a shell of who {subj} used to be, known now for {quirk}. {Subj} still {v:spend} the hours {h1}, and still {v:flinch} at {peeve}.",
+    "At {age}, {first} used to be {occ_a}. Whatever {t1}, {t3} person {subj} once was has long since faded, but {subj} still {v:keep} {h1}, exactly as {subj} always did.",
+    "Neighbors once called {first} {t1} but {t2}, back when {subj} was {occ_a}. Now {subj} only {v:manage} {h1} and {h2}, the way {subj} always did, without ever knowing why.",
+    "{first} {v:have} been gone a long time now, but the {t1} {occ} {subj} used to be still shows, in the way {subj} {v:keep} {h1} without ever stopping."
+  ],
+
+  "occupations": [
+    {"id": "nurse", "label": "nurse", "weight": 2, "outfits": ["a torn, blood-stained nurse's uniform hanging in tatters, one shoe missing"]},
+    {"id": "cop", "label": "police officer", "weight": 1.5, "min_age": 21, "outfits": ["a shredded police uniform with a cracked badge, an empty holster and one scuffed boot"]},
+    {"id": "construction", "label": "construction worker", "weight": 1.5, "outfits": ["a torn high-visibility vest over a filthy work shirt, a cracked hard hat hanging by its strap and heavy work boots"]},
+    {"id": "soldier", "label": "soldier", "weight": 1.2, "min_age": 19, "outfits": ["tattered military fatigues with torn webbing gear, a single dented dog tag and worn combat boots"]},
+    {"id": "office", "label": "office worker", "weight": 1.5, "outfits": ["a ragged, blood-stained suit with a loosened tie, one dress shoe missing"]},
+    {"id": "farmer", "label": "farmer", "weight": 1.5, "outfits": ["torn overalls over a filthy shirt, one strap hanging loose and mud-caked boots"]},
+    {"id": "biker", "label": "biker", "weight": 1.2, "outfits": ["a shredded leather jacket studded with patches, torn jeans and a single scuffed boot"]},
+    {"id": "firefighter", "label": "firefighter", "weight": 1, "min_age": 21, "outfits": ["a scorched, torn firefighter's coat, a cracked helmet hanging by its chinstrap and heavy boots"]},
+    {"id": "chef", "label": "chef", "weight": 1, "outfits": ["a stained, torn chef's coat and apron, a checkered neckerchief in shreds"]},
+    {"id": "hazmat", "label": "hazmat worker", "weight": 0.8, "outfits": ["a torn and stained hazmat suit with a cracked visor hanging open, heavy rubber boots"]},
+    {"id": "surgeon", "label": "surgeon", "weight": 1, "min_age": 26, "outfits": ["a blood-soaked, torn surgical gown over scrubs, a surgical mask hanging loose"]},
+    {"id": "cheerleader", "label": "cheerleader", "weight": 0.5, "outfits": ["a torn and filthy cheerleading uniform, one pom-pom still clutched in hand"]},
+    {"id": "mechanic", "label": "mechanic", "weight": 1.2, "outfits": ["torn, oil-stained coveralls, a name patch half torn off and one work boot missing"]},
+    {"id": "teacher", "label": "teacher", "weight": 1, "outfits": [
+      {"t": "a shredded cardigan over a torn blouse, a long skirt in tatters and one shoe missing", "g": "female"},
+      {"t": "a torn button-up shirt under a ragged sweater vest, trousers in shreds and one shoe missing", "g": "male"}]},
+    {"id": "postal", "label": "postal worker", "weight": 0.8, "outfits": ["a torn postal uniform with a faded shoulder patch, a mail satchel hanging open and one boot missing"]},
+    {"id": "security", "label": "security guard", "weight": 1, "outfits": ["a shredded security uniform with a cracked badge, a broken flashlight still clipped to the belt"]},
+    {"id": "lumberjack", "label": "lumberjack", "weight": 0.8, "outfits": ["a torn flannel shirt over suspenders and canvas trousers, one heavy boot missing"]},
+    {"id": "convict", "label": "convict", "weight": 0.8, "min_age": 20, "outfits": ["a torn and filthy orange jumpsuit, one shredded canvas shoe"]},
+    {"id": "labtech", "label": "lab technician", "weight": 1, "min_age": 24, "outfits": ["a torn, stained lab coat over a shredded shirt, a cracked pair of safety goggles around the neck"]},
+    {"id": "utility", "label": "utility worker", "weight": 0.8, "outfits": ["a torn high-visibility jumpsuit, a cracked hard hat and heavy work boots, a broken tool belt still around the waist"]},
+    {"id": "tourist", "label": "tourist", "weight": 1, "outfits": ["a torn, faded Hawaiian shirt over cargo shorts, one sandal missing, a broken camera strap around the neck"]},
+    {"id": "clerk", "label": "store clerk", "weight": 1, "outfits": ["a torn store apron over a stained polo shirt, a cracked name tag still pinned on, one shoe missing"]},
+    {"id": "newlywed", "label": "newlywed", "weight": 0.4, "outfits": [
+      {"t": "a torn and filthy wedding dress, a veil in tatters, one high heel missing", "g": "female"},
+      {"t": "a shredded tuxedo with a torn boutonniere, a loosened bow tie and one dress shoe missing", "g": "male"}]},
+    {"id": "officer", "label": "military officer", "weight": 0.5, "min_age": 30, "outfits": ["a torn, decorated officer's uniform with a single dangling medal, a cracked cap and worn boots"]},
+    {"id": "clown", "label": "clown", "weight": 0.4, "outfits": ["a torn, faded clown costume with smeared face paint, oversized shoes in tatters"]},
+    {"id": "hiker", "label": "hiker", "weight": 0.8, "outfits": ["a torn hiking jacket over a stained t-shirt, cargo pants in shreds and one hiking boot missing, a broken backpack strap over one shoulder"]},
+    {"id": "bartender", "label": "bartender", "weight": 0.8, "min_age": 21, "outfits": ["a torn vest over a stained shirt, a shredded bar apron and one shoe missing"]},
+    {"id": "elderly", "label": "elderly wanderer", "weight": 0.8, "min_age": 60, "outfits": [
+      {"t": "a torn floral nightgown, a cardigan in tatters and one slipper missing", "g": "female"},
+      {"t": "torn pajama trousers and shirt under a ragged robe, one slipper missing", "g": "male"}]}
+  ]
+}

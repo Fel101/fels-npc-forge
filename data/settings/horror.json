@@ -1,0 +1,106 @@
+{
+  "label": "Gothic horror",
+  "short": "Horror",
+  "blurb": "A fog-bound town where something is very wrong: sheriffs, morticians, occult investigators and the people who've stopped asking questions.",
+  "order": 7,
+  "place": "town",
+  "context": "gothic horror small town character, muted and unsettling atmosphere",
+  "origin_label": "Heritage",
+
+  "hobbies": [
+    "reading old newspaper clippings", "tending the graveyard flowers", "listening to late-night radio static",
+    "collecting antique dolls", "pressing flowers from the churchyard", "sketching the fog over the marsh",
+    "repairing stained glass", "keeping bees behind the chapel", "cataloguing the town's missing-persons files",
+    "playing the organ in an empty church", "photographing the old asylum", "restoring grandfather clocks",
+    "birdwatching near the old quarry", "collecting local ghost stories", "tending a candlelit shrine",
+    "carving small wooden charms", "walking the tree line at dusk", "mapping the town's abandoned houses",
+    "keeping a dream journal", "pressing an ear to the old walls"
+  ],
+  "quirks": [
+    "never walking under the old bell tower", "leaving a lit candle in the window every night",
+    "counting the streetlights that flicker", "refusing to say the drowned girl's name",
+    "salting the windowsills before bed", "crossing the street to avoid the chapel", "keeping every door locked twice",
+    "talking to the portrait in the hallway", "never looking in mirrors after dark", "collecting crow feathers",
+    "marking the days since the last disappearance", "avoiding the well at the edge of town",
+    "humming to fill the silence", "checking under the bed out of old habit"
+  ],
+  "goals": [
+    "leaving town before the next full moon", "finding out what really happened to {poss} sister",
+    "keeping the family crypt in one piece", "proving {subj} isn't imagining things", "surviving until sunrise",
+    "burning the old diary before anyone reads it", "getting the church bell working again",
+    "convincing someone, anyone, to believe {obj}", "selling the house and never coming back",
+    "finding the source of the noise in the walls", "protecting the children from the woods",
+    "uncovering the truth behind the old fire"
+  ],
+  "peeves": [
+    "flickering lights", "fog that rolls in too fast", "dogs that won't stop barking at nothing",
+    "cold spots in warm rooms", "phones that die at the worst moment", "doors that won't stay shut",
+    "static on the radio", "whispers {subj} can't quite place", "the smell from the old well", "silence that's too complete"
+  ],
+  "accessories": [
+    "a tarnished silver locket", "an old iron key on a cord", "a rosary worn thin from handling",
+    "a battered flashlight", "a pressed flower in a locket", "a notebook full of names crossed out",
+    "a small vial of salt", "a family photograph with one face scratched out", "a St. Christopher medal",
+    "a moth-eaten scarf that belonged to someone else"
+  ],
+  "default_outfits": [
+    "a worn wool coat over a plain shirt, dark trousers and scuffed boots",
+    {"t": "a faded cardigan over a high-necked blouse, a long skirt and worn flats", "g": "female"},
+    "a heavy flannel shirt under a work jacket, denim trousers and mud-caked boots"
+  ],
+
+  "_tables": "The next two entries replace the shared tables in common.json for this setting only (same shape): no bright dye in a timeless small town, and a few more unsettling distinguishing marks.",
+  "dyed_hair_colors": [],
+  "distinguishing": [
+    {"label": "none", "w": 50},
+    {"label": "freckles across the nose", "w": 6},
+    {"label": "a small mole on the cheek", "w": 4},
+    {"label": "dimples", "w": 3},
+    {"label": "a faded scar across the cheek", "w": 4},
+    {"label": "unusually pale skin", "w": 5},
+    {"label": "dark circles under the eyes", "w": 6},
+    {"label": "a birthmark on the neck", "w": 2},
+    {"label": "a small burn scar on one hand", "w": 3},
+    {"label": "a crooked, once-broken nose", "w": 3},
+    {"label": "prematurely gray at the temples", "w": 4},
+    {"label": "a jagged scar along the hairline", "w": 3}
+  ],
+
+  "occupations": [
+    {"id": "sheriff", "label": "town sheriff", "weight": 1.2, "min_age": 30, "max_age": 65, "outfits": ["a faded khaki sheriff's uniform with a tarnished star badge, a worn utility belt and scuffed boots"]},
+    {"id": "deputy", "label": "deputy", "weight": 1.5, "min_age": 21, "max_age": 55, "outfits": ["a rumpled khaki uniform shirt, a flashlight on the belt, dark trousers and heavy boots"]},
+    {"id": "mortician", "label": "mortician", "weight": 0.8, "min_age": 28, "outfits": ["a somber black suit with a high collar, thin leather gloves and polished black shoes"]},
+    {"id": "doctor", "label": "town doctor", "weight": 1, "min_age": 28, "outfits": ["a long white coat over a shirt and tie, dark trousers and worn leather shoes, carrying a battered medical bag"]},
+    {"id": "nurse", "label": "nurse", "weight": 1.5, "min_age": 21, "outfits": ["pale blue scrubs under a cardigan, a stethoscope around the neck and worn white shoes"]},
+    {"id": "priest", "label": "priest", "weight": 1, "min_age": 28, "outfits": ["a black cassock with a white clerical collar and plain black shoes"]},
+    {"id": "groundskeeper", "label": "cemetery groundskeeper", "weight": 1.2, "outfits": ["a heavy canvas jacket over a flannel shirt, mud-caked work trousers and rubber boots, carrying a ring of old keys"]},
+    {"id": "librarian", "label": "town archivist", "weight": 1.2, "outfits": ["a cardigan over a collared shirt, dark trousers and worn loafers, with reading glasses on a chain"]},
+    {"id": "innkeeper", "label": "boarding-house keeper", "weight": 1, "min_age": 30, "outfits": [
+      {"t": "a high-collared blouse under a worn shawl, a long skirt and sensible shoes, with a ring of keys at the belt", "g": "female"},
+      {"t": "a wool waistcoat over a collarless shirt, dark trousers and slippers, with a ring of keys at the belt", "g": "male"}]},
+    {"id": "cook", "label": "diner cook", "weight": 1.5, "outfits": ["a grease-stained apron over a flannel shirt, work trousers and worn sneakers"]},
+    {"id": "dj", "label": "late-night radio host", "weight": 0.6, "outfits": ["a rumpled cardigan over a shirt, headphones around the neck and worn corduroys"]},
+    {"id": "investigator", "label": "paranormal investigator", "weight": 1, "outfits": ["a heavy field coat with many pockets, a battered camera around the neck, canvas trousers and worn boots"]},
+    {"id": "journalist", "label": "local journalist", "weight": 1, "outfits": ["a trench coat over a plain shirt, a notepad in the breast pocket and scuffed shoes"]},
+    {"id": "antiques", "label": "antiques dealer", "weight": 0.8, "min_age": 30, "outfits": ["a tweed jacket over a waistcoat, wire spectacles and polished old shoes"]},
+    {"id": "taxidermist", "label": "taxidermist", "weight": 0.5, "outfits": ["a stained work apron over a flannel shirt, thick gloves and worn boots"]},
+    {"id": "lighthouse", "label": "lighthouse keeper", "weight": 0.6, "outfits": ["a heavy oilskin coat over a wool sweater, sturdy trousers and rubber boots"]},
+    {"id": "orderly", "label": "former asylum orderly", "weight": 0.6, "min_age": 25, "outfits": ["a faded white orderly's jacket over a plain shirt, dark trousers and worn shoes"]},
+    {"id": "healer", "label": "folk healer", "weight": 0.7, "outfits": [
+      {"t": "a long knitted shawl over a plain dress, herb pouches at the belt and worn boots", "g": "female"},
+      {"t": "a weathered coat with herb pouches sewn into the lining, work trousers and worn boots", "g": "male"}]},
+    {"id": "teacher", "label": "schoolteacher", "weight": 1, "min_age": 22, "outfits": [
+      {"t": "a cardigan over a high-necked blouse, a long skirt and sensible shoes", "g": "female"},
+      {"t": "a wool vest over a collared shirt, dark trousers and worn shoes", "g": "male"}]},
+    {"id": "mail", "label": "postal worker", "weight": 1, "outfits": ["a gray-blue uniform jacket with a shoulder satchel, dark trousers and worn shoes"]},
+    {"id": "mechanic", "label": "mechanic", "weight": 1, "outfits": ["oil-stained coveralls over a flannel shirt and heavy boots"]},
+    {"id": "bartender", "label": "bartender", "weight": 1.2, "min_age": 21, "outfits": ["a rolled-sleeve shirt with a stained apron, dark trousers and worn shoes"]},
+    {"id": "fisherman", "label": "fisherman", "weight": 1, "outfits": ["a heavy knit sweater under an oilskin coat, waders and rubber boots"]},
+    {"id": "professor", "label": "retired professor", "weight": 0.8, "min_age": 60, "outfits": ["a worn tweed jacket with elbow patches, a cardigan and old leather shoes, carrying a cane"]},
+    {"id": "drifter", "label": "drifter", "weight": 1.2, "outfits": ["a worn duffel coat over a plain shirt, faded jeans and scuffed boots"]},
+    {"id": "historian", "label": "town historian", "weight": 0.6, "min_age": 35, "outfits": ["a moth-eaten cardigan over a collared shirt, corduroy trousers and worn loafers"]},
+    {"id": "gravedigger", "label": "gravedigger", "weight": 0.6, "outfits": ["a mud-stained canvas coat over a flannel shirt, heavy trousers and worn boots"]},
+    {"id": "teen", "label": "local teenager", "weight": 1, "min_age": 13, "max_age": 17, "outfits": ["a worn hoodie over a t-shirt, jeans and sneakers, with a flashlight clipped to a belt loop"]},
+    {"id": "child", "label": "town child", "weight": 1, "min_age": 6, "max_age": 12, "outfits": ["a hand-me-down sweater, patched trousers and worn sneakers"]}
+  ]
+}

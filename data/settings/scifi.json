@@ -1,0 +1,126 @@
+{
+  "label": "Sci-fi colony",
+  "short": "Sci-fi",
+  "blurb": "A space station or frontier colony: engineers, medics, pilots and drifters.",
+  "order": 3,
+  "place": "colony",
+  "context": "science fiction space colony character",
+  "origin_label": "Heritage",
+
+  "hobbies": [
+    "tinkering with old radios", "growing rare tomatoes", "playing zero-g sports", "stargazing from the observation deck",
+    "collecting memorabilia from Earth", "making synth music", "playing retro video games", "playing holo-chess", "repairing drones",
+    "swapping rumors at the docks", "racing maintenance drones", "brewing hydroponic tea", "modding {poss} own cybernetics",
+    "collecting star charts", "keeping a logbook of every ship that docks", "training the colony's service bots",
+    "painting murals in the corridors", "trading recipes from a dozen worlds", "listening to Earth broadcasts on a delay",
+    "growing bonsai under grow-lights"
+  ],
+  "quirks": [
+    "talking to the station AI like an old friend", "never taking off {poss} lucky mission patch", "hoarding spare parts",
+    "keeping a tiny plant on every desk", "humming old Earth songs", "checking the airlock seals twice",
+    "naming every drone {subj} repairs", "tapping the hull twice for luck before a shift", "keeping a countdown to the next supply ship",
+    "never trusting an elevator that hesitates", "reciting the safety checklist under {poss} breath", "collecting mission patches from ships that never came back",
+    "always floating instead of walking when no one's looking", "arguing with the vending machine"
+  ],
+  "goals": [
+    "earning passage back to Earth", "owning a ship", "being promoted to chief engineer", "seeing a real sunrise again",
+    "building a garden dome", "charting a new star route", "paying off {poss} passage debt", "finding {poss} sister's old ship",
+    "being the first to walk a new moon", "retiring to a real planet with real weather", "building a home with an actual window",
+    "earning a captain's license", "proving the old distress signal was real"
+  ],
+  "peeves": [
+    "the smell of recycled air", "broken airlocks", "people who skip shift handovers", "synth-coffee", "water rationing",
+    "loud engine hum at night", "gravity generator flicker", "slow elevators", "people who float where they should walk",
+    "expired ration packs", "static on the comms", "dust in the filtration system"
+  ],
+  "accessories": [
+    "a cybernetic eye implant", "a neural port behind the ear", "a holographic wrist device", "a chrome cybernetic hand",
+    "a breathing mask hanging at the neck", "faintly glowing tattoos on the neck", "a data-slate on a wrist strap",
+    "a small oxygen canister clipped to the belt", "a mission patch on the sleeve", "a magnetic tool belt",
+    "a pair of zero-g grip gloves tucked in a pocket", "a battered dog tag on a chain"
+  ],
+  "default_outfits": [
+    "a plain colony-issue jumpsuit and worn boots",
+    "a padded work jacket over a gray jumpsuit and sturdy boots",
+    "a comfortable knit top, utility trousers and slip-on shoes"
+  ],
+
+  "_tables": "The next entries replace the shared tables in common.json for this setting only (same shape): augment-friendly glasses and marks, and a wider dye chance for neon colony fashion.",
+  "dye_chance": 0.12,
+  "dyed_hair_colors": ["neon blue", "electric pink", "acid green", "silver-white", "holographic rainbow", "deep violet", "chrome"],
+  "glasses": [
+    {"label": "none", "w": 55},
+    {"label": "round wire-rimmed glasses", "w": 4},
+    {"label": "thick-framed rectangular glasses", "w": 5},
+    {"label": "cat-eye glasses", "w": 2, "g": ["female", "nonbinary"]},
+    {"label": "aviator glasses", "w": 2},
+    {"label": "a slim augmented-reality visor", "w": 18},
+    {"label": "smart-tinted goggles pushed up on the forehead", "w": 10},
+    {"label": "a single optical implant lens over one eye", "w": 4}
+  ],
+  "distinguishing": [
+    {"label": "none", "w": 42},
+    {"label": "freckles across the nose", "w": 6},
+    {"label": "a small mole on the cheek", "w": 3},
+    {"label": "dimples", "w": 3},
+    {"label": "a small scar through one eyebrow", "w": 2},
+    {"label": "a small nose stud", "w": 2},
+    {"label": "a birthmark on the neck", "w": 1},
+    {"label": "a glowing circuit-line tattoo along the jaw", "w": 6},
+    {"label": "a chrome cybernetic eye", "w": 4},
+    {"label": "a fine scar from a decompression accident", "w": 3},
+    {"label": "a subdermal LED implant that pulses faintly at the temple", "w": 4},
+    {"label": "a faint zero-g pallor", "w": 4},
+    {"label": "a barcode-style ID tattoo on the forearm", "w": 4},
+    {"label": "a cybernetic jaw plate on one side", "w": 2}
+  ],
+
+  "occupations": [
+    {"id": "engineer", "label": "station engineer", "weight": 3, "outfits": ["a gray utility jumpsuit with tool pouches, a mission patch and magnetic boots"]},
+    {"id": "medic", "label": "colony medic", "weight": 2.5, "min_age": 24, "outfits": ["a white and teal medical jumpsuit with a glowing cross patch and clean boots"]},
+    {"id": "pilot", "label": "shuttle pilot", "weight": 2, "min_age": 21, "outfits": ["a fitted flight jacket over a dark flight suit with mission patches and black boots"]},
+    {"id": "hydroponics", "label": "hydroponics technician", "weight": 2.5, "outfits": ["a green work coverall with vine-leaf patches, gloves and rubber boots"]},
+    {"id": "security", "label": "security officer", "weight": 2, "min_age": 21, "outfits": ["a dark armored vest over a black uniform with a stun baton and combat boots"]},
+    {"id": "trader", "label": "trader", "weight": 2, "outfits": ["a worn patchwork long coat over a light jumpsuit, with a data-slate and sturdy boots"]},
+    {"id": "miner", "label": "asteroid miner", "weight": 2, "outfits": ["a heavy orange work suit with scuffed armor plating, a headlamp and heavy boots"]},
+    {"id": "scientist", "label": "research scientist", "weight": 2, "min_age": 24, "outfits": ["a white lab coat with a holographic name badge over a jumpsuit and clean shoes"]},
+    {"id": "admin", "label": "colony administrator", "weight": 1, "min_age": 30, "outfits": ["a sleek dark blazer with a subtle glowing badge, tailored trousers and polished shoes"]},
+    {"id": "cook", "label": "galley cook", "weight": 2, "outfits": ["a white apron over a colony-issue jumpsuit, a hairnet and non-slip shoes"]},
+    {"id": "courier", "label": "courier", "weight": 1.5, "max_age": 45, "outfits": ["a padded jacket with reflective stripes, a messenger bag, a visor and light boots"]},
+    {"id": "roboticist", "label": "robot technician", "weight": 1.5, "outfits": ["a jumpsuit covered with tool loops and grease smudges, a multi-tool on the belt and work boots"]},
+    {"id": "bartender", "label": "bartender", "weight": 1.5, "min_age": 21, "outfits": ["a stylish vest with faint neon trim over a dark shirt, dark trousers and boots"]},
+    {"id": "comms", "label": "comms operator", "weight": 1.2, "outfits": ["a muted uniform with a headset around the neck and comfortable shoes"]},
+    {"id": "drifter", "label": "drifter", "weight": 1.2, "outfits": ["a hooded scavenged jacket with patches, a respirator around the neck, torn gloves and worn boots"]},
+    {"id": "surgeon", "label": "cybernetics surgeon", "weight": 0.8, "min_age": 28, "outfits": ["a sterile gray smock with a glowing eye-loupe and sleek boots"]},
+    {"id": "teacher", "label": "colony teacher", "weight": 1.5, "min_age": 23, "outfits": ["a comfortable colony jumpsuit with a colorful patch, carrying a data-tablet, with soft shoes"]},
+    {"id": "terraformer", "label": "terraformer", "weight": 1.5, "outfits": ["a dust-caked coverall, a wide-brim hat, goggles and boots"]},
+    {"id": "retiree", "label": "retired settler", "weight": 2, "min_age": 62, "max_age": 95, "outfits": ["a soft colony-issue sweater over a plain jumpsuit and comfortable shoes"]},
+    {"id": "colonychild", "label": "colony child", "weight": 1, "min_age": 6, "max_age": 12, "outfits": ["a small colony jumpsuit with colorful patches and sneakers"]},
+    {"id": "colonyteen", "label": "colony teenager", "weight": 1, "min_age": 13, "max_age": 17, "outfits": ["a customized jumpsuit with patches and sneakers"]},
+
+    {"id": "captain", "label": "ship captain", "weight": 0.8, "min_age": 30, "outfits": ["a fitted dark uniform coat with rank bars, a sidearm holster and polished boots"]},
+    {"id": "navigator", "label": "navigator", "weight": 1, "min_age": 22, "outfits": ["a fitted flight suit with a star-chart patch, fingerless gloves and black boots"]},
+    {"id": "quartermaster", "label": "quartermaster", "weight": 1, "outfits": ["a practical vest over a jumpsuit, a data-slate on a wrist strap, and sturdy boots"]},
+    {"id": "xenobiologist", "label": "xenobiologist", "weight": 0.8, "min_age": 25, "outfits": ["a white containment-lab suit with a specimen case and clean boots"]},
+    {"id": "atmostech", "label": "atmosphere technician", "weight": 1.2, "outfits": ["a padded thermal jumpsuit with warning patches, a respirator around the neck and heavy boots"]},
+    {"id": "dockworker", "label": "dock worker", "weight": 2, "outfits": ["a hi-vis vest over a gray jumpsuit, thick gloves and steel-toed boots"]},
+    {"id": "chef", "label": "colony chef", "weight": 1, "outfits": ["a crisp white synth-fibre coat over dark trousers, a folded cap and clean shoes"]},
+    {"id": "archivist", "label": "data archivist", "weight": 0.8, "outfits": ["a neat cardigan over a jumpsuit, a holo-reader on a wrist strap and soft shoes"]},
+    {"id": "gunner", "label": "defense gunner", "weight": 1, "min_age": 20, "max_age": 55, "outfits": ["armored plating over a flight suit, a targeting visor and combat boots"]},
+    {"id": "smuggler", "label": "smuggler", "weight": 1, "min_age": 20, "outfits": ["a scuffed leather flight jacket over a dark jumpsuit, fingerless gloves and worn boots"]},
+    {"id": "diplomat", "label": "colony diplomat", "weight": 0.6, "min_age": 32, "outfits": ["a sharply tailored formal jumpsuit with a subtle emblem and polished shoes"]},
+    {"id": "geologist", "label": "planetary geologist", "weight": 1, "outfits": ["a rugged field suit with sample pouches, tinted goggles and heavy boots"]},
+    {"id": "medtech", "label": "med-bay technician", "weight": 1.5, "outfits": ["a pale blue scrub-style jumpsuit with a medical patch and clean shoes"]},
+    {"id": "waste", "label": "recycling technician", "weight": 1.2, "outfits": ["a heavy-duty coverall with reinforced gloves, a respirator and rubber boots"]},
+    {"id": "botanist", "label": "colony botanist", "weight": 1, "outfits": ["a light green work smock over a jumpsuit, gardening gloves and rubber boots"]},
+    {"id": "aiwrangler", "label": "AI systems wrangler", "weight": 0.8, "outfits": ["a plain jumpsuit with a cluster of data cables on the belt and soft shoes"]},
+    {"id": "welder", "label": "hull welder", "weight": 1.2, "outfits": ["a heat-resistant suit with a flip-down visor, thick gloves and reinforced boots"]},
+    {"id": "medic2", "label": "field medic", "weight": 1, "min_age": 21, "outfits": ["a rugged olive medical vest over a flight suit, a satchel of supplies and sturdy boots"]},
+    {"id": "customs", "label": "customs inspector", "weight": 0.8, "min_age": 24, "outfits": ["a crisp gray uniform with a badge, a data-slate and polished boots"]},
+    {"id": "veteran", "label": "retired officer", "weight": 1, "min_age": 55, "outfits": ["a faded dress uniform jacket with old rank bars, plain trousers and soft shoes"]},
+    {"id": "stowaway", "label": "stowaway", "weight": 0.6, "max_age": 40, "outfits": ["a mismatched patched jumpsuit, a scavenged jacket and worn boots"]},
+    {"id": "beautician", "label": "colony stylist", "weight": 0.8, "outfits": ["a sleek fitted tunic with a tool belt of clippers and combs, and clean shoes"]},
+    {"id": "musician", "label": "synth musician", "weight": 0.8, "outfits": ["a stylish jacket with neon trim over a fitted top, and soft boots"]},
+    {"id": "reporter", "label": "colony broadcaster", "weight": 0.6, "outfits": ["a sharp jacket over a jumpsuit with a small camera drone clipped to the shoulder, and polished shoes"]}
+  ]
+}

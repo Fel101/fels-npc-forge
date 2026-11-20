@@ -1,0 +1,5 @@
+Pillow==12.3.0
+# NumPy 2.2 is the last line that supports the project's Python 3.10 CI target.
+numpy==2.2.6
+# UV layout for the sharper face (npcgen/headdetail.py); MIT, wheels for Windows, macOS and Linux.
+xatlas==0.0.11

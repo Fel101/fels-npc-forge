@@ -1,0 +1,118 @@
+{
+  "label": "Cyberpunk city",
+  "short": "Cyberpunk",
+  "blurb": "A neon megacity: netrunners, fixers, corpo suits, street medics and mercenaries under the rain.",
+  "order": 6,
+  "place": "city",
+  "context": "cyberpunk megacity character, neon-lit near-future streetwear",
+  "origin_label": "Heritage",
+
+  "hobbies": [
+    "modding {poss} own cybernetics", "racing hoverbikes through back alleys", "collecting vintage pre-collapse vinyl",
+    "hacking billboard ads for fun", "brewing black-market synth-coffee", "training in a back-alley dojo", "tagging rooftops with light-graffiti",
+    "breeding gene-spliced houseplants", "restoring an old combustion motorcycle", "running errands for street kids", "gambling on drone races",
+    "collecting corp ID badges", "busking with a modded guitar", "keeping koi in a rooftop tank"
+  ],
+  "quirks": [
+    "never taking {poss} jacket off indoors", "tapping out rhythms on any metal surface", "distrusting anything without a paper backup",
+    "naming every piece of tech {subj} owns", "checking {poss} rearview optics out of habit", "paying in cash out of spite",
+    "humming static when nervous", "keeping a burner line no one else knows about", "flinching at drone cameras", "collecting shell casings",
+    "never sitting with {poss} back to the door", "talking to {poss} own reflection in shop windows"
+  ],
+  "goals": [
+    "paying off {poss} augment debt", "getting out of the city for good", "taking down the corp that ruined {poss} family",
+    "opening a clinic that doesn't ask questions", "buying back {poss} childhood apartment", "building a rig that can't be traced",
+    "finding {poss} sister in the lower districts", "retiring somewhere with real sky", "earning a seat at the fixer's table",
+    "clearing {poss} name from every corp blacklist"
+  ],
+  "peeves": [
+    "corp drones", "acid rain that ruins good leather", "dead batteries", "surveillance cameras", "people who don't pay on time",
+    "the smell of the lower levels", "static on a bad connection", "elevator music", "price gouging on filtered water", "cocky netrunners"
+  ],
+  "accessories": [
+    "a chrome cybernetic arm", "a glowing subdermal tattoo along the neck", "smart contact lenses that flicker faintly",
+    "a neural jack behind the ear", "a holstered stun pistol", "a battered data-deck on a shoulder strap", "fingerless tactical gloves",
+    "a respirator mask hanging at the neck", "a chain of corp-ID badges", "a cracked-screen wrist display", "a katana strapped across the back",
+    "a scavenged drone perched on one shoulder"
+  ],
+  "default_outfits": [
+    "a long technical trench coat over a fitted bodysuit, fingerless gloves and heavy boots",
+    "an oversized bomber jacket with patchwork corp logos, ripped jeans and chunky boots",
+    "a sleek high-collar jacket with glowing trim, tactical trousers and matte black boots"
+  ],
+
+  "_tables": "The next entries replace the shared tables in common.json for this setting only (same shape): bold neon dye, undercuts and augment marks fit here more than anywhere else.",
+  "dye_chance": 0.35,
+  "dyed_hair_colors": ["neon pink", "acid green", "electric blue", "violet", "chrome silver", "holographic", "blood red", "toxic yellow"],
+  "hair_styles": [
+    {"label": "long hair",                              "w": [3, 0.2, 1.5],  "tex": true},
+    {"label": "shoulder-length hair",                   "w": [3, 0.6, 2],    "tex": true},
+    {"label": "asymmetric bob",                         "w": [2.5, 0.3, 1.5], "tex": true},
+    {"label": "high ponytail",                          "w": [2, 0.2, 1],    "tex": true},
+    {"label": "undercut with a long top",                "w": [2, 2, 2],      "tex": true},
+    {"label": "shaved sides with a short mohawk",        "w": [1, 2, 1.2],    "tex": false},
+    {"label": "buzz cut with a shaved pattern",           "w": [0.6, 2, 1],    "tex": false},
+    {"label": "slicked-back hair",                       "w": [0.5, 2, 1],    "tex": true},
+    {"label": "short spiked hair",                        "w": [0.8, 2.5, 1.5], "tex": true},
+    {"label": "box braids with glowing beads",            "w": [1, 0.3, 0.6],  "tex": false, "only": ["coily", "curly"]},
+    {"label": "cornrows",                                 "w": [0.5, 0.8, 0.5], "tex": false, "only": ["coily"]},
+    {"label": "natural afro",                             "w": [0.8, 0.8, 0.6], "tex": false, "only": ["coily"]},
+    {"label": "shaved head with a circuit-pattern undercut", "w": [0.3, 1, 0.6], "bald": false, "tex": false},
+    {"label": "bald",                                     "w": [0.05, 1, 0.3], "bald": true}
+  ],
+  "glasses": [
+    {"label": "none", "w": 40},
+    {"label": "wraparound smart-visor sunglasses", "w": 20},
+    {"label": "thin augmented-reality glasses", "w": 15},
+    {"label": "mirrored chrome sunglasses", "w": 12},
+    {"label": "thick-framed glasses with a glowing edge", "w": 8},
+    {"label": "a single optical implant lens over one eye", "w": 5}
+  ],
+  "distinguishing": [
+    {"label": "none", "w": 25},
+    {"label": "a glowing circuit-line tattoo along the jaw", "w": 8},
+    {"label": "a chrome cybernetic eye", "w": 7},
+    {"label": "a full cybernetic arm with visible joints", "w": 5},
+    {"label": "a subdermal LED implant that pulses at the temple", "w": 7},
+    {"label": "a corp-brand tattoo half removed by laser", "w": 4},
+    {"label": "a barcode-style ID tattoo on the neck", "w": 6},
+    {"label": "a scar from a botched augment surgery", "w": 4},
+    {"label": "a faint neon tattoo that shifts color", "w": 6},
+    {"label": "chrome-plated teeth", "w": 3},
+    {"label": "a cybernetic jaw plate on one side", "w": 3},
+    {"label": "freckles across the nose", "w": 4},
+    {"label": "a small scar through one eyebrow", "w": 4},
+    {"label": "a birthmark on the neck", "w": 2}
+  ],
+
+  "occupations": [
+    {"id": "netrunner", "label": "netrunner", "weight": 2.5, "min_age": 16, "outfits": ["a sleek black bodysuit under an open technical jacket, a neural jack cable coiled at the hip and matte boots"]},
+    {"id": "fixer", "label": "fixer", "weight": 1.5, "min_age": 25, "outfits": ["a tailored long coat over a fitted shirt, gold rings, a data-deck on a shoulder strap and polished boots"]},
+    {"id": "corpo", "label": "corp executive", "weight": 1.5, "min_age": 26, "outfits": ["a sharp asymmetric suit jacket with a glowing corp pin, tailored trousers and polished shoes"]},
+    {"id": "streetmedic", "label": "street medic", "weight": 1.5, "min_age": 22, "outfits": ["a stained medical apron over tactical trousers, a satchel of trauma kits and worn boots"]},
+    {"id": "merc", "label": "mercenary", "weight": 2, "min_age": 20, "outfits": ["plated tactical armor over a bodysuit, a holstered sidearm, fingerless gloves and combat boots"]},
+    {"id": "ripperdoc", "label": "ripperdoc", "weight": 1, "min_age": 28, "outfits": ["a blood-flecked surgical apron over a tank top, an optical loupe headset and clean boots"]},
+    {"id": "bartender", "label": "bar runner", "weight": 2, "min_age": 21, "outfits": ["a fitted vest with neon piping over a mesh shirt, dark trousers and boots"]},
+    {"id": "techie", "label": "street tech", "weight": 2, "outfits": ["a jumpsuit covered in patches and tool loops, welding goggles pushed up on the forehead and work boots"]},
+    {"id": "courier", "label": "data courier", "weight": 2, "max_age": 40, "outfits": ["a lightweight riding jacket with reflective stripes, a sealed data case and street boots"]},
+    {"id": "journalist", "label": "underground journalist", "weight": 1, "outfits": ["a worn trench coat over a plain shirt, a recorder pin on the lapel and scuffed boots"]},
+    {"id": "gangmember", "label": "gang member", "weight": 1.8, "min_age": 16, "max_age": 45, "outfits": ["a patched bomber jacket with a gang emblem, ripped jeans and heavy boots"]},
+    {"id": "bouncer", "label": "club bouncer", "weight": 1.2, "min_age": 22, "outfits": ["a fitted black jacket over a mesh shirt, an earpiece and heavy boots"]},
+    {"id": "vendor", "label": "noodle stall vendor", "weight": 1.5, "outfits": ["a stained apron over a thermal shirt, rolled sleeves and rubber boots"]},
+    {"id": "dancer", "label": "club dancer", "weight": 1.2, "min_age": 18, "outfits": ["a glowing mesh outfit with neon trim and platform boots"]},
+    {"id": "cabdriver", "label": "cab driver", "weight": 1.2, "outfits": ["a worn jacket over a plain shirt, fingerless driving gloves and comfortable shoes"]},
+    {"id": "enforcer", "label": "corp security enforcer", "weight": 1.5, "min_age": 21, "outfits": ["black plated riot armor over a bodysuit, a helmet under one arm and reinforced boots"]},
+    {"id": "hacker_kid", "label": "street kid runner", "weight": 1, "min_age": 13, "max_age": 19, "outfits": ["an oversized hoodie under a patched jacket, fingerless gloves and worn sneakers"]},
+    {"id": "artist", "label": "light-graffiti artist", "weight": 1, "outfits": ["a paint-flecked jacket over a mesh shirt, a spray-drone on the belt and scuffed boots"]},
+    {"id": "smuggler", "label": "black-market smuggler", "weight": 1.2, "min_age": 22, "outfits": ["a heavy utility vest over a bodysuit, cargo trousers and reinforced boots"]},
+    {"id": "engineer", "label": "grid engineer", "weight": 1.2, "outfits": ["a hi-vis harness over a thermal jumpsuit, insulated gloves and heavy boots"]},
+    {"id": "detective", "label": "private investigator", "weight": 0.8, "min_age": 28, "outfits": ["a long rain-slick coat over a rumpled shirt, a shoulder holster and worn boots"]},
+    {"id": "scavenger", "label": "tech scavenger", "weight": 1.2, "outfits": ["a patched jacket with many pockets, a headlamp and worn boots"]},
+    {"id": "chef", "label": "synth-food chef", "weight": 1, "outfits": ["a fitted chef's jacket with neon piping, an apron and clean boots"]},
+    {"id": "tattooist", "label": "augment tattooist", "weight": 0.8, "outfits": ["a sleeveless vest over a mesh shirt, ink-stained gloves and boots"]},
+    {"id": "preacher", "label": "street preacher", "weight": 0.6, "min_age": 30, "outfits": ["a long patched robe over street clothes, a battered holo-sign and worn boots"]},
+    {"id": "exec_bodyguard", "label": "corp bodyguard", "weight": 1, "min_age": 24, "outfits": ["a tailored armored suit jacket, an earpiece and polished tactical boots"]},
+    {"id": "retired", "label": "retired merc", "weight": 1, "min_age": 55, "outfits": ["a faded armored jacket with old unit patches, plain trousers and worn boots"]},
+    {"id": "orphan", "label": "street kid", "weight": 1, "min_age": 6, "max_age": 12, "outfits": ["an oversized patched jacket, cut-down trousers and mismatched sneakers"]}
+  ]
+}

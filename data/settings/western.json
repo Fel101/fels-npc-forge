@@ -1,0 +1,173 @@
+{
+  "label": "Old West",
+  "short": "Western",
+  "blurb": "A late-1800s frontier town: lawmen, shopkeepers, ranch hands, railway crews and outlaws.",
+  "order": 4,
+  "place": "town",
+  "context": "late-1800s American Old West frontier town character, in period-accurate worn, sun-faded clothing",
+  "origin_label": "Heritage",
+
+  "names": {
+    "female": ["Mabel", "Josephine", "Clara", "Hattie", "Ada", "Nellie", "Ruth", "Lucille", "Cora", "Ida", "Minnie", "Beatrice", "Olive", "Prudence", "Lena", "Dora", "Adelaide", "Winifred"],
+    "male": ["Amos", "Silas", "Jasper", "Homer", "Ezra", "Hiram", "Wilbur", "Otis", "Virgil", "Clyde", "Walt", "Abel", "Gus", "Lyle", "Thaddeus", "Cyrus", "Rufus", "Dell"],
+    "neutral": ["Sam", "Charlie", "Jesse", "Frankie", "Billie", "Dale", "Sidney", "Lee"],
+    "surnames": ["Whitaker", "Harlow", "Dunmore", "Pruitt", "Calloway", "Tucker", "Brandt", "Sterling", "Hollis", "Cobb", "Garrity", "McAllister", "Ridley", "Thorne", "Yates", "Dawes", "Loomis", "Bowen", "Sutter", "Kessler", "Landry", "Prescott", "Ashby", "Colter"]
+  },
+
+  "hobbies": [
+    "playing the harmonica", "whittling on the porch", "playing poker", "fishing the creek", "reading dime novels",
+    "tending a kitchen garden", "quilting", "target shooting", "horse trading", "singing hymns", "gentling colts",
+    "collecting arrowheads", "playing checkers", "sketching the mesas", "writing letters back east", "swapping stories by the stove"
+  ],
+  "quirks": [
+    "chewing a stalk of straw", "talking to {poss} horse", "never sitting with {poss} back to the door", "spitting for luck",
+    "keeping a tally of every debt in a little book", "humming hymns while working", "wearing the same hat for twenty years",
+    "carrying a pocket watch that runs slow", "reading the weather in the clouds", "whittling while listening"
+  ],
+  "goals": [
+    "buying a ranch of {poss} own", "striking silver", "sending for family back east", "wearing the star one day",
+    "opening a saloon", "saving enough for a train ticket to the coast", "paying off the mortgage", "seeing the ocean",
+    "raising a proper church", "finding a lost brother", "settling down by a river"
+  ],
+  "peeves": [
+    "dust in the coffee", "greenhorns", "the railroad's timetables", "cattle on the road", "cheating at cards", "cold biscuits",
+    "the noise from the saloon", "bankers", "mud in the house"
+  ],
+  "accessories": [
+    "a silver pocket watch on a chain", "a knotted bandana at the neck", "a battered canteen on a strap", "a rolled bedroll over the shoulder",
+    "a worn leather satchel", "a brass locket", "a sheathed hunting knife on the belt", "a coil of rope over the shoulder",
+    "a leather glove tucked into the belt", "a small cloth coin purse on a cord"
+  ],
+  "default_outfits": [
+    "a faded cotton work shirt, dusty canvas trousers, suspenders and worn leather boots",
+    {"t": "a plain cotton blouse, a long skirt, an apron and lace-up leather boots", "g": "female"},
+    "a wool vest over a sun-faded shirt, dusty trousers, a battered hat and scuffed boots"
+  ],
+
+  "_tables": "The next five entries replace the shared tables in common.json for this setting only (same shape): no undercuts or pastel dye in 1880.",
+  "hair_styles": [
+    {"label": "long hair pinned up in a bun",   "w": [5, 0, 0.6],   "tex": true},
+    {"label": "low practical bun",              "w": [4, 0, 0.4],   "tex": true},
+    {"label": "braid pinned around the head",   "w": [2, 0, 0.2],   "tex": true},
+    {"label": "two long braids",                "w": [1.5, 0, 0.2], "tex": true},
+    {"label": "long hair tied back",            "w": [1.5, 0.5, 1], "tex": true},
+    {"label": "shoulder-length hair",           "w": [1, 3, 2],     "tex": true},
+    {"label": "short cropped hair",             "w": [0.2, 3, 1.5], "tex": true},
+    {"label": "side-parted short hair",         "w": [0.05, 4, 1],  "tex": true},
+    {"label": "slicked-back hair",              "w": [0, 1.5, 0.5], "tex": true},
+    {"label": "medium-length hair tucked behind the ears", "w": [0.4, 2.5, 1.5], "tex": true},
+    {"label": "bald",                           "w": [0, 0.8, 0.2], "bald": true}
+  ],
+  "dyed_hair_colors": [],
+  "facial_hair": [
+    {"label": "clean-shaven", "w": 30},
+    {"label": "light stubble", "w": 12},
+    {"label": "a short trimmed beard", "w": 10},
+    {"label": "a full beard", "w": 10},
+    {"label": "a handlebar mustache", "w": 9},
+    {"label": "a walrus mustache", "w": 6},
+    {"label": "mutton chops", "w": 4},
+    {"label": "a goatee", "w": 4}
+  ],
+  "glasses": [
+    {"label": "none", "w": 90},
+    {"label": "round wire-rimmed glasses", "w": 8},
+    {"label": "thin steel-rimmed spectacles", "w": 2}
+  ],
+  "distinguishing": [
+    {"label": "none", "w": 55},
+    {"label": "laugh lines from squinting into the sun", "w": 8},
+    {"label": "freckles across the nose", "w": 7},
+    {"label": "a weathered, sun-creased face", "w": 6},
+    {"label": "a small scar through one eyebrow", "w": 3},
+    {"label": "a chipped front tooth", "w": 3},
+    {"label": "a sunburned nose", "w": 3},
+    {"label": "a crooked, once-broken nose", "w": 3},
+    {"label": "a faded old scar across the cheek", "w": 2},
+    {"label": "a birthmark on the neck", "w": 1}
+  ],
+
+  "occupations": [
+    {"id": "rancher", "label": "rancher", "weight": 3, "min_age": 22, "outfits": [
+      "a sun-faded work shirt with rolled sleeves, a canvas vest, dusty denim trousers, a battered wide-brim hat and scuffed cowhide boots"]},
+    {"id": "cowhand", "label": "cowhand", "weight": 4, "max_age": 55, "outfits": [
+      "a faded plaid shirt, leather chaps over dusty trousers, a knotted neckerchief, a sweat-stained hat and worn boots with spurs"]},
+    {"id": "sheriff", "label": "town sheriff", "weight": 1, "min_age": 27, "max_age": 65, "outfits": [
+      "a taupe waistcoat over a cream shirt, a long charcoal duster, a tin star badge, a gun belt with a holstered revolver, a flat-crowned hat and leather boots"]},
+    {"id": "deputy", "label": "deputy", "weight": 1.2, "max_age": 50, "outfits": [
+      "a plain wool vest over a work shirt, a tin star badge, a gun belt with a holstered revolver, dusty trousers and boots"]},
+    {"id": "saloonkeeper", "label": "saloon keeper", "weight": 1.2, "min_age": 25, "outfits": [
+      {"t": "a starched shirt with sleeve garters, a dark brocade vest, a long bar apron and polished boots", "g": "male"},
+      {"t": "a muted burgundy dress with a modest lace collar, a dark shawl and buttoned boots", "g": "female"}]},
+    {"id": "bartender", "label": "bartender", "weight": 2, "min_age": 21, "outfits": [
+      "a white shirt with sleeve garters, a black vest, a long white apron and polished leather shoes"]},
+    {"id": "performer", "label": "saloon performer", "weight": 1.5, "max_age": 55, "outfits": [
+      {"t": "a muted burgundy satin dress with a fitted bodice and lace trim, feathers pinned in the hair and buttoned boots", "g": "female"},
+      {"t": "a rumpled brocade waistcoat over rolled shirtsleeves, a bowler hat and polished boots", "g": "male"}]},
+    {"id": "gambler", "label": "professional gambler", "weight": 1.2, "min_age": 24, "outfits": [
+      "a dark frock coat over a brocade waistcoat, a string tie, a flat-crowned black hat and polished boots"]},
+    {"id": "storekeeper", "label": "general store keeper", "weight": 2, "min_age": 24, "outfits": [
+      {"t": "a cream cotton blouse with rolled sleeves, a faded olive skirt, a dark apron and worn brown boots", "g": "female"},
+      {"t": "a white shirt with sleeve garters, a canvas apron, a dark vest and worn trousers and boots", "g": "male"}]},
+    {"id": "gunsmith", "label": "gunsmith", "weight": 0.8, "min_age": 24, "outfits": [
+      "a cream work shirt with rolled sleeves, a cracked leather apron with tool pouches, dark work trousers and worn boots"]},
+    {"id": "blacksmith", "label": "blacksmith", "weight": 1.5, "min_age": 20, "outfits": [
+      "a sooty leather apron over a work shirt with rolled sleeves, thick leather gloves, canvas trousers and heavy boots"]},
+    {"id": "doctor", "label": "town doctor", "weight": 1, "min_age": 28, "outfits": [
+      "a dark three-piece wool suit with a watch chain, a long restrained coat, a string tie and polished boots, carrying a leather medical bag"]},
+    {"id": "undertaker", "label": "undertaker", "weight": 0.7, "min_age": 28, "outfits": [
+      "a black frock coat, a black waistcoat, a stiff white collar, a black top hat and polished black boots"]},
+    {"id": "barber", "label": "barber", "weight": 1, "min_age": 20, "outfits": [
+      "a striped shirt with sleeve garters, a dark vest, a white apron and polished shoes"]},
+    {"id": "telegraph", "label": "telegraph operator", "weight": 0.8, "min_age": 18, "max_age": 60, "outfits": [
+      "a pressed white shirt with sleeve garters, a dark vest, a green eyeshade, dark trousers and polished shoes"]},
+    {"id": "stationmaster", "label": "railway station master", "weight": 0.6, "min_age": 30, "outfits": [
+      "a dark blue-gray uniform coat with brass buttons, a peaked cap, a watch chain across the vest and polished boots"]},
+    {"id": "railworker", "label": "railroad worker", "weight": 2.5, "max_age": 60, "outfits": [
+      "a striped work shirt, a dark waistcoat, heavy canvas trousers, a flat cap and thick-soled boots"]},
+    {"id": "livery", "label": "livery stable hand", "weight": 1.5, "max_age": 45, "outfits": [
+      "an oversized canvas shirt, suspenders, cropped trousers and battered boots"]},
+    {"id": "homesteader", "label": "homesteader", "weight": 3, "outfits": [
+      {"t": "a modest jacket over a faded calico blouse, a long taupe skirt, a sun hat and lace-up boots", "g": "female"},
+      {"t": "a washed blue-gray shirt, suspenders, patched canvas trousers, a straw hat and worn boots", "g": "male"}]},
+    {"id": "laborer", "label": "day laborer", "weight": 3, "max_age": 60, "outfits": [
+      "a washed blue-gray shirt, suspenders, patched canvas trousers, a floppy brimmed hat and worn boots"]},
+    {"id": "teacher", "label": "schoolteacher", "weight": 1.2, "min_age": 20, "outfits": [
+      {"t": "a high-collared white blouse, a long dark skirt, a small brooch and buttoned boots", "g": "female"},
+      {"t": "a plain wool coat over a vest and white shirt, a narrow tie, dark trousers and polished boots", "g": "male"}]},
+    {"id": "preacher", "label": "preacher", "weight": 1, "min_age": 26, "outfits": [
+      "a black frock coat, a white collarless shirt, a black hat and polished boots, carrying a well-worn Bible"]},
+    {"id": "banker", "label": "banker", "weight": 0.8, "min_age": 30, "outfits": [
+      "a charcoal three-piece suit, a gold watch chain, a bowler hat and polished shoes"]},
+    {"id": "editor", "label": "newspaper editor", "weight": 0.6, "min_age": 22, "outfits": [
+      "ink-stained rolled shirtsleeves, a vest, sleeve garters and a green eyeshade, with dark trousers and shoes"]},
+    {"id": "seamstress", "label": "seamstress", "weight": 1.2, "min_age": 18, "outfits": [
+      {"t": "a plain dress with a pincushion at the wrist, a measuring tape around the neck, an apron and buttoned shoes", "g": "female"},
+      {"t": "a rolled-sleeve shirt with a measuring tape around the neck, a vest, dark trousers and shoes", "g": "male"}]},
+    {"id": "laundress", "label": "laundress", "weight": 1.2, "min_age": 18, "outfits": [
+      "a rolled-sleeve blouse, a long damp apron over a plain skirt and worn shoes"]},
+    {"id": "cook", "label": "camp cook", "weight": 1, "min_age": 22, "outfits": [
+      "a flour-dusted apron over a work shirt, canvas trousers, a bandana and worn boots"]},
+    {"id": "boardinghouse", "label": "boarding-house keeper", "weight": 1, "min_age": 35, "outfits": [
+      {"t": "a charcoal shawl over a muted burgundy blouse, a long dark skirt and sensible boots", "g": "female"},
+      {"t": "a worn wool waistcoat over a collarless shirt, dark trousers and slippers", "g": "male"}]},
+    {"id": "prospector", "label": "prospector", "weight": 1.2, "min_age": 20, "outfits": [
+      "a patched wool shirt, suspenders, dirt-caked trousers, a battered hat and hobnailed boots, with a pickaxe over the shoulder"]},
+    {"id": "trapper", "label": "trapper", "weight": 0.8, "min_age": 20, "outfits": [
+      "a fringed buckskin jacket over a wool shirt, a fur cap, rough trousers and moccasin-style boots"]},
+    {"id": "bountyhunter", "label": "bounty hunter", "weight": 0.7, "min_age": 25, "max_age": 60, "outfits": [
+      "a long weathered duster, a low-crowned hat, a gun belt with two holstered revolvers and dusty boots"]},
+    {"id": "outlaw", "label": "outlaw", "weight": 1.5, "min_age": 18, "max_age": 60, "outfits": [
+      "a patched duster, a brim-up hat, a faded rust-red neckerchief, a gun belt with a holstered revolver and dust-caked boots"]},
+    {"id": "drifter", "label": "drifter", "weight": 1.2, "outfits": [
+      "a threadbare coat, a floppy hat, a bedroll over the shoulder, patched trousers and scuffed boots"]},
+    {"id": "retired", "label": "retired settler", "weight": 1, "min_age": 60, "max_age": 95, "outfits": [
+      {"t": "a faded wool cardigan over a plain shirt, patched trousers, suspenders, a battered hat and a walking cane with worn boots", "g": "male"},
+      {"t": "a dark shawl over a faded calico dress, an apron, a knitted cap and a walking cane with worn shoes", "g": "female"}]},
+    {"id": "townchild", "label": "town child", "weight": 1, "min_age": 6, "max_age": 12, "outfits": [
+      {"t": "a plain cotton shirt, patched knee trousers, suspenders and worn boots", "g": "male"},
+      {"t": "a faded calico dress with a pinafore and buttoned boots", "g": "female"}]},
+    {"id": "youngranchhand", "label": "young ranch hand", "weight": 1, "min_age": 13, "max_age": 17, "outfits": [
+      "an oversized canvas shirt, suspenders, cropped trousers, a battered hat and worn boots"]}
+  ]
+}

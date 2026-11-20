@@ -1,0 +1,38 @@
+{
+  "_readme": "Detailed head: four close-ups of ONE character's head and neck (front, both sides, back), each drawn by the edit model from the portrait, that Pixal3D turns into a separate, much finer 3D head. {who} is 'woman', 'man', 'character'..., {hair} is ', the hair' for people and empty for freeform characters, {expression} is the sentence in 'expressions' the request asked for (a neutral face by default, so a jaw bone can open the mouth later; 'keep' leaves the portrait's expression), {hair_line} (people_extra only) states the hair from the character's data. Edit the wording freely: the server re-reads this file on every request. See docs/detailed-head.md for what was measured.",
+
+  "views": {
+    "front": {
+      "label": "Front",
+      "prompt": "Redraw the {who} from the reference as a close-up of the head and neck only, seen straight from the front and looking straight at the camera{expression}. Show only the head{hair} and the neck, cut off cleanly just above the shoulders. The head fills the frame."
+    },
+    "side_right": {
+      "label": "Side (facing right)",
+      "prompt": "Redraw the {who} from the reference as a close-up of the head and neck only, in a true side profile view facing right: the head turned 90 degrees to the right so that only one ear and one side of the face show{expression}. Show only the head{hair} and the neck, cut off cleanly just above the shoulders. The head fills the frame."
+    },
+    "side_left": {
+      "label": "Side (facing left)",
+      "prompt": "Redraw the {who} from the reference as a close-up of the head and neck only, in a true side profile view facing left: the head turned 90 degrees to the left so that only one ear and one side of the face show{expression}. Show only the head{hair} and the neck, cut off cleanly just above the shoulders. The head fills the frame."
+    },
+    "back": {
+      "label": "Back",
+      "prompt": "Redraw the {who} from the reference as a close-up of the head and neck only, seen from directly behind, turned completely away from the camera so that only the back of the head{hair} and the back of the neck are visible and the face is not visible at all. The neck is cut off cleanly just above the shoulders. The head fills the frame.",
+      "people_extra": "Keep the same hat or other headwear as in the reference. {hair_line}"
+    }
+  },
+
+  "expressions": {
+    "neutral": {"label": "Neutral (best for animating)", "phrase": " with a relaxed neutral expression and the mouth gently closed",
+                "negative": "open mouth, teeth, smile, laughing, frown"},
+    "keep": {"label": "As in the portrait", "phrase": "", "negative": ""}
+  },
+  "default_expression": "neutral",
+
+  "glasses_off": {
+    "phrase": " The face is bare: take any glasses off, with no frames, lenses or arms on the face.",
+    "negative": "glasses, sunglasses, spectacles, eyeglasses, goggles, monocle, frames, lenses, eyewear"
+  },
+
+  "tail": "Plain pure white background, flat even studio lighting, no floor shadow, no props, no text.",
+  "negative": "text, watermark, frame, collage, duplicate figure, extra people, body below the shoulders, floor shadow"
+}

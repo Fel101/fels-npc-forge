@@ -1,0 +1,53 @@
+{
+  "schema": "npcforge.projects/1",
+  "projects": [
+    {
+      "slug": "ember-hollow",
+      "name": "Ember Hollow",
+      "tri_budget": 20000,
+      "style_prefix": "Stylised 3D game concept art, render3d style,",
+      "negative_extra": "",
+      "background": "Flat solid green background.",
+      "commercial": true,
+      "engine": "godot-4",
+      "pack_dir": "",
+      "key_prefix": "",
+      "clip_map": {
+        "serpentine": {
+          "idle": "Idle",
+          "move": "Swim",
+          "attack": "Bite",
+          "hurt": "Hit"
+        }
+      },
+      "licence_acceptance": {
+        "verdict": "conditions",
+        "accepted_by": "Studio lead",
+        "date": "2026-10-16",
+        "reason": "An example of a recorded decision: the DINOv3 licence that TRELLIS.2 uses is accepted for this game's art, its military and weapons limits read as not covering a game whose warfare is fiction."
+      }
+    },
+    {
+      "slug": "dust-moon",
+      "name": "Dust Moon",
+      "tri_budget": 6000,
+      "style_prefix": "Stylised 3D game concept art, render3d style,",
+      "negative_extra": "",
+      "background": "Flat solid green background.",
+      "commercial": true,
+      "engine": "godot-4",
+      "pack_dir": "",
+      "key_prefix": "dustmoon-",
+      "clip_map": {
+        "serpentine": {
+          "idle": "Idle",
+          "move": "Swim",
+          "attack": "Bite",
+          "hurt": "Hit",
+          "die": "Death"
+        }
+      },
+      "licence_acceptance": null
+    }
+  ]
+}

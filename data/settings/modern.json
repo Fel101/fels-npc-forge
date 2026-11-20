@@ -1,0 +1,164 @@
+{
+  "label": "Modern life",
+  "short": "Modern",
+  "blurb": "Contemporary everyday people, in the vein of The Sims.",
+  "order": 1,
+  "place": "neighborhood",
+  "context": "",
+  "origin_label": "Heritage",
+
+  "hobbies": [
+    "gardening", "playing guitar", "cooking new recipes", "hiking", "reading mystery novels", "playing video games",
+    "jogging", "baking bread", "photography", "fishing", "painting", "playing board games", "knitting",
+    "watching old movies", "woodworking", "birdwatching", "browsing farmers' markets", "singing karaoke", "cycling",
+    "doing yoga", "collecting vinyl records", "volunteering", "trying new coffee shops", "stargazing", "thrifting",
+    "fixing up the house"
+  ],
+  "quirks": [
+    "humming while working", "always carrying a spare umbrella", "talking to houseplants", "remembering everyone's birthday",
+    "wearing mismatched socks", "leaving tiny doodles on receipts", "never being on time", "telling terrible puns",
+    "collecting free pens", "narrating the day like a nature documentary", "wearing a lucky scarf", "knowing every bus schedule by heart",
+    "taking photos of clouds", "keeping a pet rock on the desk"
+  ],
+  "goals": [
+    "traveling the world", "buying a house with a garden", "writing a novel", "running a marathon", "opening a place of {poss} own",
+    "getting out of debt", "going back to school", "finding true love", "becoming a local legend", "retiring by the sea",
+    "learning to fly", "starting a family", "making the neighborhood proud", "winning the county fair blue ribbon"
+  ],
+  "peeves": [
+    "people who chew loudly", "being late", "slow walkers", "spoilers", "loud phone calls on the bus", "unsolicited advice",
+    "cold coffee", "messy group chats", "people who leave shopping carts everywhere", "passive-aggressive notes", "waiting in line",
+    "slow internet"
+  ],
+  "accessories": [
+    "a wristwatch", "small stud earrings", "a thin gold necklace", "a beanie", "a baseball cap", "a canvas tote bag over the shoulder",
+    "a lanyard with an ID badge", "a friendship bracelet", "over-ear headphones around the neck", "a leather backpack strap on one shoulder"
+  ],
+  "default_outfits": [
+    "a casual t-shirt, jeans and sneakers",
+    "a knit sweater, chinos and comfortable shoes",
+    "a hoodie, joggers and clean sneakers",
+    "a plaid shirt over a tee, dark jeans and boots",
+    {"t": "a floral summer dress and sandals", "g": "female"},
+    {"t": "a polo shirt, khaki shorts and canvas shoes", "g": "male"}
+  ],
+
+  "occupations": [
+    {"id": "barista", "label": "barista", "weight": 3, "outfits": [
+      "a dark green apron over a white t-shirt, dark jeans and black sneakers",
+      "a black apron over a gray henley shirt, black pants and canvas shoes"]},
+    {"id": "server", "label": "restaurant server", "weight": 3, "outfits": [
+      "a white button-up shirt, a black vest, black trousers and black shoes",
+      "a black polo shirt with a short black apron, dark pants and black sneakers"]},
+    {"id": "chef", "label": "chef", "weight": 2, "outfits": [
+      "a white chef's coat, checkered chef pants and black non-slip clogs",
+      "a white chef's coat with a black cap, black pants and black kitchen shoes"]},
+    {"id": "baker", "label": "baker", "weight": 1.5, "outfits": [
+      "a flour-dusted apron over a beige shirt, dark pants and brown boots"]},
+    {"id": "bartender", "label": "bartender", "weight": 1.5, "min_age": 21, "outfits": [
+      "a black vest over a white shirt with rolled sleeves, black jeans and dark leather shoes",
+      "a black t-shirt with a bar apron, dark jeans and black boots"]},
+    {"id": "cashier", "label": "grocery cashier", "weight": 2.5, "outfits": [
+      "a bright green polo shirt with a name tag, khaki pants and white sneakers"]},
+    {"id": "retail", "label": "shop assistant", "weight": 3, "outfits": [
+      "a blue store vest over a plain shirt, dark jeans and gray sneakers",
+      "a neat black top with a name badge, dark trousers and clean sneakers"]},
+    {"id": "office", "label": "office worker", "weight": 5, "outfits": [
+      {"t": "a blouse, tailored trousers and low heels", "g": "female"},
+      {"t": "a light blue button-up shirt, gray slacks and brown leather shoes", "g": "male"},
+      "a knit sweater, dark slacks and clean loafers"]},
+    {"id": "accountant", "label": "accountant", "weight": 1.5, "outfits": [
+      "a crisp shirt under a cardigan, dark trousers and leather shoes"]},
+    {"id": "developer", "label": "software developer", "weight": 3, "outfits": [
+      "a hoodie over a graphic t-shirt, jeans and sneakers",
+      "a plain t-shirt under an open flannel shirt, jeans and worn sneakers"]},
+    {"id": "teacher", "label": "teacher", "weight": 3, "min_age": 23, "outfits": [
+      "a cardigan over a collared shirt, chinos and comfortable flats",
+      "a sweater vest over a shirt, khaki trousers and brown shoes"]},
+    {"id": "lecturer", "label": "university lecturer", "weight": 1, "min_age": 28, "outfits": [
+      "a tweed blazer over a knit sweater, corduroy trousers and leather brogues"]},
+    {"id": "nurse", "label": "nurse", "weight": 3, "min_age": 21, "outfits": [
+      "light blue medical scrubs with a stethoscope around the neck and white clogs",
+      "navy scrubs with a hospital badge and white sneakers"]},
+    {"id": "doctor", "label": "doctor", "weight": 1.5, "min_age": 27, "outfits": [
+      "a white lab coat over a shirt and tie, dark trousers and leather shoes",
+      "a white lab coat over a blouse and slacks with flat shoes"]},
+    {"id": "paramedic", "label": "paramedic", "weight": 1, "min_age": 20, "outfits": [
+      "a navy paramedic uniform with reflective patches and black work boots"]},
+    {"id": "police", "label": "police officer", "weight": 1.2, "min_age": 21, "outfits": [
+      "a navy police uniform with a duty belt and black boots"]},
+    {"id": "firefighter", "label": "firefighter", "weight": 1, "min_age": 21, "outfits": [
+      "a navy fire department t-shirt, work trousers with suspenders and heavy black boots"]},
+    {"id": "mail", "label": "mail carrier", "weight": 1.2, "outfits": [
+      "a blue-gray postal carrier uniform with a shoulder satchel and sturdy walking shoes"]},
+    {"id": "bus", "label": "bus driver", "weight": 1.2, "min_age": 22, "outfits": [
+      "a gray transit uniform shirt, dark trousers and black shoes"]},
+    {"id": "rideshare", "label": "rideshare driver", "weight": 1.5, "min_age": 21, "outfits": [
+      "a casual jacket over a t-shirt, jeans and sneakers"]},
+    {"id": "construction", "label": "construction worker", "weight": 2, "outfits": [
+      "an orange high-visibility vest over a work shirt, a hard hat, work trousers and steel-toe boots"]},
+    {"id": "electrician", "label": "electrician", "weight": 1.2, "outfits": [
+      "a blue work shirt with a tool belt, work trousers and sturdy boots"]},
+    {"id": "plumber", "label": "plumber", "weight": 1.2, "outfits": [
+      "gray coveralls with a tool belt and heavy work boots"]},
+    {"id": "mechanic", "label": "auto mechanic", "weight": 1.5, "outfits": [
+      "navy coveralls with grease stains and black work boots"]},
+    {"id": "librarian", "label": "librarian", "weight": 1.2, "outfits": [
+      "a cozy cardigan over a collared shirt, trousers and comfortable shoes"]},
+    {"id": "hairstylist", "label": "hairstylist", "weight": 1.5, "outfits": [
+      "a black salon apron over a stylish top, black jeans and trendy sneakers"]},
+    {"id": "trainer", "label": "fitness trainer", "weight": 1.5, "outfits": [
+      "a fitted athletic top, track pants and running shoes"]},
+    {"id": "artist", "label": "artist", "weight": 1.2, "outfits": [
+      "a paint-splattered smock over a t-shirt, jeans and worn canvas shoes"]},
+    {"id": "musician", "label": "musician", "weight": 1.2, "outfits": [
+      "a vintage band t-shirt, a denim jacket, black jeans and boots"]},
+    {"id": "writer", "label": "writer", "weight": 1, "outfits": [
+      "a knit sweater, corduroy trousers and comfortable loafers"]},
+    {"id": "photographer", "label": "photographer", "weight": 1, "outfits": [
+      "a utility vest over a casual shirt, cargo pants and hiking shoes, with a camera strap around the neck"]},
+    {"id": "realtor", "label": "real estate agent", "weight": 1.2, "min_age": 23, "outfits": [
+      "a tailored blazer over a shirt, slacks and polished shoes"]},
+    {"id": "lawyer", "label": "lawyer", "weight": 1, "min_age": 26, "outfits": [
+      {"t": "a tailored dark suit with a tie and polished leather shoes", "g": "male"},
+      {"t": "a tailored dark skirt suit with a blouse and pumps", "g": "female"},
+      "a tailored dark suit with polished leather shoes"]},
+    {"id": "banker", "label": "bank teller", "weight": 1, "outfits": [
+      "a neat shirt with a vest, slacks and dress shoes"]},
+    {"id": "janitor", "label": "custodian", "weight": 1.2, "outfits": [
+      "a gray work shirt with a name patch, dark work pants and slip-resistant shoes"]},
+    {"id": "security", "label": "security guard", "weight": 1.2, "outfits": [
+      "a black security uniform with a badge, black trousers and black boots"]},
+    {"id": "delivery", "label": "delivery driver", "weight": 1.5, "outfits": [
+      "a brown uniform polo, cargo shorts and sneakers"]},
+    {"id": "vet", "label": "veterinarian", "weight": 0.8, "min_age": 27, "outfits": [
+      "teal scrubs with a paw-print patch and white sneakers"]},
+    {"id": "pharmacist", "label": "pharmacist", "weight": 0.8, "min_age": 26, "outfits": [
+      "a white pharmacist coat over a shirt, slacks and comfortable shoes"]},
+    {"id": "receptionist", "label": "receptionist", "weight": 1.5, "outfits": [
+      "a smart blouse under a cardigan, trousers and low heels",
+      "a smart shirt with a lanyard, slacks and loafers"]},
+    {"id": "gardener", "label": "landscaper", "weight": 1.2, "outfits": [
+      "a wide-brimmed hat, a green work shirt, work trousers and rubber boots"]},
+    {"id": "farmer", "label": "farmer", "weight": 0.8, "outfits": [
+      "a plaid work shirt, jeans, a cap and muddy boots"]},
+    {"id": "council", "label": "town council member", "weight": 0.5, "min_age": 30, "outfits": [
+      "a formal blazer over a shirt, slacks and polished shoes"]},
+    {"id": "college", "label": "college student", "weight": 2.5, "min_age": 18, "max_age": 27, "outfits": [
+      "a hoodie, jeans and sneakers with a backpack",
+      "a casual t-shirt, joggers and sneakers with a tote bag"]},
+    {"id": "jobseeker", "label": "job seeker", "weight": 1, "outfits": [
+      "a casual t-shirt, jeans and sneakers"]},
+    {"id": "parent", "label": "stay-at-home parent", "weight": 1.5, "min_age": 24, "outfits": [
+      "a comfy sweater, jeans and slip-on shoes"]},
+    {"id": "retiree", "label": "retiree", "weight": 4, "min_age": 62, "max_age": 95, "outfits": [
+      "a cozy cardigan, comfortable trousers and walking shoes",
+      "a plain polo shirt, khaki trousers and comfortable shoes"]},
+    {"id": "schoolchild", "label": "schoolchild", "weight": 1, "min_age": 6, "max_age": 12, "outfits": [
+      "a colorful t-shirt, shorts and sneakers with a small backpack",
+      "a hoodie, jeans and sneakers with a backpack"]},
+    {"id": "student", "label": "high school student", "weight": 1, "min_age": 13, "max_age": 17, "outfits": [
+      "a graphic t-shirt, jeans and sneakers with a backpack",
+      "a hoodie, joggers and sneakers with a backpack"]}
+  ]
+}

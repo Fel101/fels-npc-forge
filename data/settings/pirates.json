@@ -1,0 +1,134 @@
+{
+  "label": "Pirates",
+  "short": "Pirates",
+  "blurb": "A Caribbean port and the high seas in the age of sail: captains, quartermasters, privateers and the merchants who dread them.",
+  "order": 11,
+  "place": "port town",
+  "context": "golden age of piracy character, Caribbean high seas adventure, in period-accurate 18th-century clothing",
+  "origin_label": "Heritage",
+
+  "names": {
+    "female": ["Anne", "Mary", "Margaret", "Eleanor", "Charlotte", "Isabeau", "Josefina", "Marguerite", "Bridget", "Fiona", "Constance", "Grace", "Rosalind", "Beatrix", "Esperanza", "Catalina", "Delphine", "Verity"],
+    "male": ["Edward", "William", "Jack", "Henry", "Bartholomew", "Thomas", "Rhys", "Declan", "Fernand", "Diego", "Nathaniel", "Silas", "Cornelius", "Jonas", "Amos", "Rafael", "Etienne", "Duncan"],
+    "neutral": ["Robin", "Ashby", "Frey", "Lark", "Wren", "Gale"],
+    "surnames": ["Ashworth", "Kestrel", "Duval", "Merrow", "Hawksmoor", "Ravenscroft", "Beaumont", "Farrow", "Delacroix", "Marchbanks", "Cutter", "Sable", "Winterbourne", "Gallowglass", "Redgrave", "Castellane", "Fairwind", "Blackmoor"]
+  },
+
+  "hobbies": [
+    "mending sails by lamplight", "whittling scrimshaw from whalebone", "playing the fiddle on deck", "swapping sea shanties",
+    "gambling with dice below deck", "reading captured letters for gossip", "collecting foreign coins", "tending a parrot",
+    "practicing knot-tying", "stargazing for navigation practice", "drinking rum by the galley fire", "mapping uncharted coves",
+    "swimming races at anchor", "fishing off the bowsprit", "telling tall tales of sea monsters", "practicing knife throwing",
+    "collecting seashells at port", "carving small charms from driftwood"
+  ],
+  "quirks": [
+    "never setting sail on a Friday", "refusing to whistle on deck", "keeping a lucky coin from {poss} first prize ship",
+    "talking to {poss} parrot like a confidant", "knocking on wood before every raid", "sharpening {poss} cutlass every evening",
+    "refusing to say the word \"drown\"", "keeping tally marks of every voyage on {poss} forearm", "humming sea shanties under {poss} breath",
+    "never turning {poss} back on the open sea", "reading the sky before anyone else wakes", "saluting the ship's figurehead each morning"
+  ],
+  "goals": [
+    "earning enough for a quiet life on land", "finding the island from {poss} father's map", "becoming captain of {poss} own ship",
+    "settling an old score with a rival crew", "retiring before the noose finds {obj}", "buying back the family's land",
+    "finding a sibling taken by a press gang", "sailing further than any chart shows", "earning a king's pardon",
+    "keeping the crew fed through the next storm", "finding a port that will still have {obj}", "seeing {poss} name struck from every wanted notice"
+  ],
+  "peeves": [
+    "weevils in the biscuit", "a becalmed sea", "cowards at the boarding call", "short rations",
+    "landlubbers who don't know port from starboard", "a leaking hull", "a captain who won't share the plunder fairly",
+    "scurvy", "rats in the hold", "the press gang"
+  ],
+  "accessories": [
+    "a brass spyglass", "a coil of rope over the shoulder", "a cutlass at the hip", "a tricorn hat with a faded feather",
+    "a gold hoop earring", "a battered compass on a cord", "a pouch of foreign coins", "a clay pipe",
+    "a weathered logbook", "a parrot perched on one shoulder", "a sun-bleached bandana", "a dagger tucked in a boot"
+  ],
+  "default_outfits": [
+    "a loose linen shirt with rolled sleeves under a weathered leather waistcoat, wide canvas trousers, a wide sash at the waist and worn leather boots",
+    {"t": "a fitted linen blouse under a laced leather bodice, wide canvas trousers rolled to the calf, a wide sash at the waist and worn leather boots", "g": "female"},
+    "a faded frock coat over a linen shirt and waistcoat, breeches, tall leather boots and a tricorn hat"
+  ],
+
+  "_tables": "The next four entries replace the shared tables in common.json for this setting only (same shape): sailors' hair (tarred queues, kerchiefs, no modern cuts or dye), heavy period beards, almost no eyewear, and a few sea-going marks (an eye patch, a hook hand).",
+  "dyed_hair_colors": [],
+  "hair_styles": [
+    {"label": "long hair tied back in a tarred queue", "w": [1, 3, 1.5], "tex": true},
+    {"label": "long hair loose and salt-tangled", "w": [3, 0.3, 1.5], "tex": true},
+    {"label": "hair bound under a faded bandana", "w": [2, 2, 2], "tex": true},
+    {"label": "hair in a single long braid down the back", "w": [2.5, 0.3, 1], "tex": true},
+    {"label": "shoulder-length windswept hair", "w": [1.5, 2, 2], "tex": true},
+    {"label": "short cropped hair", "w": [0.5, 2.5, 1.5], "tex": true},
+    {"label": "hair pulled into a low tail", "w": [1.5, 1.5, 1], "tex": true},
+    {"label": "cropped hair under a knotted kerchief", "w": [1, 1, 1], "tex": false},
+    {"label": "matted, salt-crusted dreadlocked hair", "w": [0.5, 0.6, 0.5], "tex": false, "only": ["coily", "curly"]},
+    {"label": "hair in box braids tucked under a kerchief", "w": [0.8, 0.1, 0.4], "tex": false, "only": ["coily", "curly"]},
+    {"label": "natural afro hair under a wide-brimmed hat", "w": [0.6, 0.6, 0.5], "tex": false, "only": ["coily"]},
+    {"label": "bald, weathered scalp", "w": [0.1, 1.2, 0.3], "bald": true}
+  ],
+  "facial_hair": [
+    {"label": "clean-shaven", "w": 15},
+    {"label": "light stubble", "w": 20},
+    {"label": "a scruffy short beard", "w": 20},
+    {"label": "a full wild beard", "w": 18},
+    {"label": "a braided beard with beads", "w": 8},
+    {"label": "a long forked beard", "w": 4},
+    {"label": "a mustache", "w": 8},
+    {"label": "a goatee", "w": 5},
+    {"label": "mutton chops", "w": 2}
+  ],
+  "glasses": [
+    {"label": "none", "w": 92},
+    {"label": "small round spectacles", "w": 5},
+    {"label": "a cracked brass monocle", "w": 2},
+    {"label": "tinted glass spectacles against the glare", "w": 1}
+  ],
+  "distinguishing": [
+    {"label": "none", "w": 35},
+    {"label": "a long scar across the cheek", "w": 6},
+    {"label": "a missing eye behind a leather patch", "w": 3},
+    {"label": "a hook where one hand should be", "w": 2},
+    {"label": "sun-weathered, leathery skin", "w": 8},
+    {"label": "a faded anchor tattoo on the forearm", "w": 6},
+    {"label": "a gold tooth", "w": 3},
+    {"label": "a crooked, once-broken nose", "w": 4},
+    {"label": "a jagged scar across the brow", "w": 4},
+    {"label": "a small compass tattoo on the wrist", "w": 4},
+    {"label": "a sunburned, peeling nose", "w": 3},
+    {"label": "freckles across the nose", "w": 5}
+  ],
+
+  "occupations": [
+    {"id": "captain", "label": "captain", "weight": 0.5, "min_age": 28, "outfits": ["a fine embroidered frock coat over a waistcoat and shirt, a wide sash with a brace of pistols, tall leather boots and a plumed tricorn hat"]},
+    {"id": "quartermaster", "label": "quartermaster", "weight": 1, "min_age": 24, "outfits": ["a weathered coat over a linen shirt, a cutlass and pistol at the belt, canvas trousers and worn boots"]},
+    {"id": "firstmate", "label": "first mate", "weight": 1, "min_age": 22, "outfits": ["a patched waistcoat over a rolled-sleeve shirt, a cutlass at the hip, canvas trousers and scuffed boots"]},
+    {"id": "boatswain", "label": "boatswain", "weight": 1, "min_age": 20, "outfits": ["a sun-faded shirt with rolled sleeves, a coil of rope slung over one shoulder, canvas trousers and worn boots"]},
+    {"id": "gunner", "label": "master gunner", "weight": 0.8, "min_age": 22, "outfits": ["a soot-stained shirt under a leather waistcoat, a powder horn on a strap, canvas trousers and heavy boots"]},
+    {"id": "navigator", "label": "sailing master", "weight": 0.7, "min_age": 25, "outfits": ["a weathered coat with a chart tube slung across the back, a brass compass at the belt, canvas trousers and worn boots"]},
+    {"id": "surgeon", "label": "ship's surgeon", "weight": 0.6, "min_age": 26, "outfits": ["a stained frock coat over a linen shirt, a satchel of instruments, canvas trousers and worn shoes"]},
+    {"id": "cook", "label": "ship's cook", "weight": 1, "outfits": ["a stained apron over a rolled-sleeve shirt, a faded bandana, canvas trousers and worn shoes"]},
+    {"id": "carpenter", "label": "ship's carpenter", "weight": 0.8, "outfits": ["a canvas apron with tool loops over a linen shirt, rolled sleeves, canvas trousers and heavy boots"]},
+    {"id": "deckhand", "label": "deckhand", "weight": 4, "outfits": ["a loose linen shirt with rolled sleeves, wide canvas trousers, a wide sash at the waist and worn boots"]},
+    {"id": "rigger", "label": "rigger", "weight": 1.5, "min_age": 18, "max_age": 45, "outfits": ["a sleeveless canvas vest over a linen shirt, wide trousers rolled to the calf and soft-soled boots"]},
+    {"id": "cabinhand", "label": "cabin hand", "weight": 1, "min_age": 13, "max_age": 17, "outfits": ["an oversized hand-me-down linen shirt, rolled canvas trousers and worn boots"]},
+    {"id": "privateer", "label": "privateer", "weight": 0.8, "min_age": 22, "outfits": ["a fine but weathered coat over a shirt, a letter of marque tucked in the breast pocket, a sword at the hip and tall boots"]},
+    {"id": "navalofficer", "label": "naval officer", "weight": 0.8, "min_age": 24, "outfits": ["a smart navy-blue coat with brass buttons, a cocked hat, white breeches and polished boots"]},
+    {"id": "navalsailor", "label": "naval sailor", "weight": 1.5, "max_age": 45, "outfits": ["a striped shirt under a short navy jacket, canvas trousers and plain shoes"]},
+    {"id": "merchantcaptain", "label": "merchant captain", "weight": 0.8, "min_age": 30, "outfits": ["a fine but practical coat over a waistcoat, a ledger tucked under one arm, breeches and polished boots"]},
+    {"id": "harbormaster", "label": "harbor master", "weight": 0.5, "min_age": 35, "outfits": ["a formal coat with brass buttons, a ledger and a spyglass at the belt, breeches and polished shoes"]},
+    {"id": "customs", "label": "customs officer", "weight": 0.5, "min_age": 28, "outfits": ["a stiff formal coat with a badge of office, breeches and polished shoes"]},
+    {"id": "smuggler", "label": "smuggler", "weight": 1, "min_age": 20, "outfits": ["a dark hooded cloak over a plain shirt, canvas trousers and soft-soled boots"]},
+    {"id": "fence", "label": "black-market fence", "weight": 0.6, "min_age": 25, "outfits": ["a rumpled coat with overstuffed pockets, a battered waistcoat and worn shoes"]},
+    {"id": "tavernkeeper", "label": "tavern keeper", "weight": 1.2, "min_age": 25, "outfits": [
+      {"t": "a laced bodice over a linen blouse, a long skirt and an apron", "g": "female"},
+      {"t": "a linen shirt with rolled sleeves, a leather vest and a long apron", "g": "male"}]},
+    {"id": "bartender", "label": "bartender", "weight": 1.5, "min_age": 21, "outfits": ["a rolled-sleeve shirt under a leather vest, a long apron and worn shoes"]},
+    {"id": "blacksmith", "label": "blacksmith", "weight": 1, "outfits": ["a sooty leather apron over a sleeveless shirt, thick gloves and heavy boots"]},
+    {"id": "shipwright", "label": "shipwright", "weight": 0.8, "min_age": 25, "outfits": ["a canvas apron with tool loops over a work shirt, rolled sleeves, canvas trousers and heavy boots"]},
+    {"id": "cartographer", "label": "mapmaker", "weight": 0.5, "min_age": 25, "outfits": ["a fine coat with ink-stained cuffs, rolled charts under one arm, breeches and polished shoes"]},
+    {"id": "official", "label": "colonial official", "weight": 0.4, "min_age": 35, "outfits": ["a fine formal coat with a powdered wig, breeches and polished buckled shoes"]},
+    {"id": "piratehunter", "label": "pirate hunter", "weight": 0.8, "min_age": 25, "outfits": ["a weathered naval coat, a brace of pistols at the belt, a cutlass at the hip and tall boots"]},
+    {"id": "fisher", "label": "fisherman", "weight": 1, "outfits": ["a patched oilcloth coat over a linen shirt, rolled trousers and worn boots"]},
+    {"id": "castaway", "label": "castaway", "weight": 0.6, "outfits": ["a torn and sun-bleached shirt, ragged trousers and bare feet"]},
+    {"id": "retired", "label": "retired pirate", "weight": 0.8, "min_age": 55, "outfits": ["a faded, mended coat over a plain shirt, worn trousers and a walking cane with old boots"]}
+  ]
+}

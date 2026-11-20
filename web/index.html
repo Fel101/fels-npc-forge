@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NPC Forge</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23d4a24c'/%3E%3Ccircle cx='16' cy='12' r='5' fill='white'/%3E%3Cpath d='M6 27c1-6 5-9 10-9s9 3 10 9z' fill='white'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo" aria-hidden="true"></span>NPC Forge</div>
+    <nav class="tabs" id="tabs" aria-label="Views"></nav>
+    <div id="status" class="status" role="status"></div>
+    <button type="button" id="settingsBtn" class="btn small settings-btn" aria-label="Models and options" hidden></button>
+    <button type="button" id="queueToggle" class="btn small queue-toggle" hidden></button>
+  </header>
+  <div id="banner" class="banner" hidden></div>
+  <div class="shell">
+    <main id="view"></main>
+    <aside id="queue" class="queue" aria-label="Generation queue" hidden></aside>
+  </div>
+  <div id="toasts" class="toasts" aria-live="polite"></div>
+
+  <dialog id="about" class="about" aria-labelledby="aboutTitle">
+    <div class="about-body">
+      <div class="about-head">
+        <span class="logo" aria-hidden="true"></span>
+        <div class="grow"><h2 id="aboutTitle">NPC Forge</h2><p class="hint" id="aboutMeta"></p></div>
+        <button type="button" class="btn small ghost" id="aboutClose" aria-label="Close">Close</button>
+      </div>
+      <p>A character generator for games. Roll a person, describe one in a sentence, or import a cast list, and get a data sheet,
+        a portrait, expressions, a transparent full-body sprite, walk cycles and a model sheet, all drawn by
+        <strong>Qwen-Image</strong> (or the built-in <strong>Mage-Flow</strong>, if you pick it) running in your own ComfyUI. Everything stays on this computer.</p>
+      <h3>Where things are</h3>
+      <p>Characters are saved as plain folders of PNG files plus an <code>npc.json</code> in the <code>library</code> folder next to
+        the app, so any engine or script can read them. The Library tab lists them; the Create tab makes new ones.</p>
+      <h3>Licence</h3>
+      <p>The code is MIT. The default picture models, Qwen-Image 2512 and Qwen-Image-Edit 2511, are Apache-2.0. The built-in Mage-Flow's weights are MIT, but Microsoft says the
+        models are released for research and are not meant for use in a product or service, so it is not the default. Read <code>NOTICE.md</code> before you publish or sell anything made with it.</p>
+      <p>Every other model has a licence of its own, and some of them forbid commercial use. The list says which is which and links
+        to the licence of each:</p>
+      <p><button type="button" class="btn small" id="aboutLicences" hidden>Licences of every model</button></p>
+      <h3>Updates</h3>
+      <p class="hint">NPC Forge asks GitHub for a newer release only when you press the button. Updating keeps your library,
+        <code>config.json</code> and <code>local</code> folder; <code>update.bat</code> in NPC Forge's folder does the same.</p>
+      <div class="about-update">
+        <button type="button" class="btn small" id="aboutUpdateCheck">Check for updates</button>
+        <button type="button" class="btn small primary" id="aboutUpdateNow" hidden>Update now</button>
+      </div>
+      <p class="hint" id="aboutUpdateMsg" role="status"></p>
+      <div id="aboutUpdatePlan" hidden></div>
+    </div>
+    <div class="about-foot" id="aboutFoot"></div>
+  </dialog>
+
+  <script type="importmap">{"imports":{"three":"/vendor/three/three.module.js","three/addons/":"/vendor/three/addons/"}}</script>
+  <script src="/facets.js"></script>
+  <script type="module" src="/app.js"></script>
+</body>
+</html>

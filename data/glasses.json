@@ -1,0 +1,281 @@
+{
+  "_readme": "What the glasses maker (npcgen/glasses.py) offers. Glasses are built from measurements, not from a picture: image-to-3D cannot make a frame a millimetre and a half thick or a lens with no surface to find. Sizes are in millimetres, as an optician gives them: `lens_w` and `lens_h` are the box a lens fits in, `bridge` is the gap between the two lens boxes, `temple_len` the arm from its hinge to its tip. A preset is a style (shape, frame, arms): applying one sets those fields and leaves the lenses as they are. `fields` are the numbers the editor shows and the server checks (min, max, default comes from `defaults`); `choices` are the lists; `colours` and `tints` are the swatches. Read fresh on every request.",
+  "defaults": {
+    "shape": "classic", "lens_w": 52, "lens_h": 42, "bridge": 19, "bridge_style": "arch", "bridge_height": 0.22, "rim": "full", "rim_w": 5.2,
+    "rim_d": 5.0, "brow_w": 6.0, "frame_material": "plastic", "frame_color": "#17181b", "temple_len": 145, "temple_h": 7.5, "temple_w": 3.6,
+    "temple_drop": 28, "temple_bend": 0.75, "splay": 2, "hinge_y": 0.3, "wrap": 5, "base_curve": 4, "pads": false, "lens_tint": "clear",
+    "lens_color": "#f4f8fc", "lens_opacity": 0.07, "lens_finish": "glass", "lens_gradient": false, "pose": "open", "scale": 1.0, "preset": "classic"
+  },
+  "fields": {
+    "lens_w": {"label": "Lens width", "unit": "mm", "min": 36, "max": 66, "step": 0.5, "group": "Lenses"},
+    "lens_h": {"label": "Lens height", "unit": "mm", "min": 24, "max": 60, "step": 0.5, "group": "Lenses"},
+    "bridge": {"label": "Bridge (gap between the lenses)", "unit": "mm", "min": 8, "max": 30, "step": 0.5, "group": "Lenses"},
+    "base_curve": {"label": "Lens curve (optician's base number)", "unit": "", "min": 0, "max": 10, "step": 0.5, "group": "Lenses"},
+    "bridge_height": {"label": "Bridge height", "unit": "× lens height", "min": 0, "max": 0.4, "step": 0.01, "group": "Frame"},
+    "rim_w": {"label": "Rim thickness (seen from the front)", "unit": "mm", "min": 0.8, "max": 9, "step": 0.1, "group": "Frame"},
+    "rim_d": {"label": "Rim depth (front to back)", "unit": "mm", "min": 0.8, "max": 9, "step": 0.1, "group": "Frame"},
+    "brow_w": {"label": "Brow bar thickness", "unit": "mm", "min": 2, "max": 12, "step": 0.1, "group": "Frame"},
+    "wrap": {"label": "Wrap round the face", "unit": "deg", "min": 0, "max": 20, "step": 0.5, "group": "Frame"},
+    "temple_len": {"label": "Arm length", "unit": "mm", "min": 110, "max": 170, "step": 1, "group": "Arms"},
+    "temple_h": {"label": "Arm height at the hinge", "unit": "mm", "min": 1.6, "max": 14, "step": 0.1, "group": "Arms"},
+    "temple_w": {"label": "Arm thickness", "unit": "mm", "min": 1.2, "max": 6, "step": 0.1, "group": "Arms"},
+    "temple_drop": {"label": "Bend behind the ear", "unit": "deg", "min": 0, "max": 85, "step": 1, "group": "Arms"},
+    "temple_bend": {"label": "Where the bend starts", "unit": "× arm length", "min": 0.45, "max": 0.9, "step": 0.01, "group": "Arms"},
+    "splay": {"label": "Arms opened outward", "unit": "deg", "min": 0, "max": 10, "step": 0.5, "group": "Arms"},
+    "hinge_y": {"label": "Hinge height", "unit": "× lens height", "min": 0, "max": 0.45, "step": 0.01, "group": "Arms"},
+    "lens_opacity": {"label": "Lens darkness", "unit": "", "min": 0, "max": 1, "step": 0.01, "group": "Tint"},
+    "scale": {"label": "Overall scale", "unit": "×", "min": 0.5, "max": 3, "step": 0.05, "group": "Size"}
+  },
+  "choices": {
+    "shape": {
+      "classic": "Classic (squared, wider at the top)", "round": "Round", "oval": "Oval", "rectangle": "Rectangle", "square": "Square",
+      "aviator": "Aviator (teardrop)", "cat_eye": "Cat-eye", "hexagon": "Hexagon", "octagon": "Octagon", "half_moon": "Half-moon"
+    },
+    "rim": {"full": "Full rim", "half": "Half rim (thread below)", "browline": "Browline (heavy top bar)", "rimless": "Rimless"},
+    "bridge_style": {"arch": "Arch", "keyhole": "Keyhole (high, round)", "double": "Double bridge (brow bar)"},
+    "frame_material": {"plastic": "Glossy plastic", "metal": "Metal", "matte": "Matte plastic or rubber"},
+    "lens_finish": {"glass": "Clear or tinted glass", "mirror": "Mirrored"},
+    "pose": {"open": "Open (as worn)", "folded": "Folded"}
+  },
+  "materials": {
+    "plastic": {"metallic": 0.0, "roughness": 0.28, "corner": 0.32},
+    "metal": {"metallic": 1.0, "roughness": 0.26, "corner": 1.0},
+    "matte": {"metallic": 0.0, "roughness": 0.72, "corner": 0.4}
+  },
+  "colours": {
+    "plastic": [
+      {"id": "black", "label": "Black", "hex": "#17181b"},
+      {"id": "charcoal", "label": "Charcoal", "hex": "#3b3e43"},
+      {"id": "tortoise", "label": "Tortoiseshell brown", "hex": "#5e3b22"},
+      {"id": "amber", "label": "Amber", "hex": "#b86a1c"},
+      {"id": "navy", "label": "Navy", "hex": "#1d2b4d"},
+      {"id": "burgundy", "label": "Burgundy", "hex": "#6a1f2f"},
+      {"id": "forest", "label": "Forest green", "hex": "#244434"},
+      {"id": "olive", "label": "Olive", "hex": "#5d5f35"},
+      {"id": "grey", "label": "Grey", "hex": "#8b9096"},
+      {"id": "ivory", "label": "Ivory", "hex": "#e9e4d3"},
+      {"id": "white", "label": "White", "hex": "#f3f3f1"},
+      {"id": "red", "label": "Red", "hex": "#b3262b"},
+      {"id": "blue", "label": "Blue", "hex": "#2c5fa6"},
+      {"id": "pink", "label": "Pink", "hex": "#d98ba5"},
+      {"id": "teal", "label": "Teal", "hex": "#1f6f73"},
+      {"id": "purple", "label": "Purple", "hex": "#5b3b86"},
+      {"id": "yellow", "label": "Yellow", "hex": "#e0b72c"},
+      {"id": "orange", "label": "Orange", "hex": "#d9722b"}
+    ],
+    "metal": [
+      {"id": "gold", "label": "Gold", "hex": "#f2c75c"},
+      {"id": "silver", "label": "Silver", "hex": "#dcdfe2"},
+      {"id": "rose_gold", "label": "Rose gold", "hex": "#e8b3a0"},
+      {"id": "gunmetal", "label": "Gunmetal", "hex": "#5d6269"},
+      {"id": "black_metal", "label": "Black metal", "hex": "#2b2d31"},
+      {"id": "brass", "label": "Brass", "hex": "#d3a94e"},
+      {"id": "copper", "label": "Copper", "hex": "#d98a64"},
+      {"id": "bronze", "label": "Bronze", "hex": "#a98350"},
+      {"id": "titanium", "label": "Titanium", "hex": "#9aa1a8"}
+    ]
+  },
+  "tints": {
+    "clear": {"label": "Clear", "hex": "#f4f8fc", "opacity": 0.07},
+    "light": {"label": "Light grey", "hex": "#b9bec4", "opacity": 0.3},
+    "grey": {"label": "Grey", "hex": "#2f3236", "opacity": 0.8},
+    "dark": {"label": "Near black", "hex": "#0b0c0e", "opacity": 0.9},
+    "brown": {"label": "Brown", "hex": "#5a3a22", "opacity": 0.74},
+    "amber": {"label": "Amber", "hex": "#c78a1e", "opacity": 0.45},
+    "green": {"label": "Green", "hex": "#2f5a3c", "opacity": 0.78},
+    "blue": {"label": "Blue", "hex": "#2d4f86", "opacity": 0.6},
+    "rose": {"label": "Rose", "hex": "#c7607a", "opacity": 0.5},
+    "yellow": {"label": "Yellow", "hex": "#e6d34a", "opacity": 0.42},
+    "purple": {"label": "Purple", "hex": "#5a3a7c", "opacity": 0.6},
+    "custom": {"label": "Custom colour", "hex": "#808080", "opacity": 0.6}
+  },
+  "mirrors": [
+    {"id": "silver", "label": "Silver mirror", "hex": "#d9dde2"},
+    {"id": "blue", "label": "Blue mirror", "hex": "#5b8fd9"},
+    {"id": "gold", "label": "Gold mirror", "hex": "#e0b84f"}
+  ],
+  "presets": {
+    "classic": {
+      "label": "Classic plastic",
+      "recipe": {
+        "shape": "classic", "lens_w": 52, "lens_h": 42, "bridge": 19, "bridge_style": "arch", "bridge_height": 0.22, "rim": "full", "rim_w": 5.2,
+        "rim_d": 5.0, "frame_material": "plastic", "frame_color": "#17181b", "temple_len": 145, "temple_h": 7.5, "temple_w": 3.6, "temple_drop": 28,
+        "temple_bend": 0.75, "splay": 2, "hinge_y": 0.3, "wrap": 5, "base_curve": 4, "pads": false
+      }
+    },
+    "round_wire": {
+      "label": "Round wire",
+      "recipe": {
+        "shape": "round", "lens_w": 48, "lens_h": 48, "bridge": 22, "bridge_style": "arch", "bridge_height": 0.24, "rim": "full", "rim_w": 1.5,
+        "rim_d": 1.5, "frame_material": "metal", "frame_color": "#f2c75c", "temple_len": 140, "temple_h": 1.9, "temple_w": 1.9, "temple_drop": 70,
+        "temple_bend": 0.62, "splay": 3, "hinge_y": 0.18, "wrap": 2, "base_curve": 3, "pads": true
+      }
+    },
+    "aviator": {
+      "label": "Aviator",
+      "recipe": {
+        "shape": "aviator", "lens_w": 58, "lens_h": 52, "bridge": 14, "bridge_style": "double", "bridge_height": 0.3, "rim": "full", "rim_w": 1.6,
+        "rim_d": 1.6, "frame_material": "metal", "frame_color": "#f2c75c", "temple_len": 140, "temple_h": 2.2, "temple_w": 2.0, "temple_drop": 35,
+        "temple_bend": 0.7, "splay": 2, "hinge_y": 0.36, "wrap": 3, "base_curve": 5, "pads": true
+      }
+    },
+    "browline": {
+      "label": "Browline",
+      "recipe": {
+        "shape": "classic", "lens_w": 51, "lens_h": 41, "bridge": 20, "bridge_style": "arch", "bridge_height": 0.24, "rim": "browline", "rim_w": 1.3,
+        "rim_d": 1.4, "brow_w": 6.5, "frame_material": "plastic", "frame_color": "#17181b", "temple_len": 145, "temple_h": 4.5, "temple_w": 3.0,
+        "temple_drop": 25, "temple_bend": 0.75, "splay": 2, "hinge_y": 0.32, "wrap": 4, "base_curve": 4, "pads": false
+      }
+    },
+    "cat_eye": {
+      "label": "Cat-eye",
+      "recipe": {
+        "shape": "cat_eye", "lens_w": 54, "lens_h": 43, "bridge": 17, "bridge_style": "arch", "bridge_height": 0.22, "rim": "full", "rim_w": 4.4,
+        "rim_d": 4.6, "frame_material": "plastic", "frame_color": "#6a1f2f", "temple_len": 142, "temple_h": 6.0, "temple_w": 3.2, "temple_drop": 30,
+        "temple_bend": 0.74, "splay": 2, "hinge_y": 0.36, "wrap": 6, "base_curve": 4, "pads": false
+      }
+    },
+    "half_rim": {
+      "label": "Half-rim",
+      "recipe": {
+        "shape": "rectangle", "lens_w": 52, "lens_h": 34, "bridge": 18, "bridge_style": "arch", "bridge_height": 0.26, "rim": "half", "rim_w": 2.4,
+        "rim_d": 2.4, "frame_material": "metal", "frame_color": "#5d6269", "temple_len": 140, "temple_h": 2.6, "temple_w": 2.2, "temple_drop": 28,
+        "temple_bend": 0.74, "splay": 2, "hinge_y": 0.25, "wrap": 4, "base_curve": 4, "pads": true
+      }
+    },
+    "rimless": {
+      "label": "Rimless",
+      "recipe": {
+        "shape": "oval", "lens_w": 50, "lens_h": 40, "bridge": 18, "bridge_style": "arch", "bridge_height": 0.22, "rim": "rimless", "rim_w": 1.2,
+        "rim_d": 1.4, "frame_material": "metal", "frame_color": "#dcdfe2", "temple_len": 140, "temple_h": 2.2, "temple_w": 1.6, "temple_drop": 28,
+        "temple_bend": 0.74, "splay": 2, "hinge_y": 0.24, "wrap": 4, "base_curve": 4, "pads": true
+      }
+    },
+    "reading": {
+      "label": "Half-moon reading",
+      "recipe": {
+        "shape": "half_moon", "lens_w": 48, "lens_h": 28, "bridge": 19, "bridge_style": "arch", "bridge_height": 0.3, "rim": "full", "rim_w": 3.8,
+        "rim_d": 4.2, "frame_material": "plastic", "frame_color": "#5e3b22", "temple_len": 140, "temple_h": 5.5, "temple_w": 3.0, "temple_drop": 30,
+        "temple_bend": 0.74, "splay": 2, "hinge_y": 0.3, "wrap": 3, "base_curve": 3, "pads": false
+      }
+    },
+    "hexagon": {
+      "label": "Hexagon wire",
+      "recipe": {
+        "shape": "hexagon", "lens_w": 52, "lens_h": 46, "bridge": 18, "bridge_style": "arch", "bridge_height": 0.24, "rim": "full", "rim_w": 1.5,
+        "rim_d": 1.5, "frame_material": "metal", "frame_color": "#f2c75c", "temple_len": 140, "temple_h": 2.0, "temple_w": 2.0, "temple_drop": 32,
+        "temple_bend": 0.72, "splay": 2, "hinge_y": 0.26, "wrap": 3, "base_curve": 4, "pads": true
+      }
+    },
+    "oval_wire": {
+      "label": "Oval wire",
+      "recipe": {
+        "shape": "oval", "lens_w": 50, "lens_h": 40, "bridge": 18, "bridge_style": "arch", "bridge_height": 0.24, "rim": "full", "rim_w": 1.4,
+        "rim_d": 1.4, "frame_material": "metal", "frame_color": "#dcdfe2", "temple_len": 140, "temple_h": 2.0, "temple_w": 2.0, "temple_drop": 34,
+        "temple_bend": 0.72, "splay": 2, "hinge_y": 0.22, "wrap": 3, "base_curve": 4, "pads": true
+      }
+    },
+    "chunky": {
+      "label": "Chunky square",
+      "recipe": {
+        "shape": "square", "lens_w": 50, "lens_h": 44, "bridge": 20, "bridge_style": "arch", "bridge_height": 0.24, "rim": "full", "rim_w": 8.2,
+        "rim_d": 6.5, "frame_material": "plastic", "frame_color": "#17181b", "temple_len": 145, "temple_h": 11, "temple_w": 5, "temple_drop": 20,
+        "temple_bend": 0.78, "splay": 2, "hinge_y": 0.3, "wrap": 4, "base_curve": 4, "pads": false
+      }
+    },
+    "sport": {
+      "label": "Sport wrap",
+      "recipe": {
+        "shape": "rectangle", "lens_w": 62, "lens_h": 40, "bridge": 16, "bridge_style": "arch", "bridge_height": 0.24, "rim": "half", "rim_w": 3.0,
+        "rim_d": 3.2, "frame_material": "matte", "frame_color": "#1c1e22", "temple_len": 135, "temple_h": 5.0, "temple_w": 3.4, "temple_drop": 15,
+        "temple_bend": 0.8, "splay": 1, "hinge_y": 0.3, "wrap": 14, "base_curve": 8, "pads": false
+      }
+    }
+  },
+  "words": {
+    "_readme": "The words 'Set the controls from my description' understands (npcgen/glasses.py from_description). Phrases are lower case with hyphens written as spaces. `styles` apply a whole preset, `shapes` only a lens shape, `colours` a swatch id (frame or lens by where it stands), `lens_words` mark the colour before or after them as the lens's.",
+    "styles": {
+      "aviator": ["aviator", "aviators", "teardrop", "pilot"],
+      "cat_eye": ["cat eye", "cateye", "cat's eye", "cat eyes"],
+      "browline": ["browline", "brow line"],
+      "half_rim": ["half rim", "semi rimless", "nylon"],
+      "rimless": ["rimless", "frameless", "no rim"],
+      "reading": ["reading", "half moon", "granny", "half eye"],
+      "hexagon": ["hexagon", "hexagonal"],
+      "chunky": ["chunky", "bold frames"],
+      "sport": ["sport", "sports", "wraparound", "wrap around", "cycling"],
+      "classic": ["classic", "trapezoid", "retro"],
+      "round_wire": ["round wire", "wire round", "round metal"],
+      "oval_wire": ["oval wire", "wire oval", "oval metal"]
+    },
+    "shapes": {
+      "round": ["round", "circular", "circle"],
+      "oval": ["oval", "elliptical"],
+      "rectangle": ["rectangular", "rectangle", "boxy"],
+      "square": ["square"],
+      "octagon": ["octagon", "octagonal"]
+    },
+    "rims": {"full": ["full rim"], "half": ["half rim"], "browline": ["browline", "brow line"], "rimless": ["rimless", "frameless", "no rim"]},
+    "materials": {"metal": ["wire", "metal", "metallic", "steel", "titanium"], "plastic": ["plastic", "acetate", "horn"], "matte": ["matte", "rubber"]},
+    "colours": {
+      "gold": ["gold", "golden"],
+      "silver": ["silver", "chrome"],
+      "rose_gold": ["rose gold", "pink gold"],
+      "gunmetal": ["gunmetal"],
+      "black_metal": ["black metal"],
+      "brass": ["brass"],
+      "copper": ["copper"],
+      "bronze": ["bronze"],
+      "titanium": ["titanium"],
+      "black": ["black"],
+      "charcoal": ["charcoal", "dark grey", "dark gray"],
+      "tortoise": ["tortoiseshell", "tortoise", "havana", "brown"],
+      "amber": ["amber"],
+      "navy": ["navy"],
+      "burgundy": ["burgundy", "maroon", "wine"],
+      "forest": ["forest green", "dark green", "green"],
+      "olive": ["olive"],
+      "grey": ["grey", "gray"],
+      "ivory": ["ivory", "cream"],
+      "white": ["white"],
+      "red": ["red"],
+      "blue": ["blue"],
+      "pink": ["pink"],
+      "teal": ["teal", "turquoise"],
+      "purple": ["purple", "violet"],
+      "yellow": ["yellow"],
+      "orange": ["orange"]
+    },
+    "metal_colours": ["gold", "silver", "rose_gold", "gunmetal", "black_metal", "brass", "copper", "bronze", "titanium"],
+    "lens_words": ["lens", "lenses", "tint", "tinted", "tints", "glass"],
+    "tints": {
+      "clear": ["clear", "untinted", "no tint"],
+      "grey": ["grey", "gray", "smoke", "smoked"],
+      "dark": ["black", "dark", "very dark", "near black"],
+      "brown": ["brown", "tortoise"],
+      "green": ["green"],
+      "blue": ["blue"],
+      "rose": ["rose", "pink"],
+      "amber": ["amber", "orange"],
+      "yellow": ["yellow"],
+      "purple": ["purple", "violet"],
+      "light": ["light"]
+    },
+    "sunglass_words": ["sunglasses", "shades", "sunnies"],
+    "mirror_words": ["mirror", "mirrored", "mirrors"],
+    "gradient_words": ["gradient", "ombre"],
+    "bigger": ["oversized", "large", "big", "huge", "giant"],
+    "smaller": ["small", "tiny", "petite", "little"],
+    "wider": ["wide"],
+    "thicker": ["thick", "chunky", "heavy", "bold"],
+    "thinner": ["thin", "slim", "delicate", "fine", "slender"],
+    "longer_arms": ["long arms", "long temples", "long legs"],
+    "shorter_arms": ["short arms", "short temples"]
+  },
+  "material_looks": {
+    "_readme": "What changes with the frame material when a description says (for instance) wire where the pair was plastic: the rim, arm and pad settings that go with it.",
+    "metal": {"rim_w": 1.5, "rim_d": 1.5, "temple_h": 2.0, "temple_w": 2.0, "temple_drop": 34, "temple_bend": 0.72, "pads": true},
+    "plastic": {"rim_w": 5.0, "rim_d": 4.8, "temple_h": 7.0, "temple_w": 3.4, "temple_drop": 28, "temple_bend": 0.75, "pads": false},
+    "matte": {"rim_w": 3.0, "rim_d": 3.2, "temple_h": 5.0, "temple_w": 3.4, "temple_drop": 20, "temple_bend": 0.78, "pads": false}
+  }
+}

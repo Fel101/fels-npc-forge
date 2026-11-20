@@ -1,0 +1,11 @@
+library/
+__pycache__/
+.pytest_cache/
+config.json
+.claude/
+local/
+voice-envs/
+voice-models/
+animations/
+.venv/
+.ruff_cache/

@@ -1,0 +1,155 @@
+{
+  "_readme": "What the Items tab can make. A kind is one sort of thing (a cutlass, boots, a helmet): `noun` is how the pictures' prompts name it, `hint` describes it when the description is empty, `pose` picks how its main picture is staged (see \"poses\"), `size_m` is the longest side of the finished model in metres (the 3D model is scaled to it), `pivot` is where the model's origin goes (base = the middle of the bottom, centre, grip = a handle: `grip_at` is how far up the model the hand holds it, 0 = the bottom, 1 = the top) and `attach` names the bone of the characters' skeleton (the animation library's names) it is usually parented to. `front` says which side of the thing counts as its front, for the four views. Measured 2026-10-02 with a cutlass, boots and a helmet: the main picture from Z-Image Turbo, the four views from Qwen-Image-Edit 2511 and the shape from Trellis2 (about five minutes each, npcgen/items.py). Garments are staged on an invisible mannequin and are the least tested kind. `high` (on a family, or a kind that says otherwise) is whether two more pictures from 45 degrees above, in front and behind, are drawn for the paint: the four level views never see the top of a helmet, a crate or a boot's opening, which came out patchy; long thin things stood up or turned upside down in them, so weapons and garments have none. A kind with a `front` (boots, helmets, bags, garments) has its two side views told which way the front points (left, right of the picture): without it the pair of boots came back with the same side view twice (toes to the right in both) and the paint matched them to the shape at 0.5, with it 0.90. Told the same, a cutlass came back lying on its side with the tip pointing left, so things that stand up (swords, axes, spears, bows) have no front. A family with a `maker` is not drawn: its things are built from a recipe (glasses: npcgen/glasses.py, fitted clothes: npcgen/clothing.py) and its kinds say where the model's origin is (`bridge`: between the eyes; `floor`: the floor between the feet of the body the clothes are made for).",
+  "looks": {
+    "realistic": {"label": "Realistic", "phrase": "realistic materials, highly detailed", "negative": ""},
+    "stylised": {"label": "Stylised game asset", "phrase": "stylised 3D game asset, clean sculpted forms, hand-painted textures, well-defined materials, soft global illumination", "negative": "photograph, photorealistic"},
+    "painted": {"label": "Hand-painted fantasy", "phrase": "hand-painted fantasy game asset, painterly textures, bold readable shapes, soft lighting", "negative": "photograph, photorealistic"},
+    "voxel": {"label": "Voxel art", "phrase": "voxel art object built from visible cube-shaped blocks, blocky low-resolution 3D form, flat lit faces, sharp cube edges, bright saturated colors", "negative": "smooth, photograph, photorealistic"}
+  },
+  "poses": {
+    "upright": {"thing": "object", "hero": "standing upright on its end, the whole length in frame", "negative": ""},
+    "pair": {"thing": "pair", "hero": "a matching pair standing side by side on the ground", "negative": "a single one, only one"},
+    "single": {"thing": "object", "hero": "a single one resting on the ground", "negative": "a pair, two of them"},
+    "side": {"thing": "object", "hero": "shown in profile from the side, the whole length in frame", "negative": ""},
+    "ghost": {"thing": "garment", "hero": "shown on an invisible mannequin (a ghost mannequin product photo): it holds its shape as if worn by an invisible person, the inside of the neck and sleeves visible, no person, no face, no hands", "negative": "person, model, face, hands, skin, legs, mannequin head, hanger"}
+  },
+  "families": {
+    "weapon": {
+      "label": "Weapons",
+      "blurb": "Swords, axes, spears, bows, guns and shields to hold or hang on a belt.",
+      "high": false,
+      "kinds": {
+        "sword": {"label": "Sword", "noun": "sword", "hint": "a straight double-edged steel sword with a crossguard, a leather-wrapped grip and a round pommel, the blade pointing up", "pose": "upright", "size_m": 1.0, "pivot": "grip", "grip_at": 0.2, "attach": "hand_r"},
+        "cutlass": {"label": "Cutlass", "noun": "cutlass", "hint": "a curved single-edged steel blade with a brass cup-shaped hand guard, a dark wooden grip and a round brass pommel, the blade pointing up", "pose": "upright", "size_m": 0.85, "pivot": "grip", "grip_at": 0.2, "attach": "hand_r"},
+        "dagger": {"label": "Dagger", "noun": "dagger", "hint": "a short double-edged dagger with a small crossguard and a wrapped grip, the blade pointing up", "pose": "upright", "size_m": 0.35, "pivot": "grip", "grip_at": 0.25, "attach": "hand_r"},
+        "axe": {"label": "Axe", "noun": "battle axe", "hint": "a single-bladed axe with a long wooden haft, the axe head at the top", "pose": "upright", "size_m": 0.8, "pivot": "grip", "grip_at": 0.3, "attach": "hand_r"},
+        "hammer": {"label": "Hammer or mace", "noun": "war hammer", "hint": "a war hammer with a heavy metal head on a wooden haft, the head at the top", "pose": "upright", "size_m": 0.7, "pivot": "grip", "grip_at": 0.25, "attach": "hand_r"},
+        "spear": {"label": "Spear", "noun": "spear", "hint": "a long wooden spear with a steel leaf-shaped head at the top", "pose": "upright", "size_m": 1.9, "pivot": "grip", "grip_at": 0.35, "attach": "hand_r"},
+        "staff": {"label": "Staff", "noun": "staff", "hint": "a tall wooden staff, gnarled, with an ornament at the top", "pose": "upright", "size_m": 1.8, "pivot": "grip", "grip_at": 0.4, "attach": "hand_r"},
+        "bow": {"label": "Bow", "noun": "bow", "hint": "a recurve wooden bow, strung, standing upright", "pose": "upright", "size_m": 1.3, "pivot": "grip", "grip_at": 0.5, "attach": "hand_l"},
+        "crossbow": {"label": "Crossbow", "noun": "crossbow", "hint": "a wooden crossbow with a steel bow and a trigger", "pose": "side", "size_m": 0.8, "pivot": "centre", "attach": "hand_r"},
+        "pistol": {"label": "Pistol", "noun": "pistol", "hint": "a single-action revolver with a wooden grip", "pose": "side", "size_m": 0.28, "pivot": "centre", "attach": "hand_r"},
+        "rifle": {"label": "Rifle", "noun": "rifle", "hint": "a lever-action rifle with a wooden stock", "pose": "side", "size_m": 1.1, "pivot": "centre", "attach": "hand_r"}
+      }
+    },
+    "armor": {
+      "label": "Armor pieces",
+      "blurb": "Shields and plates for the chest, shoulders, arms and legs.",
+      "high": true,
+      "kinds": {
+        "shield": {"label": "Shield", "noun": "shield", "hint": "a round wooden shield with a metal rim and a central boss, seen from the front", "pose": "upright", "size_m": 0.7, "pivot": "centre", "attach": "hand_l", "high": false},
+        "breastplate": {"label": "Breastplate", "noun": "breastplate", "hint": "a steel breastplate (cuirass) with a back plate, standing on its own", "pose": "single", "size_m": 0.55, "pivot": "base", "attach": "spine_03", "front": "the chest plate is the front"},
+        "pauldrons": {"label": "Pauldrons", "noun": "pair of pauldrons", "hint": "a pair of steel shoulder armour plates with leather straps", "pose": "pair", "size_m": 0.35, "pivot": "base", "attach": "upperarm_l"},
+        "gauntlets": {"label": "Gauntlets", "noun": "pair of gauntlets", "hint": "a pair of steel gauntlets with articulated finger plates", "pose": "pair", "size_m": 0.3, "pivot": "base", "attach": "hand_l", "front": "the fingers point away from the cuff"},
+        "greaves": {"label": "Greaves", "noun": "pair of greaves", "hint": "a pair of steel shin guards with leather straps", "pose": "pair", "size_m": 0.45, "pivot": "base", "attach": "calf_l"},
+        "bracers": {"label": "Bracers", "noun": "pair of bracers", "hint": "a pair of leather forearm guards with metal studs and laces", "pose": "pair", "size_m": 0.25, "pivot": "base", "attach": "lowerarm_l"}
+      }
+    },
+    "headwear": {
+      "label": "Helmets and hats",
+      "blurb": "Helmets, hats, caps and crowns.",
+      "high": true,
+      "kinds": {
+        "helmet": {"label": "Helmet", "noun": "helmet", "hint": "a rounded iron helmet with a nose guard and cheek plates", "pose": "single", "size_m": 0.3, "pivot": "base", "attach": "Head", "front": "the face opening is the front"},
+        "hat": {"label": "Hat", "noun": "hat", "hint": "a wide-brimmed felt hat with a band", "pose": "single", "size_m": 0.38, "pivot": "base", "attach": "Head", "front": "the side of the hat that sits over the forehead is the front"},
+        "cap": {"label": "Cap", "noun": "cap", "hint": "a soft cloth cap with a short peak", "pose": "single", "size_m": 0.25, "pivot": "base", "attach": "Head", "front": "the peak is the front"},
+        "crown": {"label": "Crown", "noun": "crown", "hint": "a gold crown with jewels", "pose": "single", "size_m": 0.2, "pivot": "base", "attach": "Head"}
+      }
+    },
+    "eyewear": {
+      "label": "Glasses",
+      "maker": "glasses",
+      "blurb": "Glasses and sunglasses. These are built from measurements (a lens shape, a frame, arms) and not from a picture, so thin frames and clear lenses come out right, and they are ready at once. Origin at the middle of the bridge, on the Head bone.",
+      "high": false,
+      "kinds": {
+        "glasses": {"label": "Glasses", "noun": "pair of glasses", "hint": "round gold wire-rim glasses with clear lenses", "pose": "single", "size_m": 0.14, "pivot": "bridge", "attach": "Head", "front": "the lenses face forward (+Z)", "preset": "round_wire", "recipe": {}},
+        "sunglasses": {"label": "Sunglasses", "noun": "pair of sunglasses", "hint": "gold aviator sunglasses with dark grey lenses", "pose": "single", "size_m": 0.14, "pivot": "bridge", "attach": "Head", "front": "the lenses face forward (+Z)", "preset": "aviator", "recipe": {"lens_tint": "grey"}}
+      }
+    },
+    "footwear": {
+      "label": "Shoes and boots",
+      "blurb": "Boots, shoes and sandals, as a pair.",
+      "high": true,
+      "kinds": {
+        "boots": {"label": "Boots", "noun": "pair of boots", "hint": "a pair of knee-high leather boots with buckles and thick soles", "pose": "pair", "size_m": 0.45, "pivot": "base", "attach": "foot_l", "front": "the toe end is the front"},
+        "shoes": {"label": "Shoes", "noun": "pair of shoes", "hint": "a pair of leather lace-up shoes with thin soles", "pose": "pair", "size_m": 0.3, "pivot": "base", "attach": "foot_l", "front": "the toe end is the front"},
+        "sandals": {"label": "Sandals", "noun": "pair of sandals", "hint": "a pair of leather sandals with crossed straps", "pose": "pair", "size_m": 0.3, "pivot": "base", "attach": "foot_l", "front": "the toe end is the front"}
+      }
+    },
+    "bag": {
+      "label": "Bags",
+      "blurb": "Backpacks, satchels, pouches, quivers and sacks.",
+      "high": true,
+      "kinds": {
+        "backpack": {"label": "Backpack", "noun": "backpack", "hint": "a canvas and leather backpack with two shoulder straps and buckled pockets", "pose": "single", "size_m": 0.55, "pivot": "base", "attach": "spine_03", "front": "the side with the pockets is the front"},
+        "satchel": {"label": "Satchel", "noun": "satchel", "hint": "a leather satchel with a flap, a buckle and a long strap", "pose": "single", "size_m": 0.35, "pivot": "base", "attach": "pelvis", "front": "the flap side is the front"},
+        "pouch": {"label": "Pouch", "noun": "belt pouch", "hint": "a small leather belt pouch closed with a drawstring", "pose": "single", "size_m": 0.15, "pivot": "base", "attach": "pelvis"},
+        "quiver": {"label": "Quiver", "noun": "quiver", "hint": "a leather arrow quiver with a strap, holding a few arrows", "pose": "upright", "size_m": 0.6, "pivot": "base", "attach": "spine_03"},
+        "sack": {"label": "Sack", "noun": "sack", "hint": "a rough cloth sack tied at the top with a cord", "pose": "single", "size_m": 0.5, "pivot": "base", "attach": "hand_r"}
+      }
+    },
+    "prop": {
+      "label": "Props",
+      "blurb": "Things to find, carry or put in a scene: barrels, chests, lanterns, bottles, books. Pick Other and name your own.",
+      "high": true,
+      "kinds": {
+        "barrel": {"label": "Barrel", "noun": "barrel", "hint": "a wooden barrel with iron hoops", "pose": "single", "size_m": 0.9, "pivot": "base", "attach": ""},
+        "crate": {"label": "Crate", "noun": "crate", "hint": "a wooden shipping crate with rope handles", "pose": "single", "size_m": 0.6, "pivot": "base", "attach": ""},
+        "chest": {"label": "Treasure chest", "noun": "treasure chest", "hint": "a wooden treasure chest with iron bands and a lock, closed", "pose": "single", "size_m": 0.7, "pivot": "base", "attach": "", "front": "the side with the lock is the front"},
+        "lantern": {"label": "Lantern", "noun": "lantern", "hint": "an old metal lantern with glass panes and a carrying ring", "pose": "single", "size_m": 0.3, "pivot": "base", "attach": "hand_l"},
+        "bottle": {"label": "Bottle", "noun": "bottle", "hint": "a glass potion bottle with a cork, filled with a glowing liquid", "pose": "single", "size_m": 0.15, "pivot": "base", "attach": "hand_r"},
+        "book": {"label": "Book", "noun": "book", "hint": "a thick leather-bound book with metal corners and a clasp, closed", "pose": "single", "size_m": 0.3, "pivot": "base", "attach": "hand_l", "front": "the cover is the front"},
+        "torch": {"label": "Torch", "noun": "torch", "hint": "a wooden torch with a burning head wrapped in rags", "pose": "upright", "size_m": 0.6, "pivot": "grip", "grip_at": 0.3, "attach": "hand_r", "high": false},
+        "other": {"label": "Other", "noun": "object", "hint": "", "pose": "single", "size_m": 0.5, "pivot": "base", "attach": ""}
+      }
+    },
+    "garment": {
+      "label": "Garments",
+      "blurb": "Clothes as objects, shown as if worn by an invisible person: a coat, a dress, a cloak, drawn from a picture and made into a 3D model. For clothes that fit a designed body and move with it (a shirt, trousers, a skirt, a dress, an open jacket, a bib apron), use Fitted clothes.",
+      "high": false,
+      "kinds": {
+        "coat": {"label": "Coat or jacket", "noun": "coat", "hint": "a long wool coat with buttons and a collar", "pose": "ghost", "size_m": 0.95, "pivot": "base", "attach": "spine_03", "front": "the button side is the front"},
+        "shirt": {"label": "Shirt", "noun": "shirt", "hint": "a linen shirt with long sleeves and a laced collar", "pose": "ghost", "size_m": 0.7, "pivot": "base", "attach": "spine_03", "front": "the collar opening is the front"},
+        "dress": {"label": "Dress", "noun": "dress", "hint": "a long dress with a fitted bodice and a full skirt", "pose": "ghost", "size_m": 1.3, "pivot": "base", "attach": "pelvis", "front": "the neckline is the front"},
+        "trousers": {"label": "Trousers", "noun": "pair of trousers", "hint": "a pair of sturdy trousers with a belt and pockets", "pose": "ghost", "size_m": 1.0, "pivot": "base", "attach": "pelvis", "front": "the fly is the front"},
+        "cloak": {"label": "Cloak", "noun": "cloak", "hint": "a long hooded cloak fastened at the neck with a clasp", "pose": "ghost", "size_m": 1.3, "pivot": "base", "attach": "spine_03", "front": "the clasp is the front"},
+        "robe": {"label": "Robe", "noun": "robe", "hint": "a long robe with wide sleeves and a sash", "pose": "ghost", "size_m": 1.5, "pivot": "base", "attach": "pelvis", "front": "the sash knot is the front"}
+      }
+    },
+    "clothing": {
+      "label": "Fitted clothes",
+      "maker": "garment",
+      "blurb": "A sleeveless shirt, fitted trousers, a knee-length skirt, a sleeveless dress, an open jacket or a bib apron, built from measurements (colour, looseness, length, cloth) and fitted to a designed body, so they follow every animation. A jacket or an apron goes over a shirt and trousers, a skirt is worn with a shirt instead of trousers and a dress is worn on its own instead of both: those are the only ways the Body Designer has checked them. Not drawn from a picture: the pattern is ready at once, and trying one on a character takes about half a minute. Only a body made by the Body Designer can wear them.",
+      "high": false,
+      "kinds": {
+        "shirt": {"label": "Sleeveless shirt", "noun": "shirt", "hint": "a plain sleeveless shirt in a muted teal", "pose": "ghost", "size_m": 0.55, "pivot": "floor", "attach": "", "front": "the lower neckline is the front", "recipe": {}},
+        "trousers": {"label": "Fitted trousers", "noun": "pair of trousers", "hint": "a pair of fitted grey trousers", "pose": "ghost", "size_m": 0.8, "pivot": "floor", "attach": "", "recipe": {}},
+        "jacket": {"label": "Open jacket", "noun": "jacket", "hint": "a short open jacket in a warm brown", "pose": "ghost", "size_m": 1.09, "pivot": "floor", "attach": "", "front": "the open front is the front", "recipe": {}},
+        "apron": {"label": "Bib apron", "noun": "apron", "hint": "a plain tan bib apron", "pose": "ghost", "size_m": 0.98, "pivot": "floor", "attach": "", "front": "the bib is the front", "recipe": {}},
+        "skirt": {"label": "Knee-length skirt", "noun": "skirt", "hint": "a plain knee-length skirt in a muted green", "pose": "ghost", "size_m": 0.56, "pivot": "floor", "attach": "", "recipe": {}},
+        "dress": {"label": "Sleeveless knee-length dress", "noun": "dress", "hint": "a plain sleeveless knee-length dress in a soft purple", "pose": "ghost", "size_m": 0.95, "pivot": "floor", "attach": "", "recipe": {}}
+      }
+    }
+  },
+  "views": {
+    "front": "seen straight from the front",
+    "side_left": "seen straight from its left side (turned 90 degrees)",
+    "back": "seen straight from behind",
+    "side_right": "seen straight from its right side (turned 90 degrees)"
+  },
+  "views_high": {
+    "front_high": "seen from the front and above, from a high angle of 45 degrees looking down on it",
+    "back_high": "seen from behind and above, from a high angle of 45 degrees looking down on it"
+  },
+  "views_facing": {
+    "side_left": "seen straight from the side, turned 90 degrees so that its front points to the left of the picture",
+    "side_right": "seen straight from the side, turned 90 degrees the other way so that its front points to the right of the picture"
+  },
+  "prompts": {
+    "hero": "{subject}, {pose}. Studio product shot of the single {thing}, three-quarter view, the whole {thing} in frame on a plain white background, soft even light, {look}",
+    "hero_negative": "text, watermark, hands, person, mannequin, multiple objects, cropped, shadow on the floor, collage",
+    "view": "Show the exact same {noun} again, {where}. Keep its shape, proportions, colours and materials exactly the same, the whole {thing} in frame, the same plain white background, no shadow, no person.",
+    "view_front": "Show the exact same {noun} again.{front} It is {where}. Keep its shape, proportions, colours and materials exactly the same, the whole {thing} in frame, the same plain white background, no shadow, no person.",
+    "view_negative": "text, watermark, hands, person, mannequin, multiple objects, cropped, shadow on the floor, collage"
+  }
+}

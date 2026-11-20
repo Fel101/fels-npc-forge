@@ -1,0 +1,153 @@
+{
+  "label": "Witches & warlocks",
+  "short": "Witches",
+  "blurb": "Covens, hedge witches and pact-bound warlocks: potion brewers, curse breakers and fortune tellers in a candlelit village where magic is a trade like any other.",
+  "order": 15,
+  "place": "coven village",
+  "context": "witchcraft and folk magic character with an air of old magic",
+  "origin_label": "Heritage",
+
+  "names": {
+    "female": ["Agatha", "Hester", "Morwenna", "Tabitha", "Esme", "Griselda", "Hazel", "Ivy", "Rowan", "Beatrix", "Ophelia", "Maude",
+               "Clementine", "Elspeth", "Winifred", "Delphine", "Isadora", "Mabel", "Sybil", "Lenore", "Thessaly", "Violet", "Wilhelmina", "Odile"],
+    "male": ["Ambrose", "Silas", "Lucius", "Thaddeus", "Mortimer", "Caspian", "Evander", "Cornelius", "Jasper", "Alistair", "Barnaby",
+             "Octavian", "Crispin", "Leopold", "Ignatius", "Tobiah", "Emrys", "Florian", "Ezekiel", "Percival", "Oswin", "Quentin"],
+    "neutral": ["Sage", "Wren", "Ash", "Raven", "Linden", "Moss", "Juniper", "Sorrel", "Vesper", "Hollis"],
+    "surnames": ["Blackthorn", "Nightshade", "Hawthorne", "Grimsby", "Ravenwood", "Mossbottom", "Wick", "Bramble", "Ashgrove", "Hollowell",
+                 "Thistlewood", "Cauldwell", "Moonfield", "Fenwick", "Hemlock", "Greymalkin", "Candlewood", "Duskmere", "Rookwood", "Fairweather",
+                 "Mandrake", "Coldbrook", "Wormwood", "Larkspur", "Toadflax", "Hexley", "Marrowby", "Starling"]
+  },
+
+  "hobbies": [
+    "pressing wildflowers between the pages of old books", "reading tea leaves for anyone who sits still long enough",
+    "collecting feathers dropped by crows", "brewing new teas from whatever grows by the path", "gathering mushrooms by moonlight",
+    "carving small wooden charms", "copying spells out of crumbling books", "stargazing from the rooftop",
+    "tending a garden of poisonous flowers", "knitting protective charms into scarves", "baking bread shaped like little animals",
+    "sketching the familiars of the village", "walking the graveyard at dusk", "collecting jars of rainwater from every storm",
+    "arguing with the local ravens", "polishing a collection of crystals", "writing letters that are never sent",
+    "playing a battered old fiddle"
+  ],
+  "quirks": [
+    "talking to {poss} cat as if it might answer back", "never stepping on a crack in the flagstones", "knocking three times before entering any room",
+    "keeping a sprig of rosemary behind one ear", "stirring everything clockwise, even soup", "humming spell-songs under {poss} breath",
+    "reading everyone's palm without asking", "counting crows out loud", "keeping salt in every pocket",
+    "wearing {poss} hat indoors", "sniffing every potion before trusting it", "leaving a saucer of milk out for whatever comes"
+  ],
+  "goals": [
+    "earning a seat on the coven council", "breaking the curse laid on {poss} family", "finding a grimoire lost for a hundred years",
+    "brewing a potion no one has ever managed", "paying off the debt of an old pact", "opening a shop of {poss} own",
+    "proving {subj} can do magic without a familiar", "finding the witch who taught {poss} mother", "learning to speak with the dead properly",
+    "keeping the village safe from the witch hunters", "flying a broom across the sea", "being forgiven for one very bad hex"
+  ],
+  "peeves": [
+    "someone touching {poss} cauldron", "people asking for love potions", "a borrowed spellbook returned with a bent spine",
+    "wet firewood", "being called a hag", "mice in the herb store", "a broom that pulls to the left", "iron nails in the doorframe",
+    "people who whistle indoors", "cheap candles that smoke"
+  ],
+  "accessories": [
+    "a tall pointed hat with a crooked tip", "a black cat familiar perched on one shoulder", "a raven familiar on one shoulder",
+    "a small toad familiar peeking out of a pocket", "a crystal pendant on a silver chain", "a string of bone and bead charms",
+    "a leather-bound grimoire held under one arm", "a gnarled wooden wand tucked behind the ear", "a pouch of dried herbs at the belt",
+    "a small glass vial of glowing liquid on a cord", "a moonstone ring on every finger", "a crooked walking staff topped with a crystal",
+    "a wide-brimmed hat decorated with dried flowers", "a broom slung across the back"
+  ],
+  "default_outfits": [
+    "a dark hooded cloak over a plain dress, a belt of pouches and worn boots",
+    {"t": "a long dark dress with a lace collar, a shawl and buckled boots", "g": "female"},
+    {"t": "a dark waistcoat over a loose shirt, a long coat, trousers and buckled boots", "g": "male"}
+  ],
+
+  "_tables": "The next entries replace the shared tables in common.json for this setting only (same shape): a modest dye chance for the plum and moss colours of witchy fashion, old-fashioned eyewear, and witch-flavoured marks. Hair styles and facial hair keep the shared tables: witches here are timeless, not tied to one period.",
+  "dye_chance": 0.15,
+  "dyed_hair_colors": ["deep plum", "raven blue-black", "moss green", "silver-lilac", "blood red"],
+  "glasses": [
+    {"label": "none", "w": 80},
+    {"label": "small round spectacles", "w": 8},
+    {"label": "half-moon reading spectacles", "w": 5},
+    {"label": "a brass monocle on a chain", "w": 2},
+    {"label": "smoked-glass spectacles", "w": 3}
+  ],
+  "distinguishing": [
+    {"label": "none", "w": 45},
+    {"label": "a crescent-moon birthmark on the cheek", "w": 5},
+    {"label": "one milky, clouded eye", "w": 3},
+    {"label": "a single silver streak through the hair", "w": 6},
+    {"label": "freckles across the nose", "w": 6},
+    {"label": "ink-stained fingertips", "w": 4},
+    {"label": "faded rune tattoos on the backs of the hands", "w": 5},
+    {"label": "a small scar through one eyebrow", "w": 3},
+    {"label": "heterochromia, one eye green and one violet", "w": 4},
+    {"label": "a beauty mark above the lip", "w": 4},
+    {"label": "a faint glow in the eyes", "w": 3},
+    {"label": "dark circles from too many midnight rituals", "w": 4}
+  ],
+
+  "occupations": [
+    {"id": "hedgewitch", "label": "hedge witch", "weight": 2.5, "outfits": [
+      "a patched green cloak over a homespun dress, herb pouches hanging from the belt, and muddy boots",
+      {"t": "a mossy-green hooded cloak over a linen shirt, patched trousers and muddy boots", "g": "male"}]},
+    {"id": "greenwitch", "label": "green witch", "weight": 1.5, "outfits": [
+      "a leaf-green shawl over a flowing linen dress, a basket of cuttings and soft boots",
+      {"t": "a leaf-green waistcoat over a loose linen shirt, rolled trousers and soft boots", "g": "male"}]},
+    {"id": "seawitch", "label": "sea witch", "weight": 1, "outfits": [
+      "a sea-blue hooded cloak stitched with shells, a knotted rope belt and salt-stained boots"]},
+    {"id": "kitchenwitch", "label": "kitchen witch", "weight": 1.5, "min_age": 20, "outfits": [
+      "a flour-dusted apron over a plum dress, sleeves rolled up, a wooden spoon at the belt and soft shoes",
+      {"t": "a flour-dusted apron over a plum shirt, sleeves rolled up, a wooden spoon at the belt and soft shoes", "g": "male"}]},
+    {"id": "stormwitch", "label": "storm witch", "weight": 0.8, "min_age": 20, "outfits": [
+      "a wind-torn grey cloak over dark leathers, silver storm charms at the collar and tall boots"]},
+    {"id": "warlock", "label": "warlock", "weight": 2.5, "min_age": 18, "outfits": [
+      "a high-collared black coat embroidered with violet sigils, a dark waistcoat, trousers and polished boots",
+      {"t": "a high-collared black gown embroidered with violet sigils, a corseted waist and polished boots", "g": "female"}]},
+    {"id": "pactwarlock", "label": "pact-bound warlock", "weight": 1.2, "min_age": 20, "outfits": [
+      "a long crimson-lined black cloak, a shirt with silver clasps, a chain bearing a patron's sigil of their own design and dark boots"]},
+    {"id": "necromancer", "label": "necromancer", "weight": 0.8, "min_age": 25, "outfits": [
+      "tattered black robes trimmed with bone beads, a belt of small skulls and worn black boots"]},
+    {"id": "hexbreaker", "label": "hex breaker", "weight": 1, "min_age": 20, "outfits": [
+      "a travel-worn brown coat hung with warding charms, a satchel of chalk and salt and sturdy boots"]},
+    {"id": "cursewright", "label": "curse maker", "weight": 0.6, "min_age": 25, "outfits": [
+      "a dark velvet robe with thorny embroidery, black gloves and pointed shoes"]},
+    {"id": "potionbrewer", "label": "potion brewer", "weight": 2, "outfits": [
+      "a stained leather apron over a dark shirt, bottles clinking at the belt and scorched boots"]},
+    {"id": "herbalist", "label": "herbalist", "weight": 1.5, "outfits": [
+      "a hooded cloak with pockets full of dried herbs, fingerless gloves and worn boots"]},
+    {"id": "tarotreader", "label": "tarot reader", "weight": 1.2, "min_age": 18, "outfits": [
+      "a fringed shawl over a patterned blouse, a long skirt, many rings and soft slippers",
+      {"t": "a patterned silk waistcoat over a loose shirt, a fringed scarf, many rings and soft slippers", "g": "male"}]},
+    {"id": "scryer", "label": "crystal scryer", "weight": 0.8, "min_age": 25, "outfits": [
+      "a midnight-blue robe sewn with tiny silver stars, and soft velvet slippers"]},
+    {"id": "familiarkeeper", "label": "familiar keeper", "weight": 0.8, "outfits": [
+      "a feather-covered cloak over a sturdy tunic, thick leather gloves and worn boots"]},
+    {"id": "broommaker", "label": "broom maker", "weight": 0.8, "outfits": [
+      "a straw-flecked work shirt, a leather apron, twine at the belt and sturdy boots"]},
+    {"id": "grimoirebinder", "label": "grimoire binder", "weight": 0.7, "min_age": 20, "outfits": [
+      "an ink-stained smock over a high-necked shirt, a pencil behind the ear and soft shoes"]},
+    {"id": "bonereader", "label": "bone reader", "weight": 0.6, "min_age": 30, "outfits": [
+      "a patchwork cloak strung with small bones and feathers, a knotted belt and bare-toed sandals"]},
+    {"id": "priestess", "label": "moon priestess", "weight": 0.6, "min_age": 25, "outfits": [
+      {"t": "a flowing silver-white gown, a crescent-moon circlet and soft slippers", "g": "female"},
+      {"t": "a flowing silver-white robe, a crescent-moon circlet and soft slippers", "g": "male"}]},
+    {"id": "covenelder", "label": "coven elder", "weight": 0.8, "min_age": 55, "max_age": 99, "outfits": [
+      "a heavy embroidered black cloak, a tall pointed hat and a gnarled staff, with soft worn boots"]},
+    {"id": "cunningfolk", "label": "village wise one", "weight": 1, "min_age": 45, "max_age": 99, "outfits": [
+      "a thick knitted shawl over plain homespun clothes, a basket of remedies and worn clogs"]},
+    {"id": "midwife", "label": "witch midwife", "weight": 0.8, "min_age": 28, "outfits": [
+      "a clean linen apron over a dark dress, a satchel of remedies and sensible boots",
+      {"t": "a clean linen apron over a dark shirt and trousers, a satchel of remedies and sensible boots", "g": "male"}]},
+    {"id": "candlemaker", "label": "ritual candle maker", "weight": 0.7, "outfits": [
+      "a wax-spattered apron over a rust-coloured shirt, rolled sleeves and sturdy shoes"]},
+    {"id": "charmseller", "label": "charm seller", "weight": 1, "outfits": [
+      "a colourful patched coat hung with dozens of little charms, a tray of trinkets and scuffed boots"]},
+    {"id": "poisoner", "label": "poison maker", "weight": 0.4, "min_age": 25, "outfits": [
+      "an elegant dark green dress with a high collar, long black gloves and pointed boots",
+      {"t": "an elegant dark green frock coat with a high collar, long black gloves and pointed boots", "g": "male"}]},
+    {"id": "witchhunter", "label": "witch hunter", "weight": 0.8, "min_age": 20, "outfits": [
+      "a long black leather coat, a wide-brimmed hat, a silver-buckled belt, a crossbow on the back and heavy boots"]},
+    {"id": "innkeeper", "label": "cauldron inn keeper", "weight": 1, "min_age": 25, "outfits": [
+      "a rolled-sleeve shirt under a long potion-stained apron and sturdy boots"]},
+    {"id": "apprentice", "label": "witch's apprentice", "weight": 1, "min_age": 13, "max_age": 19, "outfits": [
+      "an oversized hand-me-down cloak over a simple tunic, a slightly squashed pointed hat and scuffed boots"]},
+    {"id": "covenchild", "label": "coven child", "weight": 1, "min_age": 6, "max_age": 12, "outfits": [
+      "a little patched cloak over a plain smock, a tiny pointed hat and muddy boots"]}
+  ]
+}

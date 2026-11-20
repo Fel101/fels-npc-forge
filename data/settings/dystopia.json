@@ -1,0 +1,139 @@
+{
+  "label": "Dystopian state",
+  "short": "Dystopia",
+  "blurb": "A grey, watchful megacity run by the Ministry: enforcers, informants and clerks, the rebels who print the forbidden news, and the people who just want to get through curfew. Built for authoritarian-future stories.",
+  "order": 18,
+  "place": "district",
+  "context": "dystopian authoritarian future city character, drab regulation clothing, grey concrete and surveillance",
+  "origin_label": "Heritage",
+
+  "hobbies": [
+    "listening to forbidden music through one earbud", "trading ration coupons", "growing a tomato plant on the windowsill",
+    "hiding books under the floorboards", "fixing old radios", "painting tiny murals where the cameras can't see",
+    "memorising poems that were banned", "playing chess in the ration queue", "keeping a secret diary",
+    "repairing shoes for the neighbours", "counting the drones that pass overhead", "feeding the stray cats in the courtyard",
+    "running laps of the block before curfew", "collecting pre-regime coins", "whittling figures from scrap wood",
+    "teaching children to read at night", "sketching faces from memory", "tuning in to pirate broadcasts"
+  ],
+  "quirks": [
+    "checking over {poss} shoulder every few steps", "speaking in a whisper out of habit", "reciting {poss} citizen number when nervous",
+    "never looking straight at a camera", "folding every piece of paper into tiny squares", "keeping {poss} coat buttoned to the top",
+    "saluting posters without thinking", "tapping messages in code on the table", "hoarding sugar cubes",
+    "smiling a little too widely at officials", "always sitting with {poss} back to the wall", "saying the loyalty oath a beat too fast"
+  ],
+  "goals": [
+    "getting {poss} family out past the wall", "seeing the sky without the smog just once", "finding out what happened to {poss} brother",
+    "printing the truth on every wall in the district", "earning a promotion to the inner district", "keeping {poss} head down until it all blows over",
+    "exposing the Minister's lies", "finding the radio station that broadcasts at midnight", "owning a single book no one can take away",
+    "joining the resistance", "paying off {poss} family's labour debt", "remembering what the city was called before"
+  ],
+  "peeves": [
+    "the loudspeakers at dawn", "grey porridge again", "neighbours who report neighbours", "the curfew siren", "ration queues that never move",
+    "being asked for papers twice in one street", "slogans painted over old murals", "drones hovering outside the window",
+    "cheerful propaganda songs", "the lift that has been broken for a year"
+  ],
+  "accessories": [
+    "an identity card on a lanyard", "an armband of the Ministry", "a ration book in the breast pocket", "a small hidden radio",
+    "a bundle of forbidden pamphlets", "a battered thermos", "a gas mask hanging at the hip", "a curfew pass clipped to the collar",
+    "a cheap wristwatch with a cracked face", "a small tin flower badge, the rebels' secret sign", "a folded umbrella",
+    "a data tablet in a scuffed case"
+  ],
+  "default_outfits": [
+    "a drab grey regulation overall with a number stencilled on the chest, and plain black shoes",
+    "a shapeless grey wool coat over a plain tunic, grey trousers and worn black shoes",
+    {"t": "a plain grey pinafore dress over a white shirt, dark stockings and flat shoes", "g": "female"}
+  ],
+
+  "_tables": "The next entries replace the shared tables in common.json for this setting only (same shape): regulation haircuts, no dye (colour is not allowed), plain issue spectacles and the marks of a watched life.",
+  "dyed_hair_colors": [],
+  "hair_styles": [
+    {"label": "short regulation-cut hair", "w": [1.5, 4, 2], "tex": true},
+    {"label": "hair pulled back into a tight regulation bun", "w": [4, 0, 1], "tex": true},
+    {"label": "chin-length hair cut straight across", "w": [3, 0.2, 1.5], "tex": true},
+    {"label": "shaved-close hair", "w": [0.3, 2.5, 1], "tex": false},
+    {"label": "hair tucked under a grey cap", "w": [1.5, 1.5, 1], "tex": false},
+    {"label": "hair in a single plain braid", "w": [2, 0, 0.5], "tex": true},
+    {"label": "unkempt hair grown out past regulation length", "w": [1, 1.5, 1.5], "tex": true},
+    {"label": "neatly combed side-parted hair", "w": [0.3, 3, 0.5], "tex": true},
+    {"label": "natural hair cropped close", "w": [1, 1, 0.5], "tex": false, "only": ["coily", "curly"]},
+    {"label": "cornrow braids of hair kept short", "w": [0.6, 0.6, 0.4], "tex": false, "only": ["coily"]},
+    {"label": "bald", "w": [0.1, 1, 0.2], "bald": true}
+  ],
+  "glasses": [
+    {"label": "none", "w": 78},
+    {"label": "plain black issue glasses", "w": 12},
+    {"label": "cracked wire-rimmed glasses mended with tape", "w": 5},
+    {"label": "a surveillance-lens monocle", "w": 2},
+    {"label": "tinted safety goggles", "w": 3}
+  ],
+  "distinguishing": [
+    {"label": "none", "w": 45},
+    {"label": "a citizen number tattooed on the neck", "w": 8},
+    {"label": "dark circles under the eyes", "w": 8},
+    {"label": "a healed split lip", "w": 3},
+    {"label": "a small scar through one eyebrow", "w": 3},
+    {"label": "hollow cheeks from short rations", "w": 5},
+    {"label": "a bruise fading on one cheekbone", "w": 3},
+    {"label": "freckles across the nose", "w": 5},
+    {"label": "a blinking tracking implant behind one ear", "w": 4},
+    {"label": "ink-stained fingers", "w": 4}
+  ],
+
+  "occupations": [
+    {"id": "enforcer", "label": "Ministry enforcer", "weight": 2, "min_age": 20, "max_age": 50, "outfits": [
+      "black riot armour over a dark uniform, a visored helmet held at the hip, a baton and heavy black boots"]},
+    {"id": "officer", "label": "political officer", "weight": 0.8, "min_age": 30, "outfits": [
+      "a crisp charcoal uniform with a high collar and plain silver insignia, leather gloves and polished jackboots"]},
+    {"id": "clerk", "label": "Ministry clerk", "weight": 2.5, "min_age": 20, "outfits": [
+      "a grey suit a size too big, a thin black tie, an armband and scuffed black shoes",
+      {"t": "a grey skirt suit a size too big, a plain white blouse, an armband and scuffed black shoes", "g": "female"}]},
+    {"id": "factory", "label": "factory worker", "weight": 3, "outfits": [
+      "grey work coveralls with a stencilled number, a canvas cap, thick gloves and steel-toe boots"]},
+    {"id": "informant", "label": "informant", "weight": 1, "min_age": 18, "outfits": [
+      "a neat beige raincoat buttoned to the neck, a plain hat, grey trousers and quiet shoes"]},
+    {"id": "rebel", "label": "resistance fighter", "weight": 1.5, "min_age": 17, "max_age": 55, "outfits": [
+      "a patched dark hooded jacket, a scarf pulled up over the chin, cargo trousers and worn combat boots"]},
+    {"id": "rebelleader", "label": "resistance leader", "weight": 0.5, "min_age": 28, "outfits": [
+      "a battered long coat over a knitted jumper, a scarf, fingerless gloves and worn boots"]},
+    {"id": "printer", "label": "underground printer", "weight": 0.8, "outfits": [
+      "an ink-blackened apron over a rolled-sleeve shirt, fingerless gloves and worn shoes"]},
+    {"id": "blackmarket", "label": "black-market trader", "weight": 1, "min_age": 18, "outfits": [
+      "a long coat lined with hidden pockets full of contraband, a knit cap and soft-soled boots"]},
+    {"id": "drone", "label": "surveillance analyst", "weight": 1, "min_age": 21, "outfits": [
+      "a grey Ministry uniform shirt with a headset, an ID badge, dark trousers and plain shoes"]},
+    {"id": "announcer", "label": "state news presenter", "weight": 0.5, "min_age": 25, "outfits": [
+      "a sharply tailored grey suit with a small silver pin, a perfect white shirt and polished shoes"]},
+    {"id": "artist", "label": "propaganda artist", "weight": 0.6, "min_age": 20, "outfits": [
+      "a paint-splattered grey smock over a shirt, a beret, dark trousers and paint-spotted shoes"]},
+    {"id": "doctor", "label": "state clinic doctor", "weight": 0.8, "min_age": 28, "outfits": [
+      "a grey-white medical coat over a plain uniform, a face mask around the neck and flat shoes"]},
+    {"id": "border", "label": "wall guard", "weight": 1.2, "min_age": 19, "max_age": 50, "outfits": [
+      "a heavy grey greatcoat with a fur collar, a peaked cap, a rifle on the shoulder and black boots"]},
+    {"id": "sanitation", "label": "sanitation worker", "weight": 1.5, "outfits": [
+      "orange coveralls with reflective stripes, a respirator mask around the neck, rubber gloves and rubber boots"]},
+    {"id": "warden", "label": "curfew warden", "weight": 1, "min_age": 25, "outfits": [
+      "a grey uniform coat with a warden's armband, a whistle, a torch and polished black boots"]},
+    {"id": "teacher", "label": "state schoolteacher", "weight": 1, "min_age": 23, "outfits": [
+      "a plain grey cardigan over a buttoned shirt, a lapel pin, dark trousers and flat shoes"]},
+    {"id": "archivist", "label": "records rewriter", "weight": 0.6, "min_age": 25, "outfits": [
+      "a grey office suit with sleeve protectors, a pencil behind the ear and worn shoes"]},
+    {"id": "forger", "label": "document forger", "weight": 0.6, "min_age": 22, "outfits": [
+      "a thick knitted cardigan, a jeweller's loupe on a cord, ink-stained cuffs and soft slippers"]},
+    {"id": "courier", "label": "rooftop courier", "weight": 1, "min_age": 15, "max_age": 35, "outfits": [
+      "a dark hooded running jacket, fingerless gloves, cargo trousers and grippy running shoes"]},
+    {"id": "scavenger", "label": "outer-district scavenger", "weight": 1, "outfits": [
+      "layers of patched grey rags, a dust mask, a sack over one shoulder and wrapped boots"]},
+    {"id": "canteen","label": "canteen worker", "weight": 1, "outfits": [
+      "a grey canteen tunic with a hairnet, a stained apron, plain trousers and rubber clogs"]},
+    {"id": "minister", "label": "party minister", "weight": 0.3, "min_age": 45, "outfits": [
+      "an immaculate black suit with a silver lapel badge, a long dark overcoat and gleaming shoes"]},
+    {"id": "priest", "label": "banned-faith preacher", "weight": 0.4, "min_age": 35, "outfits": [
+      "a threadbare dark coat hiding a small wooden pendant, a scarf and worn boots"]},
+    {"id": "retiree", "label": "pensioner", "weight": 0.8, "min_age": 60, "max_age": 99, "outfits": [
+      "a moth-eaten grey overcoat, a knitted hat, a string shopping bag and worn shoes"]},
+    {"id": "cadet", "label": "youth brigade cadet", "weight": 1, "min_age": 13, "max_age": 17, "outfits": [
+      "a grey youth-brigade uniform with a red neckerchief, shorts, knee socks and polished shoes"]},
+    {"id": "child", "label": "district child", "weight": 1, "min_age": 6, "max_age": 12, "outfits": [
+      "a hand-me-down grey coat, a knitted scarf, patched trousers and worn shoes"]}
+  ]
+}

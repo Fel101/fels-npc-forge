@@ -1,0 +1,211 @@
+{
+  "label": "Mythical creatures",
+  "short": "Mythical",
+  "blurb": "The folk of myth and fairy tale: merfolk, fairies, trolls, orcs, goblins, centaurs, satyrs, minotaurs, dryads, harpies, naga, gorgons and the high fae, living side by side in an enchanted wildwood.",
+  "order": 20,
+  "place": "enchanted wildwood",
+  "context": "mythical creature character from myth and fairy tale (not a plain human), in an enchanted wildwood",
+  "origin_label": "Race",
+
+  "races": {
+    "fairy":    {"label": "Fairy", "weight": 10, "phrase": "fairy",
+                 "features": "delicate translucent dragonfly-like wings at the back, slightly pointed ears and a faint shimmer of glittering dust on the skin",
+                 "skin": ["fair", "rosy pink", "warm brown", "pale lilac", "soft mint green", "deep brown"],
+                 "hair_colors": {"pastel pink": 2, "golden blonde": 3, "lilac": 2, "silver-white": 2, "leaf green": 1, "auburn": 2},
+                 "builds": ["slim", "petite", "average", "athletic"]},
+    "merfolk":  {"label": "Merfolk", "weight": 8, "phrase": "merfolk", "morphology": "merfolk",
+                 "features": "a long shimmering scaled fish tail in place of legs, delicate fin-like ears and iridescent scales along the cheekbones, neck and shoulders",
+                 "skin": ["pale pearly", "sun-bronzed", "deep brown", "pale sea-green", "soft blue-gray"],
+                 "eyes": ["sea-green", "deep ocean blue", "pearl gray", "golden"],
+                 "hair_colors": {"sea-green": 2, "deep teal": 2, "coral red": 2, "platinum blonde": 2, "black": 2, "auburn": 2}},
+    "troll":    {"label": "Troll", "weight": 7, "phrase": "troll",
+                 "features": "a long drooping nose, large pointed ears, a jutting underbite with small tusks, thick warty hide and huge knobbly hands",
+                 "skin": ["mossy green", "stone gray", "muddy brown", "blue-gray"],
+                 "eyes": ["small yellow", "small dark", "pale green"],
+                 "hair_colors": {"moss green": 2, "black": 2, "dirty gray": 2, "rust red": 2},
+                 "builds": ["heavyset", "muscular", "stocky", "tall and lanky"]},
+    "orc":      {"label": "Orc", "weight": 9, "phrase": "orc",
+                 "features": "prominent lower tusks, a heavy brow, pointed ears and a powerful frame",
+                 "skin": ["deep green", "gray-green", "olive-green", "slate gray", "ash brown"],
+                 "hair_colors": {"black": 5, "dark brown": 2, "gray": 1},
+                 "builds": ["muscular", "stocky", "heavyset", "athletic"]},
+    "goblin":   {"label": "Goblin", "weight": 8, "phrase": "goblin",
+                 "features": "a small wiry frame, long pointed ears, a sharp hooked nose and a grin full of little pointed teeth",
+                 "skin": ["bright green", "yellow-green", "gray-green", "muddy olive"],
+                 "eyes": ["beady yellow", "beady red", "beady orange"],
+                 "hair_colors": {"black": 3, "dirty brown": 2, "gray": 2},
+                 "builds": ["slim", "petite", "average"]},
+    "centaur":  {"label": "Centaur", "weight": 5, "phrase": "centaur", "morphology": "taur",
+                 "features": "a human upper body and face on the four-legged body of a horse, with a long flowing horse tail",
+                 "builds": ["athletic", "muscular", "average", "tall and lanky"]},
+    "satyr":    {"label": "Satyr", "weight": 7, "phrase": "satyr",
+                 "features": "small curling goat horns, pointed goat-like ears, shaggy goat legs ending in cloven hooves and a short tail",
+                 "hair_colors": {"dark brown": 3, "chestnut": 2, "black": 2, "auburn": 2}},
+    "minotaur": {"label": "Minotaur", "weight": 5, "phrase": "minotaur",
+                 "features": "a bull's head in place of a human face: a broad furred bovine muzzle with a flat wet nose and a brass nose ring, floppy bull ears and two large curved horns, on a powerful fur-covered human-like body",
+                 "skin": ["dark brown fur-covered", "black fur-covered", "reddish-brown fur-covered", "tawny fur-covered"],
+                 "eyes": ["dark", "fierce red", "amber"],
+                 "hair": "short coarse fur between the horns", "facial_hair": "",
+                 "builds": ["muscular", "heavyset", "stocky"]},
+    "dryad":    {"label": "Dryad", "weight": 7, "phrase": "dryad",
+                 "features": "bark-textured skin on the arms and shoulders, and leaves and small blossoms growing through the hair",
+                 "skin": ["pale birch", "warm oak brown", "soft moss green", "dark walnut brown"],
+                 "eyes": ["amber", "leaf green", "honey gold"],
+                 "hair_colors": {"leaf green": 3, "autumn red": 2, "golden": 2, "dark brown": 2},
+                 "builds": ["slim", "petite", "average", "tall and lanky"]},
+    "harpy":    {"label": "Harpy", "weight": 5, "phrase": "harpy",
+                 "features": "large feathered wings in place of arms, taloned bird feet and feathers along the neck and shoulders",
+                 "eyes": ["sharp golden", "sharp amber", "sharp black"],
+                 "hair_colors": {"black": 3, "brown": 2, "ash gray": 2, "copper red": 2},
+                 "builds": ["slim", "athletic", "average"]},
+    "naga":     {"label": "Naga", "weight": 4, "phrase": "naga", "morphology": "serpentine",
+                 "features": "a human upper body on a long scaled serpent tail in place of legs, with scales along the arms and cheekbones",
+                 "eyes": ["golden slit-pupilled", "green slit-pupilled"],
+                 "hair_colors": {"black": 4, "dark green": 2, "silver": 1}},
+    "gorgon":   {"label": "Gorgon", "weight": 4, "phrase": "gorgon",
+                 "features": "fine scales along the cheekbones and neck",
+                 "skin": ["pale green", "olive", "bronze", "gray-green"],
+                 "eyes": ["glowing golden slit-pupilled", "emerald slit-pupilled"],
+                 "hair": "a writhing crown of living green snakes in place of hair", "facial_hair": ""},
+    "highfae":  {"label": "High fae", "weight": 8, "phrase": "high fae",
+                 "features": "long sharply pointed ears, an ageless otherworldly face, faint glowing markings at the temples and a thin circlet of antler-like horns",
+                 "skin": ["porcelain", "golden", "deep umber", "moonlit silver-blue", "warm tan"],
+                 "eyes": ["glowing violet", "silver", "emerald green", "pale gold"],
+                 "hair_colors": {"silver-white": 3, "raven black": 3, "copper": 2, "golden": 2, "midnight blue": 1},
+                 "builds": ["slim", "athletic", "tall and lanky", "average"]}
+  },
+  "hair_color_choices": ["black", "raven black", "dark brown", "chestnut", "auburn", "copper red", "golden", "golden blonde", "platinum blonde",
+                         "silver-white", "gray", "pastel pink", "lilac", "leaf green", "moss green", "sea-green", "deep teal", "midnight blue"],
+
+  "names": {
+    "female": ["Elowen", "Thistle", "Nerissa", "Briar", "Morwen", "Sylphie", "Coral", "Fenna", "Isolde", "Maeve", "Nyx", "Oriel",
+               "Perrin", "Rhiannon", "Seren", "Titania", "Undine", "Vesna", "Willow", "Yarrow", "Lorelei", "Grisel"],
+    "male": ["Alder", "Bramble", "Cormac", "Dagda", "Fenrick", "Gorm", "Hollin", "Kestrel", "Lugh", "Madoc", "Oberon", "Puck", "Rourke",
+             "Stag", "Talon", "Urg", "Varn", "Wystan", "Grub", "Thorne", "Krog", "Silvan"],
+    "neutral": ["Ash", "Fern", "Moss", "Rook", "Sorrel", "Tansy", "Wisp", "Nettle", "Pebble", "Sable"],
+    "surnames": ["Mossback", "Thornwood", "Deepwater", "Stonejaw", "Brightwing", "Oakenheart", "Mirefoot", "Silverbrook", "Ashenvale",
+                 "Tidecaller", "Rootgrip", "Bonecrag", "Hollowhill", "Dewdrop", "Greyhoof", "Nightbloom", "Ironhorn", "Wildmere",
+                 "Fernshadow", "Rockbottom", "Starfall", "Gloomfen", "Honeysuckle", "Bridgewater", "Emberglade", "Coldtarn"]
+  },
+
+  "hobbies": [
+    "collecting shiny things from the riverbed", "dancing in fairy rings under the full moon", "trading riddles with travellers",
+    "singing to the sea at dusk", "carving runes into standing stones", "napping under a bridge", "brewing honey mead",
+    "chasing will-o'-the-wisps", "weaving flower crowns", "hoarding lost buttons and keys", "wrestling in the mud for fun",
+    "whittling pan pipes", "racing the wind across the hills", "tending ancient trees", "stargazing from the tallest oak",
+    "pranking lost travellers", "listening to the gossip of birds", "polishing horns and hooves"
+  ],
+  "quirks": [
+    "speaking only in rhymes when excited", "refusing to cross running water", "never saying {poss} true name aloud", "counting spilled seeds compulsively",
+    "sniffing strangers before greeting them", "keeping a pocket full of pebbles", "bowing to every old tree", "humming to plants",
+    "flinching at the sound of iron bells", "collecting teeth as keepsakes", "sleeping upside down in trees", "answering questions with questions"
+  ],
+  "goals": [
+    "getting back the true name a human stole", "earning a seat at the Seelie court", "guarding the old bridge for a thousand years",
+    "finding the lost song of {poss} people", "making peace between the forest and the sea", "breaking the curse on {poss} bloodline",
+    "building the grandest hoard in the hills", "being accepted by the humans in the valley", "seeing the ocean from the top of the world",
+    "winning the midsummer games", "finding a cure for the blight in the old forest", "being remembered in a bard's song"
+  ],
+  "peeves": [
+    "cold iron", "people who forget their manners", "someone breaking a promise", "litter in the fairy ring", "being called a monster",
+    "dry weather", "humans who pick every flower", "loud church bells", "someone stepping on {poss} tail", "sunlight at noon"
+  ],
+  "accessories": [
+    "a necklace of shells and sea glass", "a crown of wildflowers", "a bone-handled knife at the belt", "a pouch of shiny stolen trinkets",
+    "a carved wooden flute", "a torc of twisted bronze", "a lantern with a trapped glowing wisp", "a sack of river stones",
+    "a trident of carved coral", "a crooked wooden staff wound with ivy", "a string of teeth and beads", "a pan pipe on a cord",
+    "an acorn-cap charm on a cord", "a small hand mirror of polished silver"
+  ],
+  "default_outfits": [
+    "a simple tunic of woven leaves and bark with a rope belt",
+    "a rough-spun wrap of moss-coloured cloth, a leather belt and bare feet",
+    "a patched cloak of feathers and fur over a plain tunic"
+  ],
+
+  "_tables": "The next entries replace the shared tables in common.json for this setting only (same shape): no modern eyewear or dye, and marks that suit any of the races. Races with a body plan other than two legs (merfolk, centaur, naga) state it in 'morphology', so full-body batches skip them (see npcgen/morphology.py). Outfits avoid shoes where hooves, tails or talons would be.",
+  "dyed_hair_colors": [],
+  "glasses": [
+    {"label": "none", "w": 92},
+    {"label": "a pair of tiny round spectacles", "w": 5},
+    {"label": "a polished crystal monocle", "w": 3}
+  ],
+  "facial_hair": [
+    {"label": "clean-shaven", "w": 40},
+    {"label": "a wild shaggy beard", "w": 14},
+    {"label": "a beard braided with beads", "w": 10},
+    {"label": "a long forked beard", "w": 6},
+    {"label": "a beard of moss and lichen", "w": 4},
+    {"label": "scruffy stubble", "w": 10},
+    {"label": "a drooping mustache", "w": 6}
+  ],
+  "distinguishing": [
+    {"label": "none", "w": 45},
+    {"label": "glowing rune markings on the shoulders", "w": 6},
+    {"label": "a torn ear from an old fight", "w": 5},
+    {"label": "freckles like scattered stardust", "w": 6},
+    {"label": "a scar across the face", "w": 4},
+    {"label": "heterochromia, one eye a different colour from the other", "w": 4},
+    {"label": "tribal war paint across the eyes", "w": 5},
+    {"label": "a chipped tooth", "w": 3},
+    {"label": "tiny mushrooms growing on the shoulder", "w": 3},
+    {"label": "woad-blue spiral tattoos", "w": 4},
+    {"label": "a faint silver glow around the skin", "w": 3}
+  ],
+
+  "occupations": [
+    {"id": "bridgekeeper", "label": "bridge keeper", "weight": 1, "min_age": 25, "outfits": [
+      "a patched leather vest over a rough tunic, a toll pouch at the belt and bare feet"]},
+    {"id": "guardian", "label": "forest guardian", "weight": 2, "outfits": [
+      "leather armour woven with living vines, a longbow across the back and a moss-green cloak"]},
+    {"id": "warrior", "label": "warrior", "weight": 2, "min_age": 16, "max_age": 55, "outfits": [
+      "bone-and-leather armour with fur shoulder pads, a heavy axe and leather arm wraps"]},
+    {"id": "chieftain", "label": "chieftain", "weight": 0.6, "min_age": 30, "outfits": [
+      "a heavy fur mantle over leather armour, a bone crown, gold arm rings and a war-painted face"]},
+    {"id": "oracle", "label": "oracle", "weight": 0.8, "min_age": 30, "outfits": [
+      "flowing white robes with a laurel wreath, gold armbands and a veil of fine gauze"]},
+    {"id": "spiritcaller", "label": "spirit caller", "weight": 1, "min_age": 25, "outfits": [
+      "a cloak of black feathers, strings of bone charms and a wooden mask pushed up on the head"]},
+    {"id": "healer", "label": "herb healer", "weight": 1.5, "outfits": [
+      "a simple linen robe with pouches of herbs and flowers tied at the waist"]},
+    {"id": "hunter", "label": "hunter", "weight": 1.5, "outfits": [
+      "a hide tunic with a quiver of feathered arrows, a skinning knife and leather bracers"]},
+    {"id": "pearldiver", "label": "pearl diver", "weight": 1, "outfits": [
+      "a sleeveless wrap of sea-silk, a net bag of pearls and shells and a coral knife"]},
+    {"id": "tidecaller", "label": "tide singer", "weight": 0.8, "min_age": 18, "outfits": [
+      "a shimmering top of woven kelp and pearls, shell armbands and a circlet of coral"]},
+    {"id": "trickster", "label": "trickster", "weight": 1.2, "outfits": [
+      "a jester-like patchwork coat of leaves and scraps, bells on the sleeves and a crooked grin"]},
+    {"id": "riddlekeeper", "label": "keeper of riddles", "weight": 0.6, "min_age": 40, "outfits": [
+      "a long robe embroidered with glyphs, a tall staff and many knotted cords"]},
+    {"id": "smith", "label": "cave smith", "weight": 1, "outfits": [
+      "a scorched hide apron over a bare-armed tunic, thick gloves and a heavy hammer"]},
+    {"id": "trader", "label": "goblin-market trader", "weight": 1.5, "outfits": [
+      "a coat sewn with dozens of pockets and dangling trinkets, a heavy pack and a lantern"]},
+    {"id": "hoarder", "label": "treasure hoarder", "weight": 0.6, "min_age": 30, "outfits": [
+      "far too much gold jewellery over a ragged tunic, a jewelled belt and a stolen crown"]},
+    {"id": "bard", "label": "wandering bard", "weight": 1, "outfits": [
+      "a colourful patched tunic with ribbons, a lute on the back and a feathered cap"]},
+    {"id": "shepherd", "label": "shepherd of wild beasts", "weight": 0.8, "outfits": [
+      "a thick fleece vest, a woven shoulder bag and a long crook"]},
+    {"id": "forager", "label": "mushroom forager", "weight": 1, "outfits": [
+      "a hooded earth-brown cloak, a basket of mushrooms and a small curved knife"]},
+    {"id": "brewer", "label": "mead brewer", "weight": 0.8, "outfits": [
+      "a sticky honey-stained apron over a woven tunic and a drinking horn at the belt"]},
+    {"id": "stonecarver", "label": "standing-stone carver", "weight": 0.6, "outfits": [
+      "a dusty sleeveless tunic, a leather tool belt of chisels and stone-dusted arms"]},
+    {"id": "weaver", "label": "moonsilk weaver", "weight": 0.8, "outfits": [
+      "a shimmering shawl of moonsilk over a simple dress, a spindle at the belt",
+      {"t": "a shimmering moonsilk sash over a simple tunic, a spindle at the belt", "g": "male"}]},
+    {"id": "courtier", "label": "fae courtier", "weight": 0.8, "min_age": 18, "outfits": [
+      {"t": "an elegant gown of flower petals and gossamer with a jewelled collar", "g": "female"},
+      {"t": "an elegant doublet of dark velvet and leaves with a jewelled collar", "g": "male"}]},
+    {"id": "gatekeeper", "label": "barrow gatekeeper", "weight": 0.5, "min_age": 30, "outfits": [
+      "tarnished ancient bronze armour, a tattered cloak and a spear hung with bones"]},
+    {"id": "elder", "label": "elder of the grove", "weight": 0.8, "min_age": 60, "max_age": 99, "outfits": [
+      "long layered robes the colour of bark, a walking staff grown from a living branch and a crown of dried leaves"]},
+    {"id": "youngling", "label": "mischievous youngster", "weight": 1, "min_age": 6, "max_age": 12, "outfits": [
+      "a little tunic of patched leaves, a satchel of stolen snacks and a twig tucked behind one ear"]},
+    {"id": "apprentice", "label": "apprentice guardian", "weight": 1, "min_age": 13, "max_age": 17, "outfits": [
+      "a too-big leather jerkin, a small wooden practice bow and arm wraps"]}
+  ]
+}

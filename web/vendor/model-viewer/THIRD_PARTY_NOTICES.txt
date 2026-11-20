@@ -1,0 +1,14 @@
+NPC Forge's local GLB preview vendors the following browser-side libraries and decoder assets.
+They are served by NPC Forge itself; model files are not uploaded to a third-party service.
+
+@google/model-viewer 4.3.1 — Apache-2.0; see LICENSE-model-viewer.txt.
+Three.js 0.183.0 — MIT; see LICENSE-three.txt.
+Lit 3.3.1 — BSD-3-Clause; see LICENSE-lit.txt.
+@monogrid/gainmap-js 3.1.0 — MIT; see LICENSE-gainmap.txt.
+Google Draco decoder — Apache-2.0; see LICENSE-draco.txt.
+Basis Universal transcoder — Apache-2.0; see LICENSE-basis.txt.
+meshoptimizer decoder — MIT; its source file includes the copyright notice and is covered by LICENSE-three.txt.
+  meshopt_decoder.js is Three.js's meshopt_decoder.module.js (meshoptimizer 1.0) without its final export statement, which the viewer cannot load as a classic script.
+
+The local LottieLoader stub prevents the viewer from reaching a CDN for the optional, non-standard
+EXT_lottie_texture extension. NPC Forge preview supports standard glTF animation clips.

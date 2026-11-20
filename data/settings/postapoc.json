@@ -1,0 +1,180 @@
+{
+  "label": "Post-apocalypse",
+  "short": "Wasteland",
+  "blurb": "A survivor settlement years after the collapse: scavengers, mechanics, medics, traders and the odd reformed raider.",
+  "order": 5,
+  "place": "settlement",
+  "context": "post-apocalyptic survivor settlement character, in patched, scavenged, weathered clothing",
+  "origin_label": "Heritage",
+
+  "hobbies": [
+    "tinkering with salvaged radios", "trading stories around the fire", "carving small figures from scrap wood", "tending a rooftop garden",
+    "collecting books from before the collapse", "keeping bees", "playing a homemade guitar", "fishing in the reservoir",
+    "mending clothes", "target practice with a slingshot", "brewing rough cider", "sketching maps of the ruins",
+    "listening to the old radio at night", "teaching the children to read", "playing chess with pieces made of scrap", "growing tomatoes in old tyres"
+  ],
+  "quirks": [
+    "keeping a pocket full of tiny useful bolts", "never wasting a single scrap of food", "sleeping with one boot on", "counting every bullet twice",
+    "whistling to keep the quiet away", "naming every machine that comes through the workshop", "carrying a photograph from before the collapse everywhere",
+    "sniffing the air before entering a room", "always sitting facing the door", "collecting old keys that open nothing",
+    "saving the label from every tin", "patching {poss} coat with a new scrap every week"
+  ],
+  "goals": [
+    "finding the rumoured safe valley", "rebuilding the old water tower", "getting the generator running for good", "reaching the coast",
+    "raising a crop that survives the dust", "earning a seat on the settlement council", "building a wall no raider can climb",
+    "finding a working printing press", "teaching every child in the settlement to read", "opening the first tavern in the settlement",
+    "learning what really happened", "finding {poss} old home"
+  ],
+  "peeves": [
+    "wasted water", "raiders", "the smell of burning tyres", "people who leave the gate open", "grit in the stew",
+    "loud engines at night", "anyone who hoards food", "cold nights", "broken radios", "rust"
+  ],
+  "accessories": [
+    "a gas mask hanging at the neck", "a battered canteen on a strap", "a bandolier of scrap tools", "a scavenged wristwatch that still ticks",
+    "a bundle of copper wire over the shoulder", "a hand-cranked radio on the belt", "a patched canvas backpack", "a pair of welding goggles pushed up on the forehead",
+    "a long coil of rope", "a hand-drawn map in a tube", "a lucky bolt on a leather cord", "a slingshot tucked in the belt"
+  ],
+  "default_outfits": [
+    "a patched canvas jacket over a faded sweatshirt, cargo trousers with leather-patched knees and mismatched boots wrapped in duct tape",
+    "a long knitted cardigan over a worn shirt, patched trousers held up with rope and sturdy boots",
+    "a quilted vest sewn from old blankets over a torn long-sleeved shirt, layered scarves, worn cargo pants and scuffed boots"
+  ],
+
+  "_tables": "The next entries replace the shared tables in common.json for this setting only (same shape): practical hair, no dye, no salon, and leaner builds.",
+  "hair_styles": [
+    {"label": "long hair tied back with a strip of cloth",   "w": [4, 0.6, 2],    "tex": true},
+    {"label": "single long braid over one shoulder",         "w": [2.5, 0.2, 1],  "tex": true},
+    {"label": "two thick braids",                            "w": [1.5, 0.1, 0.6], "tex": true},
+    {"label": "hair pulled into a rough bun",                "w": [2, 0.2, 1],    "tex": true},
+    {"label": "shoulder-length hair tied under a bandana",   "w": [1.5, 1.5, 1.5], "tex": true},
+    {"label": "crudely cut short hair",                      "w": [1.5, 3, 2],    "tex": true},
+    {"label": "short cropped hair",                          "w": [0.8, 2.5, 1.5], "tex": true},
+    {"label": "buzz cut",                                    "w": [0.4, 2.5, 1.2], "tex": false},
+    {"label": "ragged mohawk",                               "w": [0.2, 0.7, 0.5], "tex": false},
+    {"label": "medium-length tousled hair",                  "w": [1, 1.5, 2],    "tex": true},
+    {"label": "locs",                                        "w": [0.6, 0.7, 0.7], "tex": false, "only": ["coily", "curly"]},
+    {"label": "cornrows",                                    "w": [0.3, 1, 0.5],  "tex": false, "only": ["coily"]},
+    {"label": "natural afro",                                "w": [0.8, 0.8, 0.6], "tex": false, "only": ["coily"]},
+    {"label": "bald",                                        "w": [0.05, 1.2, 0.4], "bald": true}
+  ],
+  "dyed_hair_colors": [],
+  "facial_hair": [
+    {"label": "clean-shaven", "w": 25},
+    {"label": "light stubble", "w": 20},
+    {"label": "a scruffy short beard", "w": 20},
+    {"label": "a full unkempt beard", "w": 12},
+    {"label": "a patchy beard", "w": 8},
+    {"label": "a mustache", "w": 6},
+    {"label": "a goatee", "w": 4},
+    {"label": "a braided beard", "w": 3},
+    {"label": "mutton chops", "w": 2}
+  ],
+  "glasses": [
+    {"label": "none", "w": 88},
+    {"label": "cracked round glasses held together with tape", "w": 5},
+    {"label": "thick-framed glasses with one mended arm", "w": 3},
+    {"label": "scratched aviator sunglasses", "w": 2},
+    {"label": "wire-rimmed glasses", "w": 2}
+  ],
+  "distinguishing": [
+    {"label": "none", "w": 40},
+    {"label": "a long scar across the cheek", "w": 5},
+    {"label": "a missing finger on one hand", "w": 4},
+    {"label": "a prosthetic hand made of scrap", "w": 2},
+    {"label": "a filter-mask tan line around the nose and mouth", "w": 6},
+    {"label": "sun-weathered, leathery skin", "w": 6},
+    {"label": "soot smudges on the face", "w": 5},
+    {"label": "a crooked, once-broken nose", "w": 4},
+    {"label": "freckles across the nose", "w": 4},
+    {"label": "a burn scar on the neck", "w": 3},
+    {"label": "a homemade tattoo of tally marks on the forearm", "w": 4},
+    {"label": "a chipped front tooth", "w": 3},
+    {"label": "a milky, scarred eye", "w": 1}
+  ],
+  "builds": [
+    {"label": "lean and wiry", "w": 5},
+    {"label": "sinewy", "w": 3},
+    {"label": "average", "w": 3},
+    {"label": "gaunt", "w": 2},
+    {"label": "stocky", "w": 1.5},
+    {"label": "broad-shouldered", "w": 1.5},
+    {"label": "tall and lanky", "w": 1.2},
+    {"label": "muscular", "w": 1, "g": ["male", "nonbinary"]},
+    {"label": "curvy", "w": 0.8, "g": ["female", "nonbinary"]},
+    {"label": "petite", "w": 1, "g": ["female", "nonbinary"]},
+    {"label": "heavyset", "w": 0.6}
+  ],
+
+  "occupations": [
+    {"id": "scavenger", "label": "scavenger", "weight": 4, "max_age": 55, "outfits": [
+      "a patched canvas jacket over a faded hooded sweatshirt, cargo trousers with leather-patched knees, a dented helmet strapped to a backpack and mismatched boots wrapped in duct tape"]},
+    {"id": "mechanic", "label": "mechanic", "weight": 3, "outfits": [
+      "a grease-blackened coverall tied at the waist over a sleeveless shirt, leather work gloves, a rag in the back pocket and heavy steel-toed boots"]},
+    {"id": "farmer", "label": "crop farmer", "weight": 3.5, "outfits": [
+      "a wide straw hat, a sun-bleached long-sleeved shirt patched at the elbows, sturdy overalls and mud-caked rubber boots"]},
+    {"id": "waterwarden", "label": "water warden", "weight": 1.5, "min_age": 20, "outfits": [
+      "a rubber apron over a patched coverall, elbow-length rubber gloves, a filter mask pushed up on the forehead and heavy rubber boots"]},
+    {"id": "medic", "label": "settlement medic", "weight": 1.5, "min_age": 22, "outfits": [
+      "a stained white coat over a patched sweater, a red cross painted on a canvas armband, a satchel of jars and bandages and worn boots"]},
+    {"id": "herbalist", "label": "herbalist", "weight": 1.2, "min_age": 18, "outfits": [
+      "a hooded quilted coat with pockets full of dried herbs, fingerless gloves, patched trousers and sturdy boots"]},
+    {"id": "trader", "label": "caravan trader", "weight": 2.5, "min_age": 20, "outfits": [
+      "a long dusty coat with many pockets, a wide scarf wrapped around the neck, goggles pushed up on the forehead and worn boots, carrying a heavy pack of goods"]},
+    {"id": "guard", "label": "wall guard", "weight": 2.5, "min_age": 18, "max_age": 55, "outfits": [
+      "a scrapped-metal chest plate strapped over a padded jacket, a patched helmet, fingerless gloves, cargo pants and heavy boots"]},
+    {"id": "scout", "label": "scout", "weight": 1.5, "min_age": 18, "max_age": 50, "outfits": [
+      "a hooded sand-colored cloak over a canvas vest, a scarf covering the lower face, a map tube on the back, lean cargo pants and worn boots"]},
+    {"id": "radio", "label": "radio operator", "weight": 1, "outfits": [
+      "a knitted cardigan under a patched jacket, a headset around the neck, fingerless gloves and worn boots"]},
+    {"id": "hunter", "label": "hunter", "weight": 1.5, "min_age": 18, "outfits": [
+      "a hooded coat of stitched hides over a wool sweater, a crossbow slung across the back, a fur-lined cap and sturdy boots"]},
+    {"id": "cook", "label": "settlement cook", "weight": 1.2, "outfits": [
+      "a stained apron over a patched shirt, a bandana tied over the hair, rolled sleeves and worn shoes"]},
+    {"id": "bartender", "label": "bartender", "weight": 1.2, "min_age": 21, "outfits": [
+      "a waistcoat sewn from old suit fabric over a rolled-sleeve shirt, a long apron and scuffed boots"]},
+    {"id": "metalworker", "label": "metalworker", "weight": 1.5, "min_age": 18, "outfits": [
+      "a scorched leather apron over a sleeveless shirt, thick gloves, welding goggles pushed up on the forehead and heavy boots"]},
+    {"id": "armourer", "label": "armourer", "weight": 0.8, "min_age": 22, "outfits": [
+      "a canvas apron with tool loops over a patched shirt, a magnifying loupe on a headband, fingerless gloves and worn boots"]},
+    {"id": "leader", "label": "settlement leader", "weight": 0.6, "min_age": 35, "outfits": [
+      "a long mended coat over a plain shirt, a red sash across the chest, a walking stick and sturdy boots"]},
+    {"id": "storyteller", "label": "storyteller", "weight": 0.8, "min_age": 30, "outfits": [
+      "a moth-eaten wool coat with a stole of stitched cloth, a worn book of scraps under one arm and scuffed shoes"]},
+    {"id": "teacher", "label": "schoolteacher", "weight": 1, "min_age": 20, "outfits": [
+      "a mended cardigan over a patched shirt, a satchel of slates and chalk and worn shoes"]},
+    {"id": "generator", "label": "generator tender", "weight": 1.2, "min_age": 18, "outfits": [
+      "a soot-streaked coverall with pockets of tools, ear protection around the neck, a battered hard hat and heavy boots"]},
+    {"id": "runner", "label": "runner", "weight": 1.5, "max_age": 40, "outfits": [
+      "a light hooded jacket, a padded courier bag across the chest, fingerless gloves, lean trousers and worn shoes"]},
+    {"id": "beekeeper", "label": "beekeeper", "weight": 0.8, "outfits": [
+      "a wide-brimmed hat with a mesh veil pushed back, a patched white smock, thick gloves and worn boots"]},
+    {"id": "patcher", "label": "patcher", "weight": 1.2, "outfits": [
+      "a patchwork coat of many fabrics, a tape measure around the neck, a pincushion at the wrist, worn trousers and boots"]},
+    {"id": "fisher", "label": "fisher", "weight": 1.2, "outfits": [
+      "a stitched oilcloth coat, a knitted cap, rolled trousers and knee-high rubber boots"]},
+    {"id": "raider", "label": "reformed raider", "weight": 0.9, "min_age": 20, "max_age": 55, "outfits": [
+      "a scrap-metal shoulder pad over a torn leather jacket, a faded red bandana, scarred gloves, patched trousers and heavy boots"]},
+    {"id": "drifter", "label": "drifter", "weight": 1.5, "outfits": [
+      "a threadbare long coat, a hood pulled low, a rolled bedroll and battered pack, patched trousers and scuffed boots"]},
+    {"id": "salvageboss", "label": "salvage boss", "weight": 0.8, "min_age": 30, "outfits": [
+      "a heavy leather duster covered in pockets, a battered hard hat with a headlamp, a crowbar in the belt and steel-toed boots"]},
+    {"id": "gardener", "label": "rooftop gardener", "weight": 1.2, "outfits": [
+      "a floppy sun hat, a green canvas apron over a patched shirt, gardening gloves and muddy boots"]},
+    {"id": "tinkerer", "label": "tinkerer", "weight": 1.2, "outfits": [
+      "an overstuffed vest of tools, welding goggles, mismatched gloves, patched cargo trousers and boots"]},
+    {"id": "bookkeeper", "label": "keeper of books", "weight": 0.7, "outfits": [
+      "a knitted scarf and patched cardigan, a bundle of salvaged books tied with string, fingerless gloves and worn shoes"]},
+    {"id": "distiller", "label": "distiller", "weight": 0.8, "min_age": 21, "outfits": [
+      "a leather apron over a patched sweater, rubber gloves, a filter mask hanging at the neck and heavy boots"]},
+    {"id": "cartographer", "label": "mapmaker", "weight": 0.6, "min_age": 22, "outfits": [
+      "a long weathered coat with ink-stained cuffs, rolled maps in a tube on the back, a wrapped scarf and sturdy boots"]},
+    {"id": "veteran", "label": "retired soldier", "weight": 1, "min_age": 50, "outfits": [
+      "an old faded army jacket with torn patches, a walking stick, patched trousers and worn boots"]},
+    {"id": "elder", "label": "old survivor", "weight": 1.2, "min_age": 62, "max_age": 95, "outfits": [
+      "a thick layered shawl over a patched blanket coat, a walking stick and worn boots"]},
+    {"id": "child", "label": "settlement child", "weight": 1, "min_age": 6, "max_age": 12, "outfits": [
+      "an oversized patched sweater, cut-down trousers and mismatched boots"]},
+    {"id": "youngscout", "label": "young scout", "weight": 1, "min_age": 13, "max_age": 17, "outfits": [
+      "a hand-me-down canvas jacket, a scarf, cut-down cargo trousers and worn boots"]}
+  ]
+}

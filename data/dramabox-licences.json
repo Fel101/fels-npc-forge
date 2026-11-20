@@ -1,0 +1,33 @@
+[
+  {
+    "id": "dramabox-gemma",
+    "kind": "tool",
+    "role": "helper",
+    "name": "Gemma 3 12B NF4 (DramaBox text encoder)",
+    "licence": "Gemma terms",
+    "status": "conditions",
+    "short": "Commercial use subject to Gemma terms",
+    "summary": "The DramaBox prompt encoder uses Gemma 3 under its separate Gemma terms and use restrictions. Preserve notices and applicable restrictions when using or distributing the model.",
+    "used_for": "Encoding English dialogue and stage directions for DramaBox.",
+    "links": [{"label": "Pinned encoder", "url": "https://huggingface.co/unsloth/gemma-3-12b-it-bnb-4bit/tree/826e729dbaeea4ecb143738eed2bcf3539ebf7bf"}],
+    "licence_url": "https://ai.google.dev/gemma/terms",
+    "checked": "2026-10-13",
+    "selectors": []
+  },
+  {
+    "id": "dramabox",
+    "kind": "voice",
+    "role": "creates",
+    "name": "DramaBox expressive English speech",
+    "licence": "LTX-2 Community License",
+    "status": "conditions",
+    "short": "Commercial use has conditions; Gemma terms also apply",
+    "summary": "LTX-2 Community License: retain notices and comply with use restrictions. Entities with annual revenue of at least $10 million need a paid commercial license. The Gemma encoder has separate terms. Optional non-commercial RE-USE denoising is disabled in Forge.",
+    "used_for": "Voice design, reference cloning and acted English dialogue.",
+    "links": [{"label": "Model", "url": "https://huggingface.co/ResembleAI/Dramabox"}, {"label": "Source", "url": "https://github.com/resemble-ai/DramaBox"}],
+    "licence_url": "https://github.com/resemble-ai/DramaBox/blob/a70a5818e103c1c9fef22409c1e0c707ebf4f8a7/LICENSE",
+    "checked": "2026-10-13",
+    "selectors": ["voice:dramabox"],
+    "uses": ["dramabox-gemma"]
+  }
+]

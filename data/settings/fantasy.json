@@ -1,0 +1,187 @@
+{
+  "label": "Medieval fantasy",
+  "short": "Fantasy",
+  "blurb": "A fantasy village: smiths, innkeepers, guards, healers and the odd elf.",
+  "order": 2,
+  "place": "village",
+  "context": "medieval fantasy village character",
+  "origin_label": "Race",
+
+  "races": {
+    "human":    {"label": "Human",    "weight": 66, "phrase": ""},
+    "elf":      {"label": "Elf",      "weight": 7,  "phrase": "elf", "features": "long pointed ears and delicate features", "builds": ["slim", "tall and lanky", "athletic"],
+                 "hair_colors": {"silver": 3, "platinum blonde": 3, "golden blonde": 3, "black": 2, "chestnut": 2, "copper": 1, "white": 1}},
+    "half_elf": {"label": "Half-elf", "weight": 4,  "phrase": "half-elf", "features": "slightly pointed ears and fine features", "builds": ["slim", "average", "athletic"]},
+    "dwarf":    {"label": "Dwarf",    "weight": 7,  "phrase": "dwarf", "features": "a broad sturdy frame and a stout stature", "builds": ["stocky", "muscular", "heavyset"],
+                 "hair_colors": {"red": 3, "dark brown": 3, "black": 3, "copper": 2, "auburn": 2, "gray": 1, "blonde": 1}},
+    "halfling": {"label": "Halfling", "weight": 5,  "phrase": "halfling", "features": "a small stature and rosy cheeks", "builds": ["petite", "average", "curvy"],
+                 "hair_colors": {"brown": 4, "dark brown": 3, "chestnut": 2, "sandy blonde": 2, "black": 1}},
+    "gnome":    {"label": "Gnome",    "weight": 3,  "phrase": "gnome", "features": "a small stature, a large nose and bright curious eyes", "builds": ["petite", "slim", "average"],
+                 "hair_colors": {"white": 2, "gray": 2, "sandy blonde": 2, "copper": 2, "brown": 2, "bright red": 1}},
+    "half_orc": {"label": "Half-orc", "weight": 3,  "phrase": "half-orc", "features": "small lower tusks and a heavy brow", "skin": ["olive-green", "gray-green", "gray"], "builds": ["muscular", "stocky"],
+                 "hair_colors": {"black": 5, "dark brown": 3}},
+    "orc":      {"label": "Orc",      "weight": 2,  "phrase": "orc", "features": "prominent lower tusks, a heavy brow and a powerful frame", "skin": ["deep green", "gray-green", "olive-green", "slate gray"], "builds": ["muscular", "stocky", "heavyset"],
+                 "hair_colors": {"black": 5, "dark brown": 2, "gray": 1}},
+    "tiefling": {"label": "Tiefling", "weight": 3,  "phrase": "tiefling", "features": "small curved horns and unusually bright eyes", "skin": ["deep red", "burgundy", "dusky purple", "blue-gray", "ash gray"], "builds": ["slim", "average", "athletic", "tall and lanky"],
+                 "hair_colors": {"black": 4, "dark purple": 2, "deep red": 2, "dark blue": 1, "white": 1}}
+  },
+  "hair_color_choices": ["black", "dark brown", "brown", "chestnut", "auburn", "red", "copper", "strawberry blonde", "blonde", "golden blonde", "platinum blonde", "silver", "gray", "white"],
+
+  "names": {
+    "female": ["Elowen", "Brenna", "Isolde", "Maren", "Tilda", "Sera", "Wynne", "Mirabel", "Ysolde", "Petra", "Gwenna", "Rosalind", "Thora", "Odette",
+               "Aldith", "Brigid", "Cerys", "Edda", "Fenna", "Hild", "Isolt", "Linnet", "Nerys", "Sunniva"],
+    "male": ["Alaric", "Bram", "Cedric", "Dorian", "Edmund", "Gareth", "Hob", "Jorin", "Leofric", "Osric", "Rurik", "Tobias", "Wendell", "Fenwick",
+             "Aldous", "Baldric", "Corwin", "Doran", "Eadric", "Godwin", "Ivor", "Kellan", "Merrick", "Perrin", "Ranulf", "Torvald"],
+    "neutral": ["Ash", "Briar", "Rowan", "Sage", "Wren", "Fern", "Linden", "Ember", "Quill", "Thistle", "Marlow", "Reed", "Sparrow", "Hollis"],
+    "surnames": ["Ashford", "Blackwood", "Thornfield", "Millbrook", "Oakheart", "Stonehelm", "Greywater", "Brightwood", "Hollowell", "Marsh", "Fairweather", "Ironside", "Larkspur", "Copperfield",
+                 "Ravenscar", "Windmere", "Coldwell", "Fenwood", "Goldwheat", "Harrowgate", "Ironwood", "Kettleburn", "Longbarrow", "Mossgrove", "Northcott", "Redfern", "Silverbrook", "Whitlock"]
+  },
+
+  "hobbies": [
+    "whittling", "tending {poss} herb garden", "telling tall tales at the tavern", "archery practice", "stargazing",
+    "collecting old coins", "foraging in the woods", "brewing mead", "reading old maps", "mending fishing nets",
+    "playing dice", "fishing at the river", "carving wooden toys for the children", "practising sword forms behind the barn",
+    "keeping bees", "pressing flowers in old books", "singing in the tavern chorus", "training a hawk",
+    "collecting shiny pebbles from the stream", "telling ghost stories by the fire"
+  ],
+  "quirks": [
+    "muttering to {poss} horse", "never trusting anyone who won't share a drink", "sniffing every coin before accepting it",
+    "carrying a lucky rabbit's foot", "whistling old battle songs", "collecting odd-shaped stones",
+    "always knocking twice before opening a door", "leaving a saucer of milk out for the house spirit", "counting the stars before sleeping",
+    "talking to every cat in the village", "refusing to cross running water at night", "saluting every crow",
+    "giving {poss} tools names", "never sitting with {poss} back to a window", "biting coins to test them", "laughing before telling every joke"
+  ],
+  "goals": [
+    "owning a tavern", "becoming a knight", "finding a lost family heirloom", "seeing the great capital",
+    "earning the guild's mark", "building a house by the river", "apprenticing under a famous wizard", "forging a blade worthy of a hero",
+    "buying back the family farm", "winning the harvest festival contest", "hunting the wolf that took {poss} flock", "being remembered in a song",
+    "walking the old pilgrim road", "sailing across the sea"
+  ],
+  "peeves": [
+    "damp socks", "people who haggle over pennies", "crows in the field", "tax collectors", "tavern brawls",
+    "wet firewood", "stale bread", "people who whistle indoors", "loud minstrels", "bandits on the road", "rain on market day", "unfair guild fees"
+  ],
+  "accessories": [
+    "a carved wooden pendant", "a small silver ring", "a feather tucked in the hair", "a leather satchel across the chest",
+    "a copper bracelet", "a wolf-tooth necklace", "a belt of small leather pouches", "a bone hair comb",
+    "a woven friendship bracelet", "a small dagger at the belt", "a pilgrim's badge on the collar", "a shepherd's crook",
+    "a lantern hanging from the belt", "a silver holy symbol on a chain"
+  ],
+  "default_outfits": [
+    "a homespun tunic, patched trousers and worn leather boots",
+    {"t": "a simple wool dress with a laced bodice, an apron and leather shoes", "g": "female"},
+    "a hooded traveling cloak over a linen shirt, brown trousers and boots"
+  ],
+
+  "_tables": "The next entries replace the shared tables in common.json for this setting only (same shape): no undercuts, dye or modern eyewear in a medieval village.",
+  "hair_styles": [
+    {"label": "long hair tied back with a leather cord", "w": [3, 1, 2],       "tex": true},
+    {"label": "long flowing hair",                       "w": [3, 0.3, 1.5],   "tex": true},
+    {"label": "shoulder-length hair",                    "w": [3, 1.5, 2],     "tex": true},
+    {"label": "long braid over one shoulder",            "w": [2, 0.3, 1],     "tex": true},
+    {"label": "two braids",                              "w": [1.5, 0.1, 0.5], "tex": true},
+    {"label": "crown braid",                             "w": [1.2, 0, 0.5],   "tex": true},
+    {"label": "low bun",                                 "w": [1.5, 0.1, 0.6], "tex": true},
+    {"label": "hair pinned up under a cap",              "w": [1, 0.1, 0.5],   "tex": true},
+    {"label": "short cropped hair",                      "w": [0.6, 2.5, 1.5], "tex": true},
+    {"label": "shaggy medium-length hair",               "w": [0.5, 3, 2],     "tex": true},
+    {"label": "side-parted short hair",                  "w": [0.1, 2, 0.6],   "tex": true},
+    {"label": "hair with small braids woven in",         "w": [1, 1.5, 1.2],   "tex": true},
+    {"label": "box braids",                              "w": [0.8, 0.1, 0.4], "tex": false, "only": ["coily", "curly"]},
+    {"label": "locs",                                    "w": [0.6, 0.7, 0.7], "tex": false, "only": ["coily", "curly"]},
+    {"label": "cornrows",                                "w": [0.3, 1, 0.5],   "tex": false, "only": ["coily"]},
+    {"label": "natural afro",                            "w": [0.8, 0.8, 0.6], "tex": false, "only": ["coily"]},
+    {"label": "bald",                                    "w": [0.02, 1, 0.3],  "bald": true}
+  ],
+  "dyed_hair_colors": [],
+  "facial_hair": [
+    {"label": "clean-shaven", "w": 32},
+    {"label": "light stubble", "w": 12},
+    {"label": "a short trimmed beard", "w": 12},
+    {"label": "a full beard", "w": 14},
+    {"label": "a long braided beard", "w": 4},
+    {"label": "a mustache", "w": 5},
+    {"label": "mutton chops", "w": 3},
+    {"label": "a goatee", "w": 3}
+  ],
+  "glasses": [
+    {"label": "none", "w": 96},
+    {"label": "round wire-rimmed spectacles", "w": 3},
+    {"label": "a brass monocle", "w": 1}
+  ],
+  "distinguishing": [
+    {"label": "none", "w": 55},
+    {"label": "freckles across the nose", "w": 8},
+    {"label": "a faded scar across the cheek", "w": 4},
+    {"label": "a crooked, once-broken nose", "w": 4},
+    {"label": "sun-weathered skin", "w": 4},
+    {"label": "a missing front tooth", "w": 3},
+    {"label": "dimples", "w": 3},
+    {"label": "a notched ear", "w": 3},
+    {"label": "a tattoo of a knotwork band on the forearm", "w": 3},
+    {"label": "a small scar through one eyebrow", "w": 3},
+    {"label": "a braided lock with a bead in it", "w": 3},
+    {"label": "a small mole on the cheek", "w": 3},
+    {"label": "soot-smudged cheeks", "w": 2},
+    {"label": "a birthmark on the neck", "w": 2}
+  ],
+
+  "occupations": [
+    {"id": "blacksmith", "label": "blacksmith", "weight": 2, "outfits": ["a leather apron over a sooty linen shirt, thick gloves and heavy leather boots"]},
+    {"id": "innkeeper", "label": "innkeeper", "weight": 2, "outfits": [
+      {"t": "a linen shirt with rolled sleeves and a stained apron, brown trousers and leather shoes", "g": "male"},
+      {"t": "a laced bodice over a white blouse, a long skirt and an apron, and leather shoes", "g": "female"}]},
+    {"id": "farmer", "label": "farmer", "weight": 4, "outfits": ["a homespun tunic, patched trousers, a straw hat and worn leather boots"]},
+    {"id": "baker", "label": "baker", "weight": 1.5, "outfits": ["a floury apron over a simple tunic, a cloth cap and leather shoes"]},
+    {"id": "tailor", "label": "tailor", "weight": 1, "outfits": ["a fine embroidered vest over a linen shirt, with a measuring tape around the neck and soft leather shoes"]},
+    {"id": "guard", "label": "town guard", "weight": 2.5, "min_age": 18, "max_age": 55, "outfits": ["a chainmail shirt under a tabard with a town crest, a steel helmet, leather gauntlets and boots"]},
+    {"id": "healer", "label": "herbalist healer", "weight": 1.5, "outfits": ["a green hooded robe with pouches of herbs on a belt and leather boots"]},
+    {"id": "merchant", "label": "traveling merchant", "weight": 2, "outfits": ["a colorful layered coat with many pockets, a wide-brimmed hat and sturdy boots, carrying a large pack"]},
+    {"id": "bard", "label": "bard", "weight": 1.2, "outfits": ["a bright velvet doublet with a feathered cap, a lute strapped across the back and soft boots"]},
+    {"id": "fisher", "label": "fisher", "weight": 1.5, "outfits": ["a rough wool sweater, waders, a woven hat and rubber-soled boots"]},
+    {"id": "miller", "label": "miller", "weight": 1, "outfits": ["a dusty linen tunic, brown trousers, a cloth cap and clogs"]},
+    {"id": "carpenter", "label": "carpenter", "weight": 1.5, "outfits": ["a sawdust-covered tunic with a leather tool belt, canvas trousers and work boots"]},
+    {"id": "stablehand", "label": "stable hand", "weight": 1.2, "max_age": 45, "outfits": ["a rough shirt, a leather vest, riding trousers and muddy boots"]},
+    {"id": "priest", "label": "village priest", "weight": 1, "min_age": 25, "outfits": ["a white and gold robe with a holy symbol pendant and simple sandals"]},
+    {"id": "scribe", "label": "scribe", "weight": 1, "outfits": ["an ink-stained robe with a satchel of scrolls and soft shoes"]},
+    {"id": "alchemist", "label": "alchemist", "weight": 0.8, "outfits": ["a stained long coat with vials on a bandolier, goggles pushed up on the forehead and leather boots"]},
+    {"id": "hunter", "label": "hunter", "weight": 1.5, "outfits": ["a hooded green-brown leather jerkin, a quiver of arrows and soft leather boots"]},
+    {"id": "noble", "label": "minor noble", "weight": 0.7, "min_age": 20, "outfits": [
+      {"t": "a rich velvet doublet with gold embroidery, a short cape and polished boots", "g": "male"},
+      {"t": "a fine silk gown with jeweled accents and embroidered slippers", "g": "female"}]},
+    {"id": "wanderer", "label": "wandering traveler", "weight": 1, "outfits": ["a patched traveling cloak, a worn tunic and scuffed old boots"]},
+    {"id": "butcher", "label": "butcher", "weight": 1, "outfits": ["a stained leather apron over a rolled-sleeve shirt and heavy boots"]},
+    {"id": "brewer", "label": "brewer", "weight": 1, "outfits": ["a barrel-marked apron over a wool tunic, sturdy trousers and boots"]},
+    {"id": "apprentice", "label": "mage's apprentice", "weight": 0.8, "max_age": 30, "outfits": ["a slightly oversized blue robe with star patterns, a pointed cap and leather boots"]},
+    {"id": "veteran", "label": "retired soldier", "weight": 1.2, "min_age": 50, "outfits": ["a worn old military coat with faded medals, a wooden cane and sturdy boots"]},
+    {"id": "elder", "label": "village elder", "weight": 1, "min_age": 62, "max_age": 95, "outfits": ["a warm woolen robe, a shawl and a walking staff with simple leather shoes"]},
+    {"id": "villagechild", "label": "village child", "weight": 1, "min_age": 6, "max_age": 12, "outfits": ["a simple homespun tunic, patched trousers and rough leather shoes"]},
+    {"id": "apprenticeteen", "label": "young apprentice", "weight": 1, "min_age": 13, "max_age": 17, "outfits": ["a rough work tunic, a leather apron and sturdy boots"]},
+
+    {"id": "tavernserver", "label": "tavern server", "weight": 2, "outfits": [
+      {"t": "a laced bodice over a white blouse, a long skirt, an apron and leather shoes", "g": "female"},
+      {"t": "a linen shirt with rolled sleeves, a leather vest, a stained apron and leather shoes", "g": "male"}]},
+    {"id": "shepherd", "label": "shepherd", "weight": 1.5, "outfits": ["a long hooded wool cloak, a rough tunic, leather leggings, a shepherd's crook and muddy boots"]},
+    {"id": "cobbler", "label": "cobbler", "weight": 1, "outfits": ["a leather apron over a linen shirt, a row of awls on the belt, a leather cap, plain trousers and soft shoes"]},
+    {"id": "potter", "label": "potter", "weight": 0.8, "outfits": ["a clay-spattered apron over a rolled-sleeve tunic, a headscarf, plain trousers and worn clogs"]},
+    {"id": "weaver", "label": "weaver", "weight": 1, "outfits": ["a plain tunic with rolled sleeves, a warm shawl, spools of thread at the belt and soft leather shoes"]},
+    {"id": "chandler", "label": "candlemaker", "weight": 0.6, "outfits": ["a wax-spotted apron over a woolen tunic, a linen cap, plain trousers and soft shoes"]},
+    {"id": "cooper", "label": "cooper", "weight": 0.8, "outfits": ["a leather apron over a sweat-stained tunic, a mallet at the belt, thick trousers and sturdy boots"]},
+    {"id": "mason", "label": "stonemason", "weight": 1, "outfits": ["a dust-covered smock under a leather apron, a chisel belt, rough trousers and heavy boots"]},
+    {"id": "ranger", "label": "forest ranger", "weight": 1, "min_age": 20, "outfits": ["a hooded green-gray cloak over a leather jerkin, a longbow across the back, a hunting knife and worn boots"]},
+    {"id": "sergeant", "label": "militia sergeant", "weight": 1, "min_age": 28, "max_age": 60, "outfits": ["a padded gambeson under a tabard, a dented helmet, a sword belt and heavy boots"]},
+    {"id": "crier", "label": "town crier", "weight": 0.6, "min_age": 25, "outfits": ["a bright tabard with a town crest, a feathered hat, a brass hand bell and buckled shoes"]},
+    {"id": "gravedigger", "label": "gravedigger", "weight": 0.5, "min_age": 25, "outfits": ["a mud-caked long coat, a wide hat, a shovel over the shoulder, rough trousers and heavy boots"]},
+    {"id": "taxman", "label": "tax collector", "weight": 0.6, "min_age": 28, "outfits": ["a dark velvet coat with a heavy purse at the belt, a ledger under one arm, a flat cap and polished shoes"]},
+    {"id": "ferryman", "label": "ferryman", "weight": 0.7, "outfits": ["a wool cap, a tarred jerkin, rolled trousers, a long pole in hand and wet boots"]},
+    {"id": "beekeeper", "label": "beekeeper", "weight": 0.6, "outfits": ["a wide-brimmed hat with a veil pushed back, a white smock, leather gloves and worn boots"]},
+    {"id": "midwife", "label": "midwife", "weight": 0.8, "min_age": 30, "outfits": ["a clean apron over a plain dress, a headscarf, a satchel of herbs and simple shoes"]},
+    {"id": "knight", "label": "knight errant", "weight": 0.5, "min_age": 22, "max_age": 55, "outfits": [
+      "a battered plate cuirass over chainmail, a faded tabard, a sword at the hip, a dented helmet under one arm and steel-shod boots"]},
+    {"id": "cutpurse", "label": "cutpurse", "weight": 0.7, "max_age": 45, "outfits": ["a hooded dark cloak, a ragged tunic, patched trousers, fingerless gloves and soft boots"]},
+    {"id": "glassblower", "label": "glassblower", "weight": 0.5, "outfits": ["a scorched leather apron, rolled sleeves, a blowpipe over the shoulder, sturdy trousers and boots"]},
+    {"id": "seer", "label": "fortune teller", "weight": 0.5, "outfits": ["a shawl of beaded fabric over a long dark dress, a headscarf with dangling coins, rings on every finger and soft slippers"]},
+    {"id": "hedgewitch", "label": "hedge witch", "weight": 0.6, "min_age": 25, "outfits": ["a patched dark cloak with sprigs of herbs pinned to it, a weathered pointed hat, a gnarled walking stick and worn boots"]},
+    {"id": "sellsword", "label": "sellsword", "weight": 1, "min_age": 20, "max_age": 50, "outfits": ["worn leather armor, a longsword at the hip, a battered round shield on the back, a traveler's cloak and heavy boots"]}
+  ]
+}
