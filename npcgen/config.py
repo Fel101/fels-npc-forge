@@ -3,13 +3,20 @@ import copy
 import json
 import os
 import pathlib
+import tempfile
+
+from .fels_suite import APPS, PORTS
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
+APP_ID = "npc-forge"
+LEGACY_PORT, = APPS[APP_ID]["old_ports"]
+DEFAULT_PORT = PORTS[APP_ID]
+SECOND_PORT = PORTS["npc-forge-second-copy"]
 
 DEFAULTS = {
     "comfy_url": "http://127.0.0.1:8188",
     "host": "127.0.0.1",
-    "port": 8765,
+    "port": DEFAULT_PORT,
     # Required when binding beyond loopback. The browser uses HTTP Basic authentication (user: npcforge).
     # Prefer NPCGEN_AUTH_TOKEN over storing it in config.json.
     "auth_token": "",
@@ -55,11 +62,36 @@ DEFAULTS = {
 }
 
 
-def load():
+def _migrate_saved_port(path, user):
+    user["port"] = DEFAULT_PORT
+    temporary = None
+    try:
+        with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", dir=path.parent, delete=False) as output:
+            temporary = pathlib.Path(output.name)
+            output.write(json.dumps(user, indent=2) + "\n")
+        temporary.replace(path)
+    except OSError:
+        print(f"Could not update {path.name}. Using port {DEFAULT_PORT} for this start. "
+              f"Set the saved port to {DEFAULT_PORT} to keep the change.", flush=True)
+    else:
+        print(f"Changed the saved NPC Forge port from {LEGACY_PORT} to {DEFAULT_PORT}. "
+              f"Port {LEGACY_PORT} is reserved for Voice Lab.", flush=True)
+    finally:
+        if temporary is not None:
+            try:
+                temporary.unlink(missing_ok=True)
+            except OSError:
+                pass
+
+
+def load(*, migrate_port=False):
     cfg = copy.deepcopy(DEFAULTS)
     path = ROOT / "config.json"
+    port_override = os.environ.get("NPCGEN_PORT")
     if path.exists():
         user = json.loads(path.read_text("utf-8"))
+        if migrate_port and not port_override and user.get("port") in (LEGACY_PORT, str(LEGACY_PORT)):
+            _migrate_saved_port(path, user)
         for key, value in user.items():
             if isinstance(value, dict) and isinstance(cfg.get(key), dict):
                 cfg[key].update(value)
@@ -67,8 +99,8 @@ def load():
                 cfg[key] = value
     if os.environ.get("NPCGEN_COMFY_URL"):
         cfg["comfy_url"] = os.environ["NPCGEN_COMFY_URL"]
-    if os.environ.get("NPCGEN_PORT"):
-        cfg["port"] = int(os.environ["NPCGEN_PORT"])
+    if port_override:
+        cfg["port"] = int(port_override)
     if os.environ.get("NPCGEN_LIBRARY"):
         cfg["library_dir"] = os.environ["NPCGEN_LIBRARY"]
     if os.environ.get("NPCGEN_AUTH_TOKEN"):

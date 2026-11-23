@@ -50,9 +50,9 @@ args = ['C:\path\to\npc-forge\npcgen\mcp.py']
 
 **Any other MCP client:** a local (stdio) server whose command is `python` and whose argument is the path to `npcgen/mcp.py`.
 
-If NPC Forge runs on another port or address, add `--url http://127.0.0.1:8766` after the path (or set `NPCFORGE_URL`). If it
-asks for a password (`NPCGEN_AUTH_TOKEN`, see Security in the README), set the same `NPCGEN_AUTH_TOKEN` for the MCP server in
-the client's settings.
+The MCP server checks the suite address file first, then port 8766, then port 8765 for older copies of Forge. It checks the
+app's identity at each address. To try a specific address first, add `--url http://127.0.0.1:8775` after the path or set
+`NPCFORGE_URL`. If Forge asks for a password, set the same `NPCGEN_AUTH_TOKEN` for the MCP server in the client's settings.
 
 ## The tools
 

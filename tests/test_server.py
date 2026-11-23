@@ -272,6 +272,20 @@ def test_a_batch_gives_every_character_the_advanced_options(api):
 def test_health_reports_comfyui_offline_instead_of_failing(api):
     status, health = api("GET", "/api/health")
     assert status == 200 and health["online"] is False
+    assert "gpu_rule" in health
+    config = api("GET", "/api/config")[1]
+    assert health["fels"] == {"contract": 1, "app": "npc-forge", "version": config["version"], "api": 45}
+
+
+def test_identity_health_does_not_need_comfyui(api, monkeypatch):
+    def unexpected_check():
+        pytest.fail("Identity-only health must not contact ComfyUI")
+
+    monkeypatch.setattr(api.app.comfy, "health", unexpected_check)
+    status, health = api("GET", "/api/health?identity=1")
+    assert status == 200
+    assert set(health) == {"fels"}
+    assert health["fels"]["app"] == "npc-forge"
 
 
 def test_roll_normal_and_freeform(api):
@@ -742,7 +756,9 @@ def test_starting_a_second_copy_on_a_busy_port_explains_what_is_going_on(api):
                              env={**__import__("os").environ, "NPCGEN_LIBRARY": __import__("tempfile").mkdtemp()})
     finally:
         busy.close()
-    assert out.returncode != 0 and "OLD copy" in out.stderr and "--port" in out.stderr
+    assert out.returncode != 0
+    assert "Close the app using that port" in out.stderr
+    assert "separate NPCGEN_LIBRARY" in out.stderr and "--port 8768" in out.stderr
 
 
 def test_the_trash_can_be_looked_at_emptied_one_at_a_time_or_all_at_once_through_the_routes(api):

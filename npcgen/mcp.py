@@ -1,7 +1,7 @@
 """NPC Forge as an MCP server, for Claude Code, Codex, opencode and any other MCP client.
 
-    python -m npcgen.mcp                      # talks to NPC Forge at http://127.0.0.1:8765
-    python -m npcgen.mcp --url http://127.0.0.1:8766
+    python -m npcgen.mcp                      # discovers the running NPC Forge
+    python -m npcgen.mcp --url http://127.0.0.1:8775
 
 NPC Forge must be running (start.bat): every tool is a call to its HTTP API, so the work goes through the same queue and the
 same one-model-at-a-time GPU guard as the page, and shows in the page's queue. The tools make characters and their pictures,
@@ -21,15 +21,18 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
+from functools import partial
 from pathlib import Path
 
 try:
-    from . import __version__
+    from . import __version__, config, fels_suite
+    from .forge_endpoint import ask_identity, local_url
 except ImportError:                                 # run as a file (python C:\...\npcgen\mcp.py), as an MCP client's config does
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-    from npcgen import __version__
+    from npcgen import __version__, config, fels_suite
+    from npcgen.forge_endpoint import ask_identity, local_url
 
-DEFAULT_URL = "http://127.0.0.1:8765"
+DEFAULT_URL = local_url("127.0.0.1", config.DEFAULT_PORT)
 PROTOCOLS = ("2025-06-18", "2025-03-26", "2024-11-05")
 ADULT_SETTINGS = {"models"}                       # the adult Models setting: never through MCP
 WAIT_LIMIT = 900
@@ -87,6 +90,16 @@ class Forge:
             return json.loads(payload.decode("utf-8")) if payload else {}
         except (ValueError, UnicodeDecodeError):
             raise ToolError(f"NPC Forge's answer to {method} {path} could not be read.") from None
+
+
+def connect(given=None, token=None):
+    found = fels_suite.find_app(config.APP_ID, partial(ask_identity, token=token), given=given)
+    if not found["url"]:
+        raise ToolError(" ".join(found["notes"]) + " Start it with start.bat or python server.py. "
+                        "If it asks for a password, set NPCGEN_AUTH_TOKEN for the MCP server.")
+    for note in found["notes"]:
+        print(note, file=sys.stderr)
+    return Forge(found["url"], token=token)
 
 
 # ---------------------------------------------------------------- the tools
@@ -149,7 +162,7 @@ def forge_status(forge, args):
     config = forge.request("GET", "/api/config")
     jobs = forge.request("GET", "/api/jobs")
     active = [j for j in jobs if j.get("status") in ("queued", "running")]
-    features = {k: v for k, v in health.items() if k not in ("online", "version", "gpu", "missing", "engines_missing", "voice", "gpu_rule")}
+    features = {k: v for k, v in health.items() if k not in ("online", "version", "gpu", "missing", "engines_missing", "voice", "gpu_rule", "fels")}
     return {"version": config.get("version"), "url": forge.url, "comfyui_online": health.get("online"), "comfyui_version": health.get("version"),
             "gpu": health.get("gpu"), "missing_for_pictures": health.get("missing"), "engines_missing": health.get("engines_missing"),
             "features": features, "queue": {"waiting_or_running": len(active), "jobs": len(jobs)}}
@@ -400,7 +413,7 @@ HANDLERS = {name: fn for name, _, _, fn in TOOLS}
 # ---------------------------------------------------------------- the protocol
 
 def handle(message, forge):
-    """One JSON-RPC message in, its answer out (None for a notification)."""
+    """Handle a JSON-RPC message. Resolve a Forge connection only when a tool needs it."""
     if not isinstance(message, dict):
         return {"jsonrpc": "2.0", "id": None, "error": {"code": -32600, "message": "Invalid request"}}
     method, mid, params = message.get("method"), message.get("id"), message.get("params") or {}
@@ -419,7 +432,7 @@ def handle(message, forge):
         if name not in HANDLERS:
             return {"jsonrpc": "2.0", "id": mid, "error": {"code": -32602, "message": f"Unknown tool: {name}"}}
         try:
-            data = HANDLERS[name](forge, arguments)
+            data = HANDLERS[name](forge() if callable(forge) else forge, arguments)
             result = {"content": [{"type": "text", "text": json.dumps(data, ensure_ascii=False)}], "structuredContent": data, "isError": False}
         except ToolError as exc:
             result = {"content": [{"type": "text", "text": str(exc)}], "isError": True}
@@ -449,13 +462,13 @@ def serve(forge, stdin=None, stdout=None):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(prog="python -m npcgen.mcp", description="NPC Forge as an MCP server (stdio).")
-    parser.add_argument("--url", default=os.environ.get("NPCFORGE_URL") or DEFAULT_URL, help=f"NPC Forge's address (default {DEFAULT_URL})")
+    parser.add_argument("--url", help=f"NPC Forge's address. Otherwise, discover it (usual address {DEFAULT_URL}).")
     args = parser.parse_args(argv)
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8", newline="\n")
         sys.stdin.reconfigure(encoding="utf-8")
-    print(f"NPC Forge MCP server {__version__}, talking to {args.url}", file=sys.stderr)
-    serve(Forge(args.url, token=os.environ.get("NPCGEN_AUTH_TOKEN")))
+    print(f"NPC Forge MCP server {__version__}", file=sys.stderr)
+    serve(partial(connect, given=args.url, token=os.environ.get("NPCGEN_AUTH_TOKEN")))
 
 
 if __name__ == "__main__":

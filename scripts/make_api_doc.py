@@ -23,7 +23,7 @@ to see a request's body is to do the thing in the page with the browser's networ
 
 The rules every request follows:
 
-- The server listens on `http://127.0.0.1:8765` by default. A request whose `Host` is not a loopback name is refused, and so is
+- The server listens on `http://127.0.0.1:8766` by default. A request whose `Host` is not a loopback name is refused, and so is
   one whose `Origin` header names another site. A script that sends no `Origin` is accepted.
 - `POST`, `PUT` and `DELETE` bodies are JSON (`Content-Type: application/json`), at most 2 MB; the two uploads below
   (a model's `.glb`, a scene's frames) are the exceptions and say their own type.
@@ -32,6 +32,11 @@ The rules every request follows:
 - `GET /api/config` → `api_version` is raised whenever a field the page needs is added; `version` is NPC Forge's own version.
 
 How to drive it from a game's own scripts, with the options that matter for a bulk run: [game-clients.md](game-clients.md).
+
+## Changes
+
+- **API 45.** `GET /api/health` adds a `fels` object with `contract`, `app`, `version` and `api`. Use
+  `GET /api/health?identity=1` to read just that object without waiting for the ComfyUI and tool checks.
 
 """
 

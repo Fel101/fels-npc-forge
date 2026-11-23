@@ -53,7 +53,7 @@ real people, nothing non-consensual. See [extensions/adult_studio/README.md](ext
    setup.bat          # Windows; on Linux or macOS: ./setup.sh
    ```
 3. Optional: copy `config.example.json` to `config.json` to change the ComfyUI address, the port or the default engines.
-4. Start it: double-click `start.bat` (Windows), or run `python server.py --open`. The page opens at `http://127.0.0.1:8765`.
+4. Start it: double-click `start.bat` (Windows), or run `python server.py --open`. The page opens at `http://127.0.0.1:8766`.
 5. On the **Create** page press **Roll NPC**, tick what to make (a portrait is a good first try) and press **Generate**.
    The queue on the right shows each step; the finished character is in the **Library**.
 
@@ -95,7 +95,7 @@ Mage-Flow is released for research and not intended for product or service deplo
 ## Start
 
 ```bash
-python server.py --open        # web app at http://127.0.0.1:8765   (or double-click start.bat on Windows)
+python server.py --open        # web app at http://127.0.0.1:8766   (or double-click start.bat on Windows)
 python -m npcgen -h            # command line
 ```
 
@@ -818,8 +818,10 @@ Known limits, honestly:
   five newer styles were checked on one character each and all kept the puppet, including the two others that also use
   flat cel shading (comic, chibi); if a new flat-shaded style you add does the same, give it `guided_walk: false` too).
 - **Config**: an optional `config.json`, for example
-  `{"comfy_url": "http://127.0.0.1:8188", "port": 8765, "edit_cfg": 3.5, "models": {"unet_t2i": "mage_flow_bf16.safetensors"}}`.
+  `{"comfy_url": "http://127.0.0.1:8188", "port": 8766, "edit_cfg": 3.5, "models": {"unet_t2i": "mage_flow_bf16.safetensors"}}`.
   Environment variables `NPCGEN_COMFY_URL`, `NPCGEN_PORT`, `NPCGEN_LIBRARY` and `NPCGEN_AUTH_TOKEN` also work.
+  On a normal start, a saved port of 8765 moves to 8766 because Voice Lab uses 8765. To keep using 8765 on purpose, set
+  `NPCGEN_PORT=8765` or start with `python server.py --port 8765`.
 - **Prompts**: open *Prompts sent to the picture model* on a character to see exactly what is sent. The wording lives in
   `npcgen/prompts.py`, `npcgen/anim.py` and `data/sheet.json`.
 - **Extensions**: a folder `extensions/<name>/` (shipped with NPC Forge, such as the [adult features](#adult-features-18))
@@ -891,8 +893,10 @@ python -m pytest        # automated suite; GPU visual review is documented separ
 - **A yellow banner says the page is newer than the server.** The server is a long-running process, while the web page is read
   from disk on every request, so after you update the code an already-running server is still the old version. Close its
   window and start it again (`start.bat`). A job in progress is stopped and resumes from its first unfinished step when the server starts again; letting the queue finish first saves that step's work.
-- **"Could not start ... OLD copy".** Something is already listening on the port, usually the previous copy. Close it, or run
-  another copy with `python server.py --port 8766`.
+- **"An older NPC Forge (1.0) is running".** The launcher opens that copy. Close its window and run `start.bat` again to use
+  the updated copy.
+- **"Could not start NPC Forge on …".** Close the app using that port and try again. To run a second copy, set
+  `NPCGEN_LIBRARY` to a separate library and run `python server.py --port 8768`.
 - **`start.bat` finds an unresponsive process.** It shows the process ID and asks before stopping it. Let any active generation
   finish before choosing to restart; the launcher then opens a fresh NPC Forge server. A responsive copy opens directly.
 - **"Cannot reach ComfyUI".** Start ComfyUI first; the page recovers by itself. `python -m npcgen health` also checks the

@@ -1,6 +1,6 @@
 # Voice Designer tab
 
-Updated October 20, 2026; the original tab milestone shipped October 12. Open NPC Forge on its configured local port (normally 8765).
+Updated October 20, 2026; the original tab milestone shipped October 12. Open NPC Forge on its configured local port (normally 8766).
 The native Voice Designer tab sits between Items and Scenes. A character's Voice
 card opens it with that character selected.
 

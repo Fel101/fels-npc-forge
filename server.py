@@ -1,6 +1,6 @@
 """NPC generator: a local web app in front of ComfyUI + Mage-Flow. Standard library only (plus Pillow/numpy).
 
-Run:  python server.py [--open]        then browse to http://127.0.0.1:8765
+Run:  python server.py [--open]        then browse to http://127.0.0.1:8766
 """
 import base64
 import contextvars
@@ -14,18 +14,21 @@ import mimetypes
 import os
 import pathlib
 import re
+import signal
 import subprocess
 import sys
 import threading
 import traceback
 import types
 import urllib.parse
+import uuid
 import webbrowser
 import zipfile
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import npcgen
 from npcgen import config as cfgmod
+from npcgen import fels_suite
 from npcgen import anim, best3d, bodymaker, cast, check3d, cleanup3d, dialogue, engines, equip, export, eyes, facefit, facescan, gpu, hairmask, hands3d, head3d, headdetail, headgraft, import3d, items, licences, posekeys, prompts, rig3d, roll, service, sheet, three_d
 from npcgen import morphology, scene_export, scene_recording, scene_takes, scene_sound, scene_writer
 from npcgen import creaturepack
@@ -36,6 +39,7 @@ from npcgen.scene_render import ffmpeg_path
 from npcgen.scenes import clean_scene, compile_timeline
 from npcgen.app import App
 from npcgen.comfy import ComfyError
+from npcgen.forge_endpoint import local_url
 from npcgen import jobs as jobsmod
 from npcgen.library import now
 from npcgen.voice import describe as voice_describe, engines as voice_engines_mod, record as voice_record
@@ -58,7 +62,7 @@ mimetypes.add_type("application/wasm", ".wasm")
 
 # Bump when web/app.js starts needing something an older server does not provide; the page compares it with its own
 # REQUIRED_API and switches the newer features off (with a banner) instead of crashing. A test keeps the two in sync.
-API_VERSION = 44             # 44: job and step `code`s, GET /api/gpu, the roll's `adult` option (docs/game-clients.md)
+API_VERSION = 45             # 45: suite identity in GET /api/health (docs/api.md)
 
 DEFAULT_ASSETS = {"portrait": True, "sprite": True, "model_3d": False, "expressions": ["happy", "sad", "angry", "surprised"]}
 
@@ -307,6 +311,9 @@ def visible_library():
 # ---- API -----------------------------------------------------------------------------------------------------------
 @route("GET", "/api/health")
 def health(q, body):
+    identity = fels_suite.health_block(cfgmod.APP_ID, npcgen.__version__, API_VERSION)
+    if q.get("identity") == ["1"]:
+        return {"fels": identity}
     app = current_app()
     comfy = app.comfy
     status = comfy.health()
@@ -335,6 +342,7 @@ def health(q, body):
     status["import_3d"] = (three_d.import_availability(comfy) if status.get("online")   # ComfyUI's mesh nodes, to import a model
                            else {"missing": ["ComfyUI"]})
     status["body_3d"] = bodymaker.availability(app.cfg)              # the Body Designer, Blender and the animation library, for a designed body
+    status["fels"] = identity
     return status
 
 
@@ -2773,45 +2781,72 @@ def _unmark_running():
 
 
 def main():
+    port_override = _option("--port", None)
+    cfg = cfgmod.load(migrate_port=port_override is None)
     try:
-        app = App()
+        app = App(cfg)
     except RuntimeError as exc:
         if str(exc).startswith("Another NPC Forge"):
             sys.exit(f"{exc}\nClose the existing NPC Forge process, then run start.bat again.")
         raise
-    cfg = app.cfg
-    host, port = _option("--host", cfg["host"]), int(_option("--port", cfg["port"]))
+    host = _option("--host", cfg["host"])
+    port = int(cfg["port"] if port_override is None else port_override)
     try:
         server = create_server((host, port), app)
     except (OSError, ValueError) as e:
         app.close()
         if isinstance(e, ValueError):
             sys.exit(str(e))
-        sys.exit(f"Could not start on {host}:{port} ({e.strerror or e}).\n"
-                 "If NPC Forge is already running there, that is the OLD copy and it keeps running its old code: "
-                 "close its window first, then start again.\n"
-                 f"Or run a second copy on another port:  python server.py --port {port + 1}")
-    shipped = load_extensions(BUILTIN_EXT_DIR, app=app)
-    extensions = shipped + load_extensions(app=app, skip=[p.name for p in BUILTIN_EXT_DIR.glob("*") if p.is_dir()])
-    if extensions:
-        print("Extensions loaded: " + ", ".join(extensions))
-    url = f"http://{host}:{port}"
-    auth = " · HTTP Basic authentication enabled (user: npcforge)" if server.require_auth else ""
-    print(f"NPC generator running at {url}  (ComfyUI: {cfg['comfy_url']}, library: {cfg['library_path']}){auth}")
-    if "--open" in sys.argv:
-        threading.Timer(0.8, lambda: webbrowser.open(url)).start()
-    _UPDATE["server"] = server
-    _mark_running(port)
+        second = (f"For a second copy, use a separate NPCGEN_LIBRARY and run python server.py --port {cfgmod.SECOND_PORT}."
+                  if port != cfgmod.SECOND_PORT else "Choose a free port with --port and start NPC Forge again.")
+        sys.exit(f"Could not start NPC Forge on {host}:{port} ({e.strerror or e}).\n"
+                 f"Close the app using that port and try again. {second}")
+    announced = False
+    browser = None
     try:
+        shipped = load_extensions(BUILTIN_EXT_DIR, app=app)
+        extensions = shipped + load_extensions(app=app, skip=[p.name for p in BUILTIN_EXT_DIR.glob("*") if p.is_dir()])
+        if extensions:
+            print("Extensions loaded: " + ", ".join(extensions))
+        url = local_url(host, server.server_port)
+        problem = fels_suite.suite_dir_problem()
+        if problem:
+            print(problem)
+        try:
+            announced = fels_suite.write_address(cfgmod.APP_ID, url, npcgen.__version__, API_VERSION, uuid.uuid4().hex)
+        except OSError as error:
+            print(f"Could not announce NPC Forge to the other apps ({error}). You can connect using {url}.")
+        auth = " · HTTP Basic authentication enabled (user: npcforge)" if server.require_auth else ""
+        print(f"NPC Forge running at {url}  (ComfyUI: {cfg['comfy_url']}, library: {cfg['library_path']}){auth}", flush=True)
+        if "--open" in sys.argv:
+            browser = threading.Timer(0.8, lambda: webbrowser.open(url))
+            browser.daemon = True
+            browser.start()
+        _UPDATE["server"] = server
+        _mark_running(server.server_port)
         server.serve_forever()
     except KeyboardInterrupt:
         print("\nStopping.")
     finally:
-        server.server_close()
-        _unmark_running()
+        if browser is not None:
+            browser.cancel()
+        try:
+            if announced:
+                fels_suite.remove_address(cfgmod.APP_ID)
+        finally:
+            try:
+                server.server_close()
+            finally:
+                _UPDATE["server"] = None
+                _unmark_running()
         if _UPDATE["started"]:
             print("NPC Forge closed for Update now. The update runs in a window of its own and starts NPC Forge again.")
 
 
+def _stop(signum, frame):
+    raise SystemExit(0)
+
+
 if __name__ == "__main__":
+    signal.signal(signal.SIGTERM, _stop)
     main()

@@ -1,5 +1,4 @@
 """Windows launcher: reuse a responsive server or explain a stalled one before starting."""
-import http.client
 import json
 import os
 import pathlib
@@ -11,19 +10,8 @@ import webbrowser
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
-from npcgen.config import load  # noqa: E402
-
-
-def _reachable(host, port):
-    """Probe the local page, which does not depend on ComfyUI or the job worker."""
-    conn = http.client.HTTPConnection(host, port, timeout=3)
-    try:
-        conn.request("GET", "/")
-        return conn.getresponse().status in (200, 401)
-    except (OSError, http.client.HTTPException):
-        return False
-    finally:
-        conn.close()
+from npcgen import config, fels_suite  # noqa: E402
+from npcgen.forge_endpoint import ask_identity, local_url  # noqa: E402
 
 
 def _listener(port):
@@ -43,30 +31,57 @@ def _listener(port):
         return None
 
 
-def main():
-    cfg = load()
-    port = int(cfg["port"])
-    host = cfg["host"] if cfg["host"] not in ("0.0.0.0", "::") else "127.0.0.1"
-    url = f"http://{host}:{port}"
-    if _reachable(host, port):
+def _open_existing(url, health):
+    if not isinstance(health.get("fels"), dict):
+        print(f"An older NPC Forge (1.0) is running at {url}. Opening it. Close it and run start.bat to use the new copy.")
+    else:
         print(f"NPC Forge is already running. Opening {url}")
-        webbrowser.open(url)
-        return 0
+    webbrowser.open(url)
+    return 0
+
+
+def _port_in_use(port, who):
+    print(f"Port {port} is in use by {who}. Close that app or set NPCGEN_PORT to a free port and run start.bat again.")
+    return 1
+
+
+def _owns_listener(owner, port):
+    """Use this installation's running marker before offering to restart a Python listener."""
+    try:
+        recorded = json.loads((ROOT / "local" / "running.json").read_text("utf-8"))
+    except (OSError, ValueError):
+        return False
+    return (recorded == {"pid": owner["pid"], "port": port}
+            and (owner.get("name") or "").lower() in ("python.exe", "pythonw.exe")
+            and "server.py" in (owner.get("command") or "").lower())
+
+
+def main():
+    print("Checking for a running NPC Forge. Press Ctrl+C to cancel.", flush=True)
+    cfg = config.load(migrate_port=True)
+    port = int(cfg["port"])
+    url = local_url(cfg["host"], port)
+    token = cfg["auth_token"]
+    health = ask_identity(url, token)
+    app = fels_suite.identify(health)
+    if app == config.APP_ID:
+        return _open_existing(url, health)
+    if health is not None:
+        return _port_in_use(port, fels_suite.short_name(app) if app else "another program")
 
     owner = _listener(port)
     if owner:
         # One retry avoids interrupting a server that was briefly busy starting.
         time.sleep(1)
-        if _reachable(host, port):
-            print(f"NPC Forge is already running. Opening {url}")
-            webbrowser.open(url)
-            return 0
+        health = ask_identity(url, token)
+        app = fels_suite.identify(health)
+        if app == config.APP_ID:
+            return _open_existing(url, health)
+        if health is not None:
+            return _port_in_use(port, fels_suite.short_name(app) if app else "another program")
         pid = int(owner["pid"])
-        command = owner.get("command") or ""
-        if (owner.get("name") or "").lower() not in ("python.exe", "pythonw.exe") or "server.py" not in command.lower():
-            print(f"Port {port} is held by process {pid}, which is not an identifiable NPC Forge server.")
-            print("Close that process or choose another NPCGEN_PORT, then start NPC Forge again.")
-            return 1
+        if not _owns_listener(owner, port):
+            return _port_in_use(port, f"an unidentified program (PID {pid})")
         print(f"An existing NPC Forge process (PID {pid}) is holding port {port} but is not responding.")
         print("Restarting it will interrupt any work it still has in progress.")
         if input("Restart the unresponsive process? [y/N] ").strip().lower() not in ("y", "yes"):
@@ -78,6 +93,14 @@ def main():
             return 1
         time.sleep(1)
 
+    if port == config.DEFAULT_PORT and not owner:
+        old_url = local_url(cfg["host"], config.LEGACY_PORT)
+        old_health = ask_identity(old_url, token)
+        old_app = fels_suite.identify(old_health)
+        if old_app == config.APP_ID and not isinstance(old_health.get("fels"), dict):
+            return _open_existing(old_url, old_health)
+        if old_app == "voice-lab":
+            print(f"Voice Lab is running on port {config.LEGACY_PORT}. NPC Forge will use port {port}.")
     print("Starting NPC Forge...")
     return subprocess.call([sys.executable, str(ROOT / "server.py"), "--open"], cwd=ROOT)
 

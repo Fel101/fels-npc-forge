@@ -14,7 +14,7 @@ import { commercialBadge, licenceNote, openLicences, optionTag } from './licence
 // disagree. The server reports its api_version; if it is older than this page needs, features that depend on the
 // newer server are switched off and a banner says how to fix it (instead of crashing on a missing field).
 // Keep in sync with API_VERSION in server.py (a test checks this).
-const REQUIRED_API = 44;
+const REQUIRED_API = 45;
 
 // ---------- small components ---------------------------------------------------------------------------------
 const card = (title, ...kids) => h('section', { class: 'card' }, h('h3', {}, title), ...kids);
