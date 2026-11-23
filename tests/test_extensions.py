@@ -3,6 +3,7 @@ import importlib
 import json
 import os
 import pathlib
+import re
 import textwrap
 import threading
 import urllib.error
@@ -153,6 +154,21 @@ def test_failed_registration_rolls_back_every_partial_change(server, running, tm
     assert server.EXTENSIONS == [] and server.MOUNTS == {} and server.GUARDS == []
 
 
+def test_a_failed_extension_leaves_neither_body_build_stage_registered(server, running, tmp_path):
+    make_extension(tmp_path, "partial", """
+        from npcgen.bodymaker import BuildStep
+
+        def register(host):
+            noop = lambda *args, **kwargs: None
+            step = BuildStep(noop, noop, noop, noop, noop)
+            host.add_body_build_step("before_clothes", "fit_test", step)
+            host.add_body_build_step("body_finished", "finish_test", step)
+            raise ValueError("fail after both registrations")
+    """, page=False)
+    assert server.load_extensions(tmp_path) == []
+    assert all(not steps for steps in server.bodymaker.BUILD_STEPS.values())
+
+
 def test_an_extension_can_add_a_choice_of_clothes_and_a_failed_registration_takes_it_back(server, running, tmp_path):
     make_extension(tmp_path, "broken", """
         def register(host):
@@ -177,8 +193,62 @@ def test_a_local_extension_with_the_name_of_a_shipped_one_is_skipped(server, run
     assert "'demo'" in capsys.readouterr().err and fetch(running, "/api/ext/other/ping")[0] == 200
 
 
-def test_the_shipped_extensions_folder_holds_the_adult_features():
-    assert (server_root() / "extensions" / "adult_studio" / "__init__.py").is_file()
+def test_the_core_has_no_adult_add_on_without_an_install(server, running):
+    root = server_root()
+    assert not (root / "extensions" / "adult_studio" / "__init__.py").exists()
+    for path in ("/ext/adult/", "/ext/adult-ui/gate.js", "/api/ext/adult/state", "/soft-solver.js"):
+        assert fetch(running, path)[0] == 404
+    config = json.loads(fetch(running, "/api/config")[1])
+    assert "models" not in config["settings"] and not config["extensions"] and not config["ui"]
+    terms = re.compile(r"\bbust\b|\bjiggle\b|adult studio|π|18\+", re.IGNORECASE)
+    for path in ("/", "/app.js"):
+        assert not terms.search(fetch(running, path)[1].decode("utf-8")), path
+    for file in (root / "README.md", *(root / "docs").rglob("*.md")):
+        content = file.read_text("utf-8")
+        if file.name == "extensions.md":
+            content = "\n".join(line for line in content.splitlines() if not line.startswith("Separate add-ons for adults"))
+        assert not terms.search(content), file
+
+
+@pytest.mark.parametrize("registration", [
+    'host.route("POST", "/api/roll")(lambda q, body: {"age": 12})',
+    'host.add_portrait_engine(lambda **request: {"png": b"picture"})',
+])
+def test_an_extension_cannot_replace_the_roll_or_register_an_unguarded_portrait(server, running, tmp_path, capsys, registration):
+    make_extension(tmp_path, "unsafe", f"""
+        def register(host):
+            host.add_guard(lambda npc: "A guard left over from a failed registration")
+            {registration}
+    """, page=False)
+    assert server.load_extensions(tmp_path) == []
+    assert "'unsafe' failed to load" in capsys.readouterr().err
+    assert not server.GUARDS and not server.jobsmod.PORTRAIT_ENGINES
+
+    status, _, _ = fetch(running, "/api/roll", "POST", {"setting": "modern", "adult": True, "locked": {"profile.age": 12}})
+    assert status == 400
+    status, data, _ = fetch(running, "/api/roll", "POST", {"setting": "modern", "adult": True, "locked": {"profile.age": 24}})
+    assert status == 200 and json.loads(data)["profile"]["age"] == 24
+
+
+def test_reading_an_old_character_reports_the_missing_add_on_without_editing_its_files(server, running):
+    lib = server.LIB
+    npc = server.roll.roll_npc(server.roll.load_data(), "modern", seed=1, adult=True)
+    npc = lib.create({**npc, "style": "pixel"})
+    npc_id = npc["id"]
+    lib.write_asset(npc_id, "model_3d_rigged.glb", b"rig from the original release")
+    lib.update(npc_id, lambda n: n["assets"].update({
+        "model_3d": {"designed": {"soft": {"request": {"intensity": 0.5}}}},
+        "rig_3d": {"file": "model_3d_rigged.glb"},
+    }))
+    saved = lib.resolve(npc_id, "npc.json")
+    before = saved.read_bytes()
+    status, data, _ = fetch(running, f"/api/npcs/{npc_id}")
+    assert status == 200
+    response = json.loads(data)
+    assert "add-on" in response["body_extension_notice"]
+    assert response["assets"]["model_3d"]["designed"]["soft"]["request"] == {"intensity": 0.5}
+    assert saved.read_bytes() == before
+    assert lib.read_asset(npc_id, "model_3d_rigged.glb") == b"rig from the original release"
 
 
 def server_root():
@@ -273,7 +343,7 @@ def test_the_main_page_has_the_about_dialog_and_an_empty_footer_for_extensions(s
     assert status == 200 and 'id="about"' in page and '<div class="about-foot" id="aboutFoot"></div>' in page
     assert '<script type="module" src="/app.js"></script>' in page
     js = fetch(running, "/app.js")[1].decode()
-    assert "window.NPCForge = { version: 1, reload: reloadConfig, toast, aboutFooter" in js and "loadExtensionUi()" in js
+    assert "window.NPCForge = {" in js and "aboutFooter:" in js and "loadExtensionUi()" in js
     for module in ("/core.js", "/library-view.js", "/queue-view.js"):
         assert fetch(running, module)[0] == 200
 

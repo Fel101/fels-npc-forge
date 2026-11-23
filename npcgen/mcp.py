@@ -7,8 +7,7 @@ NPC Forge must be running (start.bat): every tool is a call to its HTTP API, so 
 same one-model-at-a-time GPU guard as the page, and shows in the page's queue. The tools make characters and their pictures,
 wait for the queue, read characters back and export them for a game (docs/agents.md says how to add the server to each client).
 
-The adult features (the Adult studio and the Models setting) are not offered here, whatever the 18+ box says: an agent should
-not be able to skip a person's own confirmation. NPCGEN_AUTH_TOKEN is sent when NPC Forge asks for it (HTTP Basic, user
+Optional settings that require personal confirmation stay in the app. NPCGEN_AUTH_TOKEN is sent when NPC Forge asks for it (HTTP Basic, user
 npcforge). Standard library only; the protocol is JSON-RPC 2.0, one message per line on stdin and stdout (logs go to stderr).
 """
 import argparse
@@ -34,7 +33,7 @@ except ImportError:                                 # run as a file (python C:\.
 
 DEFAULT_URL = local_url("127.0.0.1", config.DEFAULT_PORT)
 PROTOCOLS = ("2025-06-18", "2025-03-26", "2024-11-05")
-ADULT_SETTINGS = {"models"}                       # the adult Models setting: never through MCP
+ADULT_SETTINGS = {"models"}                       # the add-on setting requires personal confirmation
 WAIT_LIMIT = 900
 POLL_SECONDS = 5
 ID = re.compile(r"^[a-z0-9][a-z0-9-]{0,120}$")

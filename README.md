@@ -25,13 +25,6 @@ command line on your own PC.
 (two or more characters acting out a scene) and **Creatures** (non-humanoid creatures for a game). They work, but have been
 checked on fewer characters than the rest; see [Status](#status-what-has-and-has-not-been-checked).
 
-### Adult features (18+)
-
-NPC Forge ships an **Adult studio** and a **Models** setting for adults, made for the [Altera](https://github.com/Fel101/Altera)
-companion app. They are **off and out of sight** until you open *About*, press the faint **π** in its lower right corner and
-tick **18+ I am 18 or older**. The rules hold at every level, whatever is typed: adults only, nothing that reads as a minor, no
-real people, nothing non-consensual. See [extensions/adult_studio/README.md](extensions/adult_studio/README.md).
-
 ## What you need
 
 - **A GPU with about 32 GB of VRAM and 64 GB of RAM** for the default picture engines (Qwen-Image 2512 and Qwen-Image-Edit 2511,
@@ -648,9 +641,7 @@ How the joints are placed, what the skin weights do and what is known not to wor
 
 ### A designed body
 
-A character can also be given a body built from a recipe instead of a generated model, by the **Body Designer**: an optional add-on
-(a `bodydesigner` folder next to `npcgen`) that is **not part of this release**. Without it the Designed body card and the body options
-do not appear, and everything else works as described here.
+The optional Body Designer for recipe-built bodies and fitted clothes is available separately.
 
 ### Finding characters in the Library
 
@@ -680,7 +671,7 @@ boot). It is the character chain without the character, and every step has its o
 a ZIP are on the same page; on the command line it is `python -m npcgen item make`. **Glasses** are built from measurements instead (an
 image-to-3D generator cannot make a thin frame or a clear lens): twelve styles, a designer with a live preview, a few hundredths of a second
 and no GPU ([docs/glasses.md](docs/glasses.md)); a saved pair can be **tried on a character**: NPC Forge finds the face once (SDPose), fits the pair to the
-eyes and nose, and hands back the character wearing it under its head joint ([docs/glasses.md](docs/glasses.md#on-a-characters-face)). **Fitted clothes** (garments fitted to a designed body) need the Body Designer add-on, which is not part of this release. Rings and other thin things are not made yet, and the drawn garments (a coat, a dress) come out as objects, not clothes
+eyes and nose, and hands back the character wearing it under its head joint ([docs/glasses.md](docs/glasses.md#on-a-characters-face)). **Fitted clothes** (garments fitted to a designed body) require a designed body. Rings and other thin things are not made yet, and the drawn garments (a coat, a dress) come out as objects, not clothes
 fitted to a body. **Held items and hats** go on a character too: pick one with a skeleton and a sword goes in its hand, a shield on its forearm, a helmet or a hat on its head (sized to it), shown in 3D with sliders to nudge it, and handed back as the character holding it (each item under its bone, so it follows every animation) or as the bone and transform for a game ([docs/equip.md](docs/equip.md)). Measurements, limits and the API: [docs/items.md](docs/items.md). Running NPC Forge from a game's own scripts (engines safe for a commercial project, portrait framing, what the queue reports, the trash): [docs/game-clients.md](docs/game-clients.md).
 
 ## Creatures for any game

@@ -5,18 +5,13 @@ The Body Designer (the bodydesigner folder next to npcgen; it is optional and is
 weights per vertex, no morph targets, textures embedded. This module makes that body a character's 3D model, in one job step that needs no GPU:
 
   1. `python -m bodydesigner game` builds the GLB (about 20 s);
-  1b. when the request asks for a bust size (the female body only; npcgen/bustsize.py), the bust of that neutral body is made larger or smaller before anything else is done to it, so the
-     underwear, the clothes and the clips all see the body as it now is (a few hundredths of a second);
-  1c. a body that carries a body block (the Body Designer tab's body document: bodydesigner/body_design.py, an opt-in shape of the chest, the seat and the thighs with its own bust size) takes
-     its shape from the Designer's pure body step in the same place, never together with 1b; the underwear is then fitted, the Designer's pure upper-edge repair follows it, then the clothes, the
-     face shapes and last of all the copy of the clips (the order of a body with face shapes), so that every fit sees the shaped body, and the soft-body step finds the bust where it now is;
+     An optional body document shapes the model before clothing is fitted.
   2. scripts/animate_body_designer_game.py has Blender copy the animation library's 84 clips and our Wave onto its skeleton, and appends them to the
      GLB without touching the body's own data (about 35 s);
   3. when the recipe asks for swinging Long hair or a swinging skirt or dress (its `secondary` field), the Body Designer's finalizer adds the chains of spring
      bones to the animated file, last of all (bodydesigner/secondary.py, under 2 s): the game engine moves them, nothing here does;
-  4. when the request asks for soft-body motion (the female body only; npcgen/softbody.py), spring bones for the chest, the butt, the belly and the thighs are added to the animated file after that, and the skin
-     around them is given a share of its weight (about 1 s): the game engine moves them, nothing here does;
-  5. a picture of it is drawn (Blender on the CPU) for the card.
+  4. optional local build steps may run before dressing or after the rig is complete;
+  5. a picture of the model is drawn for the card.
 
 Each is a process of its own: its memory stays out of the server's, and Cancel kills the whole tree (Blender too). Nothing here runs unless it is
 asked for, and the body replaces a character's 3D model only when the request says so (`replace`). Humanoid, two-legged characters only.
@@ -30,9 +25,11 @@ import subprocess
 import sys
 import tempfile
 import time
+from dataclasses import dataclass
 from pathlib import Path
+from typing import Callable
 
-from . import bodymatch, bustsize, check3d, cleanup3d, config as cfgmod, itemposter, marks, morphology, outfit, rig3d, roll, softbody, underwear
+from . import bodymatch, check3d, cleanup3d, config as cfgmod, itemposter, marks, morphology, outfit, rig3d, roll, underwear
 from .comfy import Cancelled, ComfyError, beat
 from .library import now
 
@@ -89,6 +86,58 @@ BODY_DOCUMENT = "npcforge.body-design"               # the format of the Body De
 
 class BodyError(Exception):
     """The body could not be made; the message says why, in words for the person using the page."""
+
+
+@dataclass(frozen=True)
+class BuildStepCLI:
+    add_arguments: Callable
+    value: Callable
+    describe: Callable
+
+
+@dataclass(frozen=True)
+class BuildStep:
+    clean: Callable
+    info: Callable
+    apply: Callable
+    validate: Callable
+    check: Callable
+    face_shapes: Callable | None = None
+    cli: BuildStepCLI | None = None
+    normalize_rig: Callable | None = None
+
+
+BUILD_STEPS = {"before_clothes": {}, "body_finished": {}}
+LEGACY_BUILD_FIELDS = {"soft": {}, "bust": 0.0}
+EXTENSION_REQUIRED = "This model uses motion or shape options from an add-on. Install and enable the add-on to use those options."
+
+
+def add_build_step(stage, name, step, *, visible=None):
+    if stage not in BUILD_STEPS:
+        raise ValueError(f"Unknown body build stage: {stage!r}")
+    if not isinstance(name, str) or not re.fullmatch(r"[a-z][a-z0-9_]*", name) or not isinstance(step, BuildStep):
+        raise ValueError("A body build step needs a field name and a BuildStep.")
+    if name in REQUEST_FIELDS - LEGACY_BUILD_FIELDS.keys() or any(name in steps for steps in BUILD_STEPS.values()):
+        raise ValueError(f"Body build field is already registered: {name!r}")
+    BUILD_STEPS[stage][name] = (step, visible)
+
+
+def _build_steps(stage):
+    return {name: step for name, (step, visible) in BUILD_STEPS[stage].items() if roll._is_visible(visible)}
+
+
+def _active_steps():
+    return {**_build_steps("before_clothes"), **_build_steps("body_finished")}
+
+
+def extension_notice(npc):
+    designed = ((npc.get("assets") or {}).get("model_3d") or {}).get("designed") or {}
+    active = _active_steps()
+    choice = designed.get("clothes_choice")
+    if (any(designed.get(key) and key not in active for key in LEGACY_BUILD_FIELDS)
+            or choice and choice not in CLOTHES and not _offered(choice)):
+        return EXTENSION_REQUIRED
+    return None
 
 
 def _api():
@@ -214,25 +263,6 @@ def is_document(raw):
     return isinstance(raw, dict) and raw.get("format") == BODY_DOCUMENT
 
 
-def shape_info():
-    """For the card: what a body that carries a body block (the Body tab's body shape) needs, {bust: {path, label, labels, min, max, natural_max, default, step, note}, mm_per_unit: {"<base>/<form>": {forward,
-    back}}}, read from the Body Designer's own catalogue (the ranges are never written here: `bust` is the one bust size of such a body, shown to `natural_max` and to `max` in the Advanced view; `mm_per_unit` is
-    how far the front of the bust moves forward for +1 and back for -1 on the Designer's default body, in millimetres). None when this Body Designer has no body document."""
-    api = body_shape_api()
-    if api is None:
-        return None
-    try:
-        data = api.catalogue()
-        bust = dict(next(field for field in data["fields"] if field["path"] == "bust"))
-        mm = {}
-        for row in data["apex_calibration"]["rows"]:
-            samples = {sample["bust"]: sample["apex"][0]["forward_mm"] for sample in row["samples"]}
-            mm[f'{row["base"]}/{row["form"]}'] = {"forward": round(samples[1.0], 1), "back": round(-samples[-1.0], 1)}
-    except (OSError, ValueError, KeyError, TypeError, StopIteration):               # (a damaged install must not stop the page from loading)
-        return None
-    return {"bust": bust, "mm_per_unit": mm}
-
-
 def _open_document(raw, what):
     """(recipe, body block or None) of a body document, checked by the Body Designer's own strict rule (unknown fields refused, nothing clamped): ValueError in words, `what` naming whose document it is."""
     api = body_shape_api()
@@ -272,11 +302,7 @@ def saved_shape(lib, npc_id):
 
 
 def availability(cfg):
-    """What the 3D model card needs to offer a designed body: {installed, missing, bases, skeletons, faces, textures, clothes, outers, hairs, marks, expressions, swinging, soft, clips}. `bases` is empty when
-    the Body Designer is not there at all (the card is then not shown); `missing` lists what else is lacking (the card says so); `clothes`, `outers`, `hairs` and `marks` are empty
-    when this Body Designer makes no garments, no game hair or no skin marks (the card does not offer them) and `expressions` and `swinging` are None when it makes no face expressions or
-    no swinging hair and cloth; `outers` offers the jacket and the apron only when it makes them; `soft` is what the tick box and the sliders of soft-body motion need (npcgen/softbody.py `info`), `bust`
-    what the bust size slider needs (npcgen/bustsize.py `info`) and `body_shape` what the same slider needs for a body that carries a body block (`shape_info`; None when this Body Designer has none)."""
+    """Expose the body tools and the active extension controls that can run on this PC."""
     found = bases()
     missing = [] if found else ["the Body Designer (the bodydesigner folder next to npcgen)"]
     if found and not COPIER.is_file():
@@ -294,32 +320,23 @@ def availability(cfg):
             "outers": [{"id": k, **v} for k, v in OUTERS.items() if k in ("sheet", "none") or k in outfit.offered()] if found and offers("garments") else [],
             "hairs": [{"id": k, **v} for k, v in HAIRS.items() if k in ("sheet", "none") or k in hair_styles()] if found and offers("hair") else [],
             "marks": [{"id": k, **v} for k, v in MARKS.items()] if found and marks.offered() else [], "expressions": expressions_info() if found else None,
-            "swinging": swinging_info() if found else None, "soft": softbody.info() if found else None, "bust": bustsize.info() if found else None,
-            "body_shape": shape_info() if found else None, "clips": 85}
+            "swinging": swinging_info() if found else None, "clips": 85,
+            **({key: value for step in _active_steps().values() for key, value in step.info().items()} if found else {})}
 
 
 def clean_request(raw):
-    """A request for a designed body, checked for its shape only (`prepare` settles the recipe): None for no request, else
-    {base, skeleton, values, saved, replace, face, texture, match, clothes, outer, colours, hair, marks, expressions, secondary, soft, bust[, recipe][, body]}. `base` is a base id from bases() (or None: by the character's gender), `values`
-    overrides some of its 21 proportions, `saved` takes the body the Body tab saved for the character, `replace` says the character's 3D model may
-    be replaced, `face` is "natural" or "classic" (None: the Natural face for a new body, the saved face for a saved one), `texture` is the
-    longest edge of the skin in pixels (2048, 1024 or 512), `match` (true unless it says false) gives a new body the build, skin, eyes and brows
-    the character's sheet describes (npcgen/bodymatch.py), `clothes` is what it wears over its underwear (CLOTHES: "none" unless it says, so a call that says nothing gets what it
-    always got; or a choice a local extension has added and shows now: `add_clothes_choice`), `outer` what goes over the shirt and trousers (npcgen/outfit.py OUTERS: "sheet", the jacket or apron the sheet names, unless it says), `colours` a colour for each
-    garment ({kind: '#rrggbb'}: instead of the sheet's or the Body Designer's own), `hair` is its game hair (HAIRS; None: like the sheet for a new body, the saved hair for a saved one), `marks` its
-    skin marks (MARKS; None: like the sheet for a new body that is matched to it, the saved marks for a saved one), `expressions` whether it has face shapes (true or false; None: no for a new body, as it was for a saved one),
-    `secondary` which parts swing in the game engine ({"hair": true or false, "cloth": true or false}; false or {} for none; None: none for a new body, as it was for a saved one) and `soft` the soft-body
-    motion of the chest, the butt, the belly and the thighs ({} for none, which is also what None, false and parts all at nothing mean; else {intensity, chest, butt, belly, thighs, softness}, each 0 to 1: npcgen/softbody.py `clean`; true takes the defaults: the chest and the butt on),
-    `bust` the size of the bust (a number from -1, smaller, to 1, larger; 0 or None: as the Body Designer made it: npcgen/bustsize.py) and `body` the body block of a body document (the Body tab's opt-in shape of the
-    chest, the seat and the thighs, with the one bust size of such a body in it: bodydesigner/body_design.py; `prepare` has the Designer's own strict rule check it, and a request that has it does not also say `bust`).
-    A `recipe` that is a whole body document ({format, version, recipe, skeleton, seed, body}) is taken apart here into its recipe, its rig and its body block."""
+    """Validate a designed-body request before prepare settles the recipe.
+
+    A full body document is split into its recipe, skeleton and body block. Installed build steps validate their own fields.
+    """
     if raw is None or raw is False or raw == {}:
         return None
     if raw is True:
         raw = {}
     if not isinstance(raw, dict):
         raise ValueError("body_3d must be an object")
-    unknown = sorted(set(raw) - REQUEST_FIELDS)
+    steps = _active_steps()
+    unknown = sorted(set(raw) - REQUEST_FIELDS - steps.keys())
     if unknown:
         raise ValueError(f"body_3d.{unknown[0]}: unknown field")
     skeleton = raw.get("skeleton", "low")
@@ -392,11 +409,12 @@ def clean_request(raw):
             if type(on) is not bool:
                 raise ValueError(f"body_3d.secondary.{part} must be true or false")
         swing = {part: swing.get(part, False) for part in SWINGING_PARTS}
-    soft = softbody.clean(raw.get("soft"), "body_3d.soft")
-    bust = bustsize.clean(raw.get("bust"), "body_3d.bust")
+    if any(raw.get(name) and name not in steps for name in LEGACY_BUILD_FIELDS):
+        raise ValueError(EXTENSION_REQUIRED)
+    additions = {**LEGACY_BUILD_FIELDS, **{key: step.clean(raw.get(key), f"body_3d.{key}") for key, step in steps.items()}}
     return {"base": base, "skeleton": skeleton, "values": values, "saved": raw.get("saved") is True, "replace": raw.get("replace") is True,
             "face": face, "texture": texture, "match": match, "clothes": clothes, "outer": outer, "colours": colours, "hair": hair, "marks": skin, "expressions": shapes, "secondary": swing,
-            "soft": soft, "bust": bust, **({"recipe": recipe} if recipe else {}), **({"body": body} if body is not None else {})}
+            **additions, **({"recipe": recipe} if recipe else {}), **({"body": body} if body is not None else {})}
 
 
 def _sex(base_id):
@@ -619,15 +637,14 @@ def prepare(lib, npc, request):
     problem = swing_problem(recipe, wears["pieces"])
     if problem:
         raise ValueError(problem)
-    if request.get("soft") and "female" not in str(recipe["base"]):
-        raise ValueError("Soft-body motion is made for the female body. Choose the female body, or turn it off.")
-    if request.get("bust") and "female" not in str(recipe["base"]):
-        raise ValueError("Bust size is made for the female body. Choose the female body, or set it to 0.")
-    shape = None
-    if block is not None:                                             # (a body that carries a body block: the Designer's strict rule, and never a second bust size beside the one in the block)
-        if request.get("bust"):
-            raise ValueError("body_3d.bust: the bust size of a body with a body shape is part of that shape (its own bust, from -1 to 3): give it there, since the two are never used together")
-        shape = _shape_of(recipe, block, request["skeleton"])
+    if extension_notice(npc):
+        raise ValueError(EXTENSION_REQUIRED)
+    for key, step in _active_steps().items():
+        if request.get(key):
+            if problem := roll.adult_problem(npc):
+                raise ValueError(problem)
+        step.validate(request.get(key), recipe, block)
+    shape = _shape_of(recipe, block, request["skeleton"]) if block is not None else None
     have_model = bool(((npc.get("assets") or {}).get("model_3d") or {}).get("file"))
     if have_model and not request["replace"]:
         raise ValueError("This character already has a 3D model, and a designed body replaces it (with its skeleton). Confirm to replace it.")
@@ -847,17 +864,6 @@ def _shapes(plain, recipe):
         raise BodyError(f"The face shapes could not be added: {exc}") from None
 
 
-def _shapes_on_bust(dressed, designed, recipe):
-    """`_shapes` for a body that has a bust size: the Body Designer works its face shapes out only on the body exactly as it made it (it compares every position), so the Designer's own positions and normals
-    (`designed`, the neutral file before the bust size) go back on the dressed file for that step, and the bust's (`dressed`'s own) go on the shaped file after it. The face shapes lie on the head, which the
-    bust does not touch, so they are the same either way; the garments are on the file all the time, fitted to the body with its bust."""
-    try:
-        shaped = _shapes(bustsize.copy_body(designed, dressed), {k: v for k, v in recipe.items() if k != "secondary"})
-        return bustsize.copy_body(dressed, shaped)
-    except ValueError as exc:                                     # (BustError is one)
-        raise BodyError(f"The face shapes could not be added to a body with a bust size: {exc}") from None
-
-
 def _face_shapes(doc):
     """The names of the face shapes (morph targets) the body mesh of a body's glTF carries, [] for a body without them."""
     return [str(name) for name in ((doc["meshes"][0].get("extras") or {}).get("targetNames") or [])] if doc.get("meshes") else []
@@ -898,23 +904,8 @@ def _swing(animated, recipe, worn):
                    "seconds": round(time.monotonic() - started, 1)}
 
 
-def _bust(plain, size):
-    """(the neutral body with its bust size made, a report {size, reach_mm, apex, apex_after, moved, biggest_mm, scale, seconds}): npcgen/bustsize.py, the first thing done to the body the Body Designer
-    made (a few hundredths of a second), so that everything after it (the underwear, the clothes, the clips, the spring bones) sees the body as it now is. BodyError, in words, when the file cannot take it."""
-    started = time.monotonic()
-    try:
-        made, report = bustsize.apply(plain, size)
-    except ValueError as exc:                                     # (BustError is one)
-        raise BodyError(f"The bust size could not be made: {exc}") from None
-    return made, {**report, "seconds": round(time.monotonic() - started, 2)}
-
-
 def _body_shape(plain, recipe, block, skeleton):
-    """(the neutral body with its body shape made, a report {form, bust, moved, biggest_mm, reach_mm, drop_mm, body_shape, integrity, seconds}): the Body Designer's pure body step (bodydesigner/body_design.py `apply`,
-    numpy only: it changes the body's positions and normals and nothing else, and writes the file's `body_shape` provenance), in the place `_bust` has for a body without a body block, a few hundredths of a
-    second to a second. For the female body the bust size's mark is written after it (npcgen/bustsize.py `mark_shape`: where the tip of the bust now is, which the soft-body step looks for), so the
-    chest of a bust that hangs lower or lies farther forward than the Designer's default one is found where it is (a shape that moves nothing of the chest has the mark of a bust that did not move). BodyError, in
-    words, when the Designer refuses the shape or the file cannot take it."""
+    """Apply the Designer's saved body shape and retain its provenance."""
     started = time.monotonic()
     api = body_shape_api()
     if api is None:
@@ -926,18 +917,12 @@ def _body_shape(plain, recipe, block, skeleton):
         before, after = (chest.get("anchor_before_m") or [None])[0], (chest.get("anchor_after_m") or [None])[0]       # (the tip of the left breast, metres: before the shape and after it)
         known = bool(before and after)                            # (the Designer's Pectoral form of the male body says no place for a bust: it has none to find)
         reach, shift = (after[2] - before[2], after[1] - before[1]) if known else (None, None)
-        if "female" in str(recipe["base"]):
-            if not known:
-                if chest.get("moved_vertices") != 0:
-                    raise BodyError("The body shape did not say where the bust now is, which the soft-body motion and the checks look for")
-                reach, shift = 0.0, 0.0                           # (a bust size of 0 with no other chest control: the Designer says so by moving no vertex of the chest and gives no place for the bust, which is where its own body has it)
-            made, marked = bustsize.mark_shape(made, plain, block["bust"], shift, reach, chest.get("moved_vertices") or 0)
-        else:
-            marked = {"reach_mm": round(reach * 1000, 1) + 0.0, "drop_mm": round(-shift * 1000, 1) + 0.0} if known else {"reach_mm": None, "drop_mm": None}
-    except ValueError as exc:                                     # (BustError is one)
+    except ValueError as exc:
         raise BodyError(f"The body shape could not be made: {exc}") from None
-    return made, {"form": block["form"], "bust": block["bust"], "moved": chest.get("moved_vertices"), "biggest_mm": chest.get("maximum_mm"), "reach_mm": marked["reach_mm"], "drop_mm": marked["drop_mm"],
-                  "body_shape": info["body_shape"], "integrity": info.get("integrity"), "seconds": round(time.monotonic() - started, 2)}
+    return made, {"form": block["form"], "bust": block["bust"], "moved": chest.get("moved_vertices"), "biggest_mm": chest.get("maximum_mm"),
+                  "reach_mm": round(reach * 1000, 1) + 0.0 if known else None,
+                  "drop_mm": round(-shift * 1000, 1) + 0.0 if known else None, "body_shape": info["body_shape"],
+                  "integrity": info.get("integrity"), "chest_delta": (shift, reach), "seconds": round(time.monotonic() - started, 2)}
 
 
 def _edge(plain):
@@ -966,33 +951,22 @@ def _shapes_on_body(dressed, designed, recipe):
         raise BodyError(f"The face shapes could not be added to a body with a body shape: {exc}") from None
 
 
-def _soft(animated, soft):
-    """(the animated body with the soft-body spring bones the cleaned request `soft` ({intensity, chest, butt, belly, thighs, softness}: npcgen/softbody.py `clean`) asks for, a report {made: {part: amount}, bones, joints,
-    chains, meshes, apex, scale, seconds}): the very last step of a build, after the swinging hair and cloth (about a second). The file it makes must never go into a fitter or a copier again: a
-    body that has them is built again from its recipe. BodyError, in words, when the file cannot take them (it is not a female body, or its skin is not one the step handles)."""
-    started = time.monotonic()
-    try:
-        final, report = softbody.apply(animated, softbody.amounts(soft), softness=soft["softness"])
-        found = glb_json(final)["asset"]["extras"]["forge_soft"]
-    except ValueError as exc:                                     # (SoftBodyError is one)
-        raise BodyError(f"The soft-body motion could not be added: {exc}") from None
-    return final, {**report, "joints": found["joints"], "chains": list(found["chains"]), "seconds": round(time.monotonic() - started, 1)}
-
-
-def build(cfg, recipe, skeleton, cancel=None, note=None, texture=2048, npc=None, clothes=(), soft=None, bust=0.0, wear=None, body=None):
-    """Build, rig and animate a body from a recipe: (plain GLB bytes, animated GLB bytes, {"build": report, "copy": report, "dressing", "clothes", "seconds"}).
-    `note(text)` says what it is doing; `texture` is the longest edge of the skin in pixels (the Body Designer only ever shrinks one); `npc` is the character it is for, if any,
-    and goes to what decides what the body wears (`wear`, a list of the pieces of data/underwear.json, takes the place of that decision: the choice of clothes a local extension added,
-    `add_clothes_choice`); `clothes` are the garments to fit over its underwear ([{kind, colour}], npcgen/outfit.py). The files are made in a temporary folder
-    and nothing else is written. A body with face shapes (the recipe's `expressions`) cannot be dressed once it has them, so it is built without them, dressed once (the underwear and the clothes
-    on the plain file only), given the shapes and the eye pivots, and only then is the animation copied onto it; any other body is built, animated and then dressed, both files alike. Last of all, a recipe
-    with swinging hair or cloth (`secondary`) gets its chains of spring bones on the animated file only (`_swing`; reports["swing"]): the plain file keeps the body's own 23 or 60 bones. After them, `soft`
-    (the cleaned request for soft-body motion, {intensity, chest, butt, belly, thighs, softness}, or None for none: npcgen/softbody.py) adds the spring bones of the parts asked for to the animated file, and the skin's
-    share for them (`_soft`; reports["soft"]). `bust` (a number from -1 to 1, 0 for none: npcgen/bustsize.py) makes the bust of the neutral body larger or smaller before anything else is done to it (`_bust`;
-    reports["bust"]), so both files, the underwear and the clothes have it. `body` (the body block of a body document, as `prepare` cleaned it, or None) shapes the neutral body in the same place with the
-    Body Designer's pure body step instead (`_body_shape`; reports["body_shape"]; never together with `bust`): such a body is built in the order of a body with face shapes whatever its face, so the underwear is
-    fitted to the shaped body, the Designer's upper-edge repair follows it (`_edge`), then the clothes, the face shapes if asked for (`_shapes_on_body`) and last of all the copy of the clips."""
+def build(cfg, recipe, skeleton, cancel=None, note=None, texture=2048, npc=None, clothes=(), soft=None, bust=0.0, wear=None, body=None, **features):
+    """Build, dress, rig and animate a body. Return the two GLBs and the job reports."""
     note = note or (lambda text: None)
+    features.update(soft=soft, bust=bust)
+    before_steps = _build_steps("before_clothes")
+    final_steps = _build_steps("body_finished")
+    active = {**before_steps, **final_steps}
+    if any(value and key not in active for key, value in features.items()):
+        raise BodyError(EXTENSION_REQUIRED)
+    if npc is not None and any(features.values()) and (problem := roll.adult_problem(npc)):
+        raise BodyError(problem)
+    for name, step in active.items():
+        try:
+            step.validate(features.get(name), recipe, body)
+        except ValueError as exc:
+            raise BodyError(str(exc)) from None
     blender = rig3d.find_blender(cfg)
     library = rig3d.library_files(cfg)
     if not blender:
@@ -1004,8 +978,6 @@ def build(cfg, recipe, skeleton, cancel=None, note=None, texture=2048, npc=None,
     kinds = dressing(recipe, npc) if wear is None else _known_pieces(wear)
     if recipe.get("secondary") and not kinds:
         raise BodyError("Swinging hair and cloth are added to a body that wears the plain underwear layer, and this one is set to wear none")
-    if body is not None and bust:
-        raise BodyError("A body with a body shape has its bust size in that shape: the bust size of the old kind is never used with it")
     started = time.monotonic()
     shapes = bool(recipe.get("expressions"))
     with tempfile.TemporaryDirectory(prefix="npcforge-body-") as tmp:
@@ -1021,9 +993,13 @@ def build(cfg, recipe, skeleton, cancel=None, note=None, texture=2048, npc=None,
         if shaped:
             note("Shaping its body")
             plain, reports["body_shape"] = _body_shape(plain, recipe, body, skeleton)
-        elif bust:
-            note("Changing its bust size")
-            plain, reports["bust"] = _bust(plain, bust)
+        context = {"original": designed, "recipe": recipe, "shape": body, "reports": reports, "note": note}
+        for name, step in before_steps.items():
+            plain, report = step.apply(plain, features.get(name), **context)
+            if report:
+                reports[name] = report
+        if shaped:
+            reports["body_shape"].pop("chest_delta", None)
         late = shapes or shaped                                   # (the clips are copied on last, onto the dressed body: it is the one that is skinned)
         if not late:
             note("Copying the animation clips onto its skeleton")
@@ -1047,8 +1023,13 @@ def build(cfg, recipe, skeleton, cancel=None, note=None, texture=2048, npc=None,
             animated = dressed
         if shapes:
             note("Adding its face shapes")
-            plain = (_shapes_on_body(plain, designed, recipe) if shaped else _shapes_on_bust(plain, designed, recipe) if reports.get("bust")
-                     else _shapes(plain, {k: v for k, v in recipe.items() if k != "secondary"}))
+            fit_shapes = next((step.face_shapes for name, step in before_steps.items() if name in reports and step.face_shapes), None)
+            if shaped:
+                plain = _shapes_on_body(plain, designed, recipe)
+            elif fit_shapes:
+                plain = fit_shapes(plain, designed, recipe)
+            else:
+                plain = _shapes(plain, {k: v for k, v in recipe.items() if k != "secondary"})
             reports["build"] = {**reports["build"], "morph_targets": len(_face_shapes(glb_json(plain)))}
         if late:
             note("Copying the animation clips onto its skeleton")
@@ -1056,9 +1037,10 @@ def build(cfg, recipe, skeleton, cancel=None, note=None, texture=2048, npc=None,
         if recipe.get("secondary"):
             note("Adding the spring bones that swing")
             animated, reports["swing"] = _swing(animated, recipe, {w["kind"] for w in (reports.get("clothes") or {}).get("worn", [])})
-        if softbody.amounts(soft):
-            note("Adding the soft-body spring bones")
-            animated, reports["soft"] = _soft(animated, soft)
+        for name, step in final_steps.items():
+            animated, report = step.apply(animated, features.get(name), **context)
+            if report:
+                reports[name] = report
     reports["seconds"] = round(time.monotonic() - started, 1)
     return plain, animated, reports
 
@@ -1086,12 +1068,10 @@ def _chains_problem(body, rig, core, parts):
 
 
 def _shape_problem(data, block, bust):
-    """Why a GLB is not a body that has the body shape `block` (the cleaned body block), or, for None, a body with no body shape and the bust size `bust` of the old kind (npcgen/bustsize.py `check_file`), in
-    words, or None. With a body block the file must carry the Body Designer's own `body_shape` record of exactly that block (`provenance`), and for the female body the bust mark (`mark_shape`) that says where the
-    bust is, with the bust where the mark says it is."""
+    """Check that the supplied body shape is recorded in the GLB."""
     extras = (glb_json(data).get("asset") or {}).get("extras") or {}
     if block is None:
-        return "The body has a body shape that was not asked for" if "body_shape" in extras else bustsize.check_file(data, bust)
+        return "The body has a body shape that was not asked for" if "body_shape" in extras else None
     api = body_shape_api()
     if api is None:
         return "This Body Designer has no body shapes"
@@ -1101,25 +1081,19 @@ def _shape_problem(data, block, bust):
         return "The body shape that was asked for cannot be described"
     if extras.get("body_shape") != expected:
         return "The body has not got the body shape that was asked for"
-    if "female" in str((extras.get("body_design") or {}).get("base", "")):
-        return bustsize.check_file(data, block["bust"], shaped=True)
     return None
 
 
-def check(plain, animated, skeleton, expressions=False, swinging=None, soft=None, bust=0.0, shape=None):
-    """Look inside the two GLBs before they are used: an adult's body, the skeleton asked for, the whole clip library, and (with `expressions`) the Body Designer's face shapes on the body and the eyes as parts
-    of their own in both. With `swinging` ({"hair": bool, "cloth": bool}: the parts that were made to swing) the animated file must be the plain body's own skeleton plus exactly those chains of spring bones, hung
-    on bones the body already had and moved by no clip (18 bones for the hair, 24 for the cloth), and nothing else different. With `soft` ({part: amount}: the parts that were given soft-body bones) the file must
-    have those bones too, as npcgen/softbody.py lays them (`check_file`), and with them taken away be exactly what it would be without. With `bust` (the bust size, -1 to 1) both files must say they have it,
-    and have the bust where they say it is (npcgen/bustsize.py `check_file`); with none, neither may have one. With `shape` (the body block of a body document, as `prepare` cleaned it) both files must carry the
-    Body Designer's record of exactly that shape (`_shape_problem`) and never a bust size of the old kind. Returns the clip list [{name, seconds, loop, source, [moves, speed_m_s]}]
-    in the form the 3D card lists them."""
+def check(plain, animated, skeleton, expressions=False, swinging=None, soft=None, bust=0.0, shape=None, **features):
+    """Check age, rig, animations and any installed build steps before using the files."""
     body, rig = glb_json(plain), glb_json(animated)
     extras = (body.get("asset") or {}).get("extras") or {}
     if extras.get("export_tier") != "game":
         raise BodyError("The Body Designer did not make a game body")
-    if type(extras.get("minimum_age")) is not int or extras["minimum_age"] < 18:
-        raise BodyError("The body does not say it is an adult's, so it was not used")
+    for doc in (body, rig):
+        minimum_age = ((doc.get("asset") or {}).get("extras") or {}).get("minimum_age")
+        if type(minimum_age) is not int or minimum_age < roll.ADULT_AGE:
+            raise BodyError("The body does not say it is an adult's, so it was not used")
     if extras.get("skeleton") != skeleton or len(body["skins"][0]["joints"]) != SKELETONS[skeleton]["bones"]:
         raise BodyError(f"The body has not got the {skeleton} skeleton that was asked for")
     clips = []
@@ -1132,9 +1106,15 @@ def check(plain, animated, skeleton, expressions=False, swinging=None, soft=None
         problem = _shape_problem(data, shape, bust)
         if problem:
             raise BodyError(problem)
+    features.update(soft=soft, bust=bust)
+    active = _active_steps()
+    if any(value and key not in active for key, value in features.items()):
+        raise BodyError(EXTENSION_REQUIRED)
     chains = {part for part, on in (swinging or {}).items() if on}
-    parts = {part for part, amount in (soft or {}).items() if amount}
-    before = softbody.without(rig) if parts else rig                 # (the file as it was before the soft-body step)
+    before = rig
+    for name, step in active.items():
+        if step.normalize_rig:
+            before = step.normalize_rig(before, features.get(name))
     if not chains:
         if before["skins"][0]["joints"] != body["skins"][0]["joints"] or before["nodes"] != body["nodes"]:
             raise BodyError("The animated body's skeleton is not the body's own")
@@ -1142,10 +1122,8 @@ def check(plain, animated, skeleton, expressions=False, swinging=None, soft=None
         problem = _chains_problem(body, before, SKELETONS[skeleton]["bones"], chains)
         if problem:
             raise BodyError(problem)
-    if parts:
-        problem = softbody.check_file(animated, parts)
-        if problem:
-            raise BodyError(problem)
+    for name, step in active.items():
+        step.check(plain, animated, before, features.get(name), shape)
     if expressions:
         wanted = (expressions_info() or {}).get("presets")
         for doc in (body, rig):
@@ -1173,7 +1151,7 @@ def store(lib, npc_id, plain, animated, clips, request, reports, picture=None):
         recipe = with_secondary(recipe, swing["made"])
     swung = [part for part in SWINGING_PARTS if (swing.get("made") or {}).get(part)]
     soft = reports.get("soft") or {}
-    soft_parts = [part for part in softbody.PARTS if part in (soft.get("made") or {})]            # (in the order the card and the notes say them: the chest, the butt, the belly, the thighs)
+    soft_parts = list(soft.get("made") or {})
     bust = reports.get("bust") or {}
     shape = reports.get("body_shape") or {}                      # (a body that has a body shape: the body block it was made from is in the request)
     made, build_report = now(), reports["build"]
@@ -1286,27 +1264,6 @@ def recolour(cfg, lib, npc_id, colours):
     return {"changed": changed, "clothes": lib.get(npc_id)["assets"]["model_3d"]["designed"]["clothes"], "preview": bool(picture)}
 
 
-def soft_preview(lib, npc):
-    """(the GLB the page's live jiggle preview plays, a report {had, bones, seconds}): the character's animated designed body with the spring bones of all four soft-body parts at full strength
-    (npcgen/softbody.py), whatever the body was built with. A body that was built with some is taken back to the one without first (`softbody.undo`), so the preview always offers every part and the
-    page's sliders (web/soft-preview.js) only choose how much of each moves. Nothing is stored: the character's files are read and left as they are, and the answer is made again each time
-    (about a quarter of a second). ValueError, in words, for a character with no designed body, no skeleton file, or a body the step cannot take (the male body)."""
-    started = time.monotonic()
-    assets = npc.get("assets") or {}
-    model, rig = assets.get("model_3d") or {}, assets.get("rig_3d") or {}
-    if not (model.get("designed") and rig.get("file") and rig.get("joints_from") == "designed body"):
-        raise ValueError("The jiggle preview moves a designed body: make this character's body first")
-    try:
-        data = lib.read_asset(npc["id"], rig["file"])
-    except (OSError, KeyError):
-        raise ValueError("This character's skeleton file is missing: make the body again") from None
-    try:
-        made, report = softbody.apply(softbody.undo(data), {part: 1.0 for part in softbody.PARTS}, softness=0.5)
-    except ValueError as exc:                                     # (SoftBodyError is one)
-        raise ValueError(f"The jiggle cannot be previewed: {exc}") from None
-    return made, {"had": model["designed"].get("soft", {}).get("request"), "bones": report["bones"], "seconds": round(time.monotonic() - started, 2)}
-
-
 def needs_rebuild(designed):
     """The reason a designed body cannot be dressed in place, in words ("face shapes", "swinging hair or cloth", "soft-body motion", or two or three of them), or "" when it can. A body with face shapes is refused
     by the Body Designer's fit (morph targets), and a body with chains of spring bones must never go into a fitter or the clip copier again (bodydesigner/secondary.py, npcgen/softbody.py): the Items tab's
@@ -1323,6 +1280,8 @@ def refit(cfg, npc, pieces, cancel=None, note=None):
     (`swinging_left_off`). The soft-body motion stays as it was asked for (its request is in `designed["soft"]`): the new garment gets the skin weights of the skin under it. So does the bust size (`designed["bust"]`), and the
     underwear of a choice of clothes a local extension added (`designed["underwear"]`). BodyError when the body's design was not kept, when a garment it wears does not fit again or when the build fails; nothing of the character is changed here."""
     designed = ((npc.get("assets") or {}).get("model_3d") or {}).get("designed") or {}
+    if extension_notice(npc):
+        raise BodyError(EXTENSION_REQUIRED)
     recipe = designed.get("recipe")
     if not isinstance(recipe, dict) or designed.get("skeleton") not in SKELETONS:
         raise BodyError("This body's design was not kept, so it cannot be built again with this garment")
@@ -1396,12 +1355,16 @@ def _body(jobs, job, step, npc):
             step["detail"] = text
         job.touch()
     try:
+        if request.get("wear") is not None and not _offered(request.get("clothes")):
+            raise BodyError(EXTENSION_REQUIRED)
+        additions = {field: request[field] for field in set(LEGACY_BUILD_FIELDS) | _active_steps().keys() if request.get(field)}
         plain, animated, reports = build(jobs.cfg, request["recipe"], request["skeleton"], job.cancel, note, texture=request.get("texture", max(TEXTURES)), npc=npc,
-                                         clothes=request.get("pieces") or (), **({"soft": request["soft"]} if request.get("soft") else {}), **({"bust": request["bust"]} if request.get("bust") else {}),
+                                         clothes=request.get("pieces") or (), **additions,
                                          **({"wear": request["wear"]} if request.get("wear") is not None else {}), **({"body": request["body"]} if request.get("body") else {}))
         swing = reports.get("swing") or {}
         clips = check(plain, animated, request["skeleton"], expressions=bool(request["recipe"].get("expressions")), swinging=swing.get("made"), soft=(reports.get("soft") or {}).get("made"),
-                      bust=(reports.get("bust") or {}).get("size", 0.0), shape=request.get("body") or None)
+                      bust=(reports.get("bust") or {}).get("size", 0.0), shape=request.get("body") or None,
+                      **{field: value for field, value in additions.items() if field not in LEGACY_BUILD_FIELDS})
         note("Drawing a picture of it")
         picture = preview(jobs.cfg, plain)
         store(jobs.lib, job.npc_id, plain, animated, clips, request, reports, picture)
@@ -1411,7 +1374,7 @@ def _body(jobs, job, step, npc):
         step.pop("detail", None)
         spring = (f', spring bones on its {" and ".join(("hair" if part == "hair" else part) for part in swing["parts"])}' if swing.get("parts") else "") + (
             f' ({"; ".join(f"no swinging {part}: {why}" for part, why in swing["left_off"].items())})' if swing.get("left_off") else "") + (
-            f', soft-body bones on its {joined(part for part in softbody.PARTS if part in reports["soft"]["made"])}' if reports.get("soft") else "") + (
+            f', soft-body bones on its {joined(reports["soft"]["made"])}' if reports.get("soft") else "") + (
             f', bust size {reports["bust"]["size"] * 100:+.0f} %' if reports.get("bust") else "") + (
             f', body shape (bust size {reports["body_shape"]["bust"]:+.2f})' if reports.get("body_shape") else "")
         step["note"] = f'{request["base_label"]}, {SKELETONS[request["skeleton"]]["label"].lower()}, {len(clips)} clips{spring}, made in {reports["seconds"]:.0f} s.'

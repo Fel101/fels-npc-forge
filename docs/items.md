@@ -150,7 +150,7 @@ picture for the list is drawn in the background a few seconds later), and `pytho
 the `face`, `fit`, `fits` and `worn` routes in [glasses.md](glasses.md#on-a-characters-face)): the item then carries a `fits` field, the nudge kept for each character.
 
 **Fitted clothes** (only with the Body Designer add-on, which is not part of this release) work the same way on the page (a designer with a live preview of the pattern, no pictures and no job) and have their own try-on: **Try it on a character** fits the garment (a shirt, trousers, a skirt, a dress, a jacket or an apron: the last two only over a body that wears a shirt and trousers, a skirt takes the trousers off and a dress takes off the shirt and the trousers)
-to a character whose 3D model is a designed body, in place of the garment of that kind it was made with, in about half a minute (about a minute for a body with face shapes, spring bones or soft-body motion, which is built again to fit it; `python -m npcgen item dress`, and the `dress` routes and
+to a character whose 3D model is a designed body, in place of the garment of that kind it was made with, in about half a minute (about a minute for a body with face shapes or spring bones, which is built again to fit it; `python -m npcgen item dress`, and the `dress` routes and
 `worn` in [api.md](api.md)). A shirt's length is offered from 0.9 to 1.0, what the Body Designer fits (see the Body Designer add-on's own notes).
 
 The API: `GET/POST /api/items`, `GET/PUT/DELETE /api/items/<id>`, `POST /api/items/<id>/make` (`{"request": {"make", "finish", "redo"},

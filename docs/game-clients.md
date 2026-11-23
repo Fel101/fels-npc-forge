@@ -30,7 +30,7 @@ A client that names no engine, such as a companion app asking for one portrait w
 
 ## Portraits are head and shoulders unless you ask for more
 
-- `options.portrait_framing`: `bust` (the default: head and shoulders), `half` (to the waist) or `full`. Anything else is a 400.
+- `options.portrait_framing`: omit for the default head-and-shoulders view, set `half` to crop at the waist, or use `full` for the full figure.
 - **A description's stance sentences are left out of the portrait** (the sprite keeps them): a clause that begins with *standing*, *stands* or *posed*, or names an A-pose or T-pose, a whole body or full length,
   arms or hands held out, at the sides, crossed, on the hips, or "both hands empty and open". Hands *stained with ink* and a coat *standing open* are kept. For a head-and-shoulders or waist-up
   portrait what is worn below the waist (trousers, skirts, stockings and socks, breeches, waders, bare feet, every kind of shoe and boot, even one that is "missing") is left out as well, as it already
@@ -52,7 +52,7 @@ A client that names no engine, such as a companion app asking for one portrait w
 usable, and making an asset again clears its flag. If you know an edit does not touch some of them, say so: `{... "keep_fresh": ["sprite", "sheet", "model_3d", "animations"]}` (the kinds are
 `portrait`, `sprite`, `sheet`, `living`, `model_3d`, `rig_3d`, `head_3d`, `expressions`, `animation_views`, `animations`). Something already marked stale that is still right is cleared with
 `POST /api/npcs/<id>/fresh` `{"kinds": ["sprite", "sheet"]}` (the files are not touched). To make one asset again, ask for just that: `POST /api/generate`
-`{"npc_id": ..., "assets": {"portrait": true, "expressions": ["happy"]}, "options": {"reroll": true, "portrait_framing": "bust"}}` queues those and nothing else, and the framing option
+`{"npc_id": ..., "assets": {"portrait": true, "expressions": ["happy"]}, "options": {"reroll": true}}` queues those and nothing else, and the framing option
 means the description does not have to be edited at all.
 
 ## What the queue tells you

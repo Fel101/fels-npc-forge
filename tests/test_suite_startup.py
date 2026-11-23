@@ -48,7 +48,7 @@ def test_server_announces_the_bound_port_and_removes_it_on_exit(isolated_startup
         entry = fels_suite.read_address("npc-forge")
         assert entry["url"] == f"http://127.0.0.1:{httpd.server_port}"
         assert entry["pid"] == os.getpid()
-        assert entry["api"] == 45
+        assert entry["api"] == server.API_VERSION
         assert entry["instance"]
 
     monkeypatch.setattr(server.NPCServer, "serve_forever", serve_once)

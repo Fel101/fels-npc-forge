@@ -60,7 +60,7 @@ Run these before you open a pull request:
 
 ```bash
 python -m pytest                                 # about 2,000 tests; run the files you touched while you work
-node --test scripts/check_scene_studio.mjs scripts/check_scene_history.mjs scripts/check_soft_preview.mjs scripts/check_scene_director.mjs scripts/check_scene_motion.mjs scripts/check_voice_workspace.mjs
+node --test scripts/check_scene_studio.mjs scripts/check_scene_history.mjs scripts/check_scene_director.mjs scripts/check_scene_motion.mjs scripts/check_voice_workspace.mjs
 ```
 
 CI runs both on Windows and Linux, with Python 3.10 and 3.12, for every push and pull request.

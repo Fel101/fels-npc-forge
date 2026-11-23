@@ -39,9 +39,9 @@ TABLE_OVERRIDES = ("hair_styles", "dyed_hair_colors", "facial_hair", "glasses", 
 EXTRA_SETTINGS = []
 
 
-def add_settings_dir(directory, visible=None):
+def add_settings_dir(directory, visible=None, *, adult_only=False):
     """Read settings (same format as data/settings/*.json) from `directory` too, while visible() is true."""
-    EXTRA_SETTINGS.append((pathlib.Path(directory), visible))
+    EXTRA_SETTINGS.append((pathlib.Path(directory), visible, adult_only))
 
 
 def _is_visible(visible):
@@ -58,10 +58,22 @@ def _read_json(path):
 def hidden_setting_ids():
     """Ids of the settings that exist in a registered folder that is switched off right now."""
     hidden = set()
-    for directory, visible in EXTRA_SETTINGS:
+    for directory, visible, _ in EXTRA_SETTINGS:
         if not _is_visible(visible) and directory.is_dir():
             hidden |= {p.stem for p in directory.glob("*.json")}
     return hidden
+
+
+def extension_adult_settings():
+    return {path.stem for directory, _, adult_only in EXTRA_SETTINGS if adult_only
+            for path in directory.glob("*.json") if not (DATA_DIR / "settings" / path.name).is_file()}
+
+
+def adult_problem(npc):
+    age = (npc.get("profile") or {}).get("age")
+    if type(age) is not int or age < ADULT_AGE:
+        return f"This character must have a stated age of {ADULT_AGE} or older."
+    return None
 
 
 def load_data():
@@ -69,10 +81,14 @@ def load_data():
     read = _read_json
     settings = {p.stem: read(p) for p in (DATA_DIR / "settings").glob("*.json")}
     built_in = set(settings)
-    for directory, visible in EXTRA_SETTINGS:
+    for directory, visible, adult_only in EXTRA_SETTINGS:
         if directory.is_dir() and _is_visible(visible):
             for p in directory.glob("*.json"):
-                settings.setdefault(p.stem, read(p))         # a built-in setting is never replaced
+                setting = read(p)
+                if adult_only:
+                    setting["_extension_adult"] = True
+                    setting["min_age"] = max(ADULT_AGE, setting.get("min_age") or 0)
+                settings.setdefault(p.stem, setting)         # a built-in setting is never replaced
     styles = {k: v for k, v in read(DATA_DIR / "styles.json").items() if not k.startswith("_")}
     return {
         "common": read(DATA_DIR / "common.json"),
@@ -311,7 +327,7 @@ def normalize(data, npc):
     profile["age_group"] = age_group_for(common, profile["age"])
     if p_in.get("age_source") in AGE_SOURCES:                  # how a described character's age came about (roll_npc)
         profile["age_source"] = p_in["age_source"]
-    grown = {"adult": True} if npc.get("adult") is True else {}
+    grown = {"adult": True} if npc.get("adult") is True or setting.get("_extension_adult") else {}
     if grown and profile["age"] < ADULT_AGE:
         raise ValueError(f"This character was made as a grown adult, so the age must be {ADULT_AGE} or more")
     for field in ("personality", "hobbies"):
@@ -415,6 +431,7 @@ def roll_npc(data, setting_id, constraints=None, locked=None, seed=None, freefor
     cons = {k: v for k, v in (constraints or {}).items() if v}
     lock = {k: v for k, v in (locked or {}).items() if v is not None}
     setting = data["settings"][setting_id]
+    adult = adult or setting.get("_extension_adult") is True
     common = {**data["common"], **{k: setting[k] for k in TABLE_OVERRIDES if k in setting}}
     fantasy = "races" in setting
     requested_morphology = None

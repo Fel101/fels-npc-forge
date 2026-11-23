@@ -18,8 +18,6 @@ The first public release.
 - **Experimental:** the Voice Designer, Scenes and Creatures tabs.
 - **Updates:** About > Check for updates and Update now, and `update.bat` / `update.sh` (with `--check`, `--dry-run` and
   `--undo`), keeping the library, `config.json`, `local` and `.venv`.
-- **Adult features (18+):** the Adult studio and the Models setting, made for the Altera companion app, off and out of sight
-  until About > π > 18+ is ticked; adults only, nothing that reads as a minor, no real people, nothing non-consensual.
 - **Agents:** an MCP server (`python -m npcgen.mcp`) so Claude Code, Codex, opencode and other MCP clients can make characters
   and export them for a game.
 - The Body Designer (designed bodies and fitted clothes) is an optional add-on and is not part of this release.

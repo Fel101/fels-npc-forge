@@ -18,11 +18,12 @@ How to drive it from a game's own scripts, with the options that matter for a bu
 
 ## Changes
 
+- **API 46.** Optional body build controls are served by their local extension. Existing characters keep their saved settings.
 - **API 45.** `GET /api/health` adds a `fels` object with `contract`, `app`, `version` and `api`. Use
   `GET /api/health?identity=1` to read just that object without waiting for the ComfyUI and tool checks.
 
 
-166 routes.
+165 routes.
 
 
 ## Server, settings and the queue
@@ -116,7 +117,6 @@ How to drive it from a game's own scripts, with the options that matter for a bu
 | `POST` | `/api/generate` | Queue pictures, animations, 3D and voice for a character: body {npc_id, assets, options}. |
 | `GET` | `/api/npcs/{npc}/body-3d` | What the designed-body card needs for this character: whether the Body tab saved a body for it, the base that suits its gender, and what its 3D model was designed from (or null). |
 | `POST` | `/api/npcs/{npc}/body-3d/colours` | Put new colours on the garments a designed body wears without making the body again: body {"colours": {"shirt": "#3f6ba8", ...}} (only garments it wears). |
-| `GET` | `/api/npcs/{npc}/body-3d/soft-preview.glb` | The character's animated designed body with every part of the soft-body motion (chest, butt, belly, thighs) built in at full strength, for the page's live jiggle preview (web/soft-preview.js; it moves the spring bones with the engine's own maths and lets the sliders choose how much of each shows). |
 | `GET` | `/api/npcs/{npc}/face` | Whether this character's face has been scanned (to fit glasses to it), what is happening now, and a summary of the scan. |
 | `POST` | `/api/npcs/{npc}/face/scan` | Scan this character's face on a thread of its own (about 40 seconds): body {"force": bool, "estimate": bool}. |
 | `DELETE` | `/api/npcs/{npc}/face/scan` | Stop this character's face scan. |

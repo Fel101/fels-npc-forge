@@ -14,7 +14,7 @@ import { commercialBadge, licenceNote, openLicences, optionTag } from './licence
 // disagree. The server reports its api_version; if it is older than this page needs, features that depend on the
 // newer server are switched off and a banner says how to fix it (instead of crashing on a missing field).
 // Keep in sync with API_VERSION in server.py (a test checks this).
-const REQUIRED_API = 45;
+const REQUIRED_API = 46;
 
 // ---------- small components ---------------------------------------------------------------------------------
 const card = (title, ...kids) => h('section', { class: 'card' }, h('h3', {}, title), ...kids);
@@ -447,8 +447,7 @@ function renderSheet() {
   const npc = S.draft;
   if (!npc) {
     box.replaceChildren(h('div', { class: 'empty' }, h('h2', {}, 'No NPC yet'),
-      h('p', {}, 'Roll a character, tweak anything you like, then generate portraits, sprites and expressions.'),
-      h('p', { class: 'hint' }, 'The body options (bust size, jiggle, clothes) are on a saved character’s 3D model card, under Designed body: open a character and press Body options.'),
+      h('p', {}, 'Roll a character and change anything you like. The character sheet needs no graphics card. Pictures, sprites and generated 3D models need ComfyUI.'),
       btn('Roll NPC', 'dice', safe(rollNpc), { cls: 'primary' })));
     return;
   }
@@ -460,7 +459,7 @@ function renderSheet() {
       npc.id && btn('Start scene', 'plus', () => sceneController.createWithNpc(npc),
         { title: 'Start a scene with this NPC', disabled: S.outdated || S.dirty || S.dialogueDirty }),
       npc.id && S.health?.body_3d?.bases?.length > 0 && btn('Body options', null, jumpToBody,
-        { title: 'Go to the Designed body in the 3D model card: bust size, jiggle, clothes, hair, skin marks and the rest of a body from the Body Designer' }),
+        { title: 'Go to the body options in the 3D model card' }),
       btn('Generate', 'zap', safe(() => generateDraft()), { cls: 'primary' }),
       npc.id && btn('', 'trash', safe(deleteDraft), { cls: 'icon danger', title: 'Delete this NPC' })));
 
@@ -678,7 +677,11 @@ function assetTile({ cls, title, kind, key, meta, busy, checker }) {
 }
 
 function renderGallery() {
-  const media = $('#hero-media'), box = $('#gallery'); if (!media || !box || !S.draft) return;
+  const media = $('#hero-media'), box = $('#gallery');
+  if (!media || !box || !S.draft) {
+    bodyOptions.forEach(option => option.close?.());
+    return;
+  }
   stopAnimTimers();
   const npc = S.draft, a = npc.assets || {}, busy = busyMap(npc.id);
   const plan = S.cfg.morphologies?.[npc.morphology];
@@ -739,13 +742,14 @@ function model3dCard(npc, assets, busy) {
     !meta && !S.outdated ? btn('Generate 3D model', 'zap', safe(make3d), { cls: 'small', disabled: !!running || unsupported }) : null,
     npc.id ? uploadModelRow(npc, busy) : null,
     unsupported ? h('p', { class: 'hint' }, `There is no checked method yet for making a 3D model of a character with a ${plan.label} body plan.`) : null,
-    h('p', { class: 'hint' }, meta?.size ? `${meta.engine || '3D model'}${generatedQuality}${eyesSoftened}${imported}${frontReference}${runtime}${meta.textured ? ' · textured' : ''} · ${(meta.size / (1024 * 1024)).toFixed(1)} MB · GLB` :
+    h('p', { class: 'hint' }, meta?.size ? `${meta.designed && !S.health?.body_3d?.bases?.length ? 'Designed model' : meta.engine || '3D model'}${generatedQuality}${eyesSoftened}${imported}${frontReference}${runtime}${meta.textured ? ' · textured' : ''} · ${(meta.size / (1024 * 1024)).toFixed(1)} MB · GLB` :
       S.recipe.options.three_d_model === 'trellis2' ? 'Makes the shape locally with Trellis2 in ComfyUI from the model sheet\'s four pictures (made first if missing). It has no colour of its own: paint it with the clean-up below once it is made.' :
       `Generates a GLB locally with ${selected} in ComfyUI. Pixal3D uses full-body turnarounds for shape and the selected face source for close-up texture; its turnaround face crop is recommended, while the portrait crop is experimental.`),
     !meta && S.recipe.options.three_d_model === 'pixal3d' && quality ? h('p', { class: 'hint' }, `${quality.label}. ${quality.estimate}; actual time varies, and the high setting can take longer than an hour.`) : null,
     earlierModels(npc, assets, busy),
     bestSection(busy, unsupported),
     npc.id ? importSection(npc, meta, busy) : null,
+    npc.body_extension_notice ? h('p', { class: 'notice', role: 'status' }, npc.body_extension_notice) : null,
     bodySection(npc, assets, busy),
     meta && !meta.designed ? refineSection(npc, assets.model_3d, busy) : null,   // (a designed body is not generated from pictures: nothing to clean up or paint)
     meta ? rigSection(npc, assets, busy) : null,
@@ -1034,8 +1038,10 @@ const KIND_NAME = { shirt: 'a sleeveless shirt', trousers: 'fitted trousers', sk
 const GARMENT_NAME = { shirt: 'shirt', trousers: 'trousers', skirt: 'skirt', dress: 'dress', jacket: 'jacket', apron: 'apron' };
 // A designed body (npcgen/bodymaker.py): the Body Designer's adult body built from its recipe, rigged, and given the animation library's clips, with
 // Blender on the CPU and no GPU. It becomes this character's 3D model and skeleton in one step. Only ever done from here: nothing is made unless asked.
+const bodyOptions = [];
+
 function bodyState(npcId) {
-  if (S.bodyState?.npcId !== npcId) S.bodyState = { npcId, loaded: false, loading: false, saved: false, base: '', skeleton: 'low', useSaved: false, face: '', texture: 2048, match: true, said: {}, skipped: {}, clothes: 'basic', outer: 'sheet', colours: {}, recolouring: false, hair: '', outfit: {}, hairSheet: {}, marks: '', marksInfo: null, expressions: '', swingHair: '', swingCloth: '', softOn: null, soft: {}, bust: null, shape: null, shapeBust: null };
+  if (S.bodyState?.npcId !== npcId) S.bodyState = { npcId, loaded: false, loading: false, saved: false, base: '', skeleton: 'low', useSaved: false, face: '', texture: 2048, match: true, said: {}, skipped: {}, clothes: 'basic', outer: 'sheet', colours: {}, recolouring: false, hair: '', outfit: {}, hairSheet: {}, marks: '', marksInfo: null, expressions: '', swingHair: '', swingCloth: '', shape: null };
   return S.bodyState;
 }
 
@@ -1079,86 +1085,6 @@ function swingRequest(st, health, designed) {
 }
 
 /** Words as a list in a sentence: 'a', 'a and b', 'a, b and c'. */
-const andList = words => words.length > 1 ? `${words.slice(0, -1).join(', ')} and ${words[words.length - 1]}` : words.join('');
-
-/** What the card's Soft-body motion tick box says: true or false. A body made again starts as the one it replaces. */
-const softOn = (st, designed) => st.softOn ?? !!designed?.soft;
-
-/** The number of a soft-body slider (0 to 1): what was moved, else what the body was made with, else the default the server offers (npcgen/softbody.py DEFAULTS). */
-const softValue = (st, key, designed, info) => st.soft[key] ?? designed?.soft?.request?.[key] ?? info.defaults[key];
-
-/** Whether the other choices on the card allow soft-body motion: true, or a sentence saying what is missing. It is made for the female body only. */
-function softAllowed(st, health) {
-  const base = st.base || health.bases?.[0]?.id || '';
-  return base.includes('female') || (st.useSaved && st.saved) ? true : 'It is made for the female body, so choose the female body above.';       // (a body taken from the Body Designer tab: the server looks)
-}
-
-/** The `soft` field of a request for a body: the numbers on the sliders while the tick box is on and the body allows it, else null (nothing said: no soft-body motion). */
-function softRequest(st, health, designed) {
-  const info = health.soft;
-  if (!info || softAllowed(st, health) !== true || !softOn(st, designed)) return null;
-  return Object.fromEntries(['intensity', 'chest', 'butt', 'belly', 'thighs', 'softness'].map(key => [key, softValue(st, key, designed, info)]));
-}
-
-/** The number on the Bust size slider (-1 smaller to 1 larger): what was moved, else what the body was made with, else 0 (npcgen/bustsize.py). */
-const bustValue = (st, designed) => st.bust ?? designed?.bust?.request ?? 0;
-const bustText = value => `${value > 0 ? '+' : ''}${Math.round(value * 100)} %`;
-
-/** The body shape the next body is made with (the Body Designer tab's body block: npcgen/bodymaker.py `shape_info`, `saved_shape`), or null for a body without one. With the box "Take the body saved in the Body
- *  Designer tab" ticked it is the saved body's own; otherwise the one this character's body was made with, while the same body is asked for. {source, form, bust, body}: `body` is the block to send back. */
-function shapeInPlay(st, designed, health, baseId) {
-  if (!health.body_shape) return null;
-  if (st.useSaved && st.saved) return st.shape ? { source: 'saved', form: st.shape.form, bust: st.shape.bust, body: st.shape.body } : null;
-  const block = designed?.body;
-  return block && (!designed.base || designed.base === baseId) ? { source: 'designed', form: block.form, bust: block.bust, body: block } : null;
-}
-
-/** The number on the Bust size slider of a body with a body shape (-1 smaller to 3 larger): what was moved, else the shape's own. */
-const shapeBustValue = (st, shape) => st.shapeBust ?? shape.bust;
-
-/** The `body` field of a request for a body: the body block of the shape the next body is made with, with the slider's number once it was moved; null when there is no shape, or when the server is to take the
- *  saved body's own shape as it is. */
-function bodyRequest(st, designed, health, baseId) {
-  const shape = shapeInPlay(st, designed, health, baseId);
-  if (!shape) return null;
-  if (st.shapeBust != null) return { ...shape.body, bust: st.shapeBust };
-  return shape.source === 'designed' ? shape.body : null;
-}
-
-/** The six numbers of the Soft-body motion sliders, in the order the card and the request say them. */
-const SOFT_KEYS = ['intensity', 'chest', 'butt', 'belly', 'thighs', 'softness'];
-
-/** The jiggle preview (web/soft-preview.js), kept across the card being drawn again: S.softPreview is {npcId, stamp (which skeleton file it plays), panel}. It is closed when another character is shown,
- *  when the body is being made again or has been, and when its Close button is pressed. */
-let previewLoading = false;
-function closeSoftPreview() {
-  S.softPreview?.panel?.destroy();
-  S.softPreview = null;
-}
-
-/** Open the preview for the character shown. It starts from the numbers the card has when the box is ticked (a body made with the option has them), else from the defaults with the belly and the thighs
- *  on, so that every part can be seen moving. */
-async function openSoftPreview(npc, designed, rig, st, health) {
-  closeSoftPreview();
-  previewLoading = true; renderGallery();
-  try {
-    const info = health.soft;
-    const values = softOn(st, designed) ? Object.fromEntries(SOFT_KEYS.map(key => [key, softValue(st, key, designed, info)])) : { ...info.defaults, belly: 0.6, thighs: 0.6 };
-    const { softPreviewPanel } = await import('./soft-preview.js');
-    S.softPreview = { npcId: npc.id, stamp: rig.created, panel: softPreviewPanel({ npcId: npc.id, stamp: rig.created, values, canUse: true, onUse: numbers => useSoftNumbers(npc.id, numbers),
-      onClose: () => { closeSoftPreview(); renderGallery(); } }) };
-  } finally { previewLoading = false; renderGallery(); }
-}
-
-/** "Use these numbers" in the preview: they go on the card's Soft-body motion sliders and the box is ticked. The body is made again from there, as for any other change. */
-function useSoftNumbers(npcId, numbers) {
-  const st = bodyState(npcId);
-  st.softOn = true;
-  st.soft = { ...st.soft, ...Object.fromEntries(SOFT_KEYS.map(key => [key, numbers[key]])) };
-  renderGallery();
-  toast('The card has these numbers now. Press “Make the body again” to build the body with them (about a minute).');
-}
-
 /** The "Body options" button in a character's header: the Designed body section is a long way down the 3D model card, so scroll it into view (below the bar that stays at the top of the page). */
 function jumpToBody() {
   const target = document.getElementById('designed-body');
@@ -1167,20 +1093,18 @@ function jumpToBody() {
   window.scrollTo(0, target.getBoundingClientRect().top + window.scrollY - (bar ? bar.getBoundingClientRect().height : 0) - 12);
 }
 
-/** The `bust` field of a request for a body: the slider's number when it is not 0 and the body allows it (the female body only: softAllowed says), else null (nothing said: as the Body Designer made it); null too for a body with a body shape, which has its one bust size in `body` (`bodyRequest`). */
-function bustRequest(st, health, designed) {
-  if (!health.bust || softAllowed(st, health) !== true || shapeInPlay(st, designed, health, st.base || health.bases?.[0]?.id)) return null;
-  return bustValue(st, designed) || null;
-}
-
 async function useBody() {
-  const st = S.bodyState, health = S.health?.body_3d, shapes = shapesValue(S.bodyState, S.draft.assets?.model_3d?.designed), swing = swingRequest(st, health, S.draft.assets?.model_3d?.designed), soft = softRequest(st, health, S.draft.assets?.model_3d?.designed), bust = bustRequest(st, health, S.draft.assets?.model_3d?.designed), body = bodyRequest(st, S.draft.assets?.model_3d?.designed, health, st.base || health.bases[0].id);
+  const st = S.bodyState, health = S.health?.body_3d, designed = S.draft.assets?.model_3d?.designed;
+  const shapes = shapesValue(st, designed), swing = swingRequest(st, health, designed);
+  const base = st.base || health.bases[0].id;
+  const body = !(st.useSaved && st.saved) && designed?.base === base ? designed.body : null;
+  const additions = Object.assign({}, ...bodyOptions.map(option => option.request?.({ st, health, designed, base })));
   if (S.draft.assets?.model_3d && !confirm('This replaces the current 3D model and its skeleton with a new adult body. A model made from pictures takes a long time to make again. Continue?')) return;
   await generateDraft({ portrait: false, sprite: false, expressions: [],
     body_3d: { base: st.base || health.bases[0].id, skeleton: st.skeleton, saved: st.useSaved && st.saved, replace: true, texture: st.texture, match: st.match,
       ...(health.clothes?.length ? (extraClothes(st, health) ? { clothes: st.clothes, outer: 'none' } : { clothes: st.clothes, outer: st.outer, colours: st.colours }) : {}), ...(st.hair ? { hair: st.hair } : {}),
       ...(st.face ? { face: st.face } : {}), ...(health.marks?.length && st.marks ? { marks: st.marks } : {}),
-      ...(health.expressions && shapes && st.face !== 'classic' ? { expressions: shapes === 'on' } : {}), ...(swing ? { secondary: swing } : {}), ...(soft ? { soft } : {}), ...(bust ? { bust } : {}), ...(body ? { body } : {}) } });          // (no face, hair or marks chosen: the Natural face, the sheet's hair and the sheet's marks for a new body, the saved ones for a saved one; face shapes and swinging parts only as chosen)
+      ...(health.expressions && shapes && st.face !== 'classic' ? { expressions: shapes === 'on' } : {}), ...(swing ? { secondary: swing } : {}), ...(body ? { body } : {}), ...additions } });          // (no face, hair or marks chosen: the Natural face, the sheet's hair and the sheet's marks for a new body, the saved ones for a saved one; face shapes and swinging parts only as chosen)
 }
 
 /** The colours chosen on the card go onto the clothes the body wears now, with no new body (npcgen/bodymaker.py `recolour`: the cloth of both files and the card's picture). */
@@ -1199,7 +1123,10 @@ async function recolourBody() {
 
 function bodySection(npc, assets, busy) {
   const health = S.health?.body_3d;
-  if (!health?.bases?.length || !npc.id) return null;            // no Body Designer here (or no saved character yet): nothing to offer
+  if (!health?.bases?.length || !npc.id) {
+    bodyOptions.forEach(option => option.close?.());
+    return null;
+  }
   const st = bodyState(npc.id);
   loadBodyState(npc.id);
   const running = busy.body_3d, designed = assets.model_3d?.designed, missing = health.missing || [];
@@ -1261,66 +1188,21 @@ function bodySection(npc, assets, busy) {
         undefined, { 'aria-label': info.label, disabled: !ok }));
   };
   const swungNames = designed?.swinging ? designed.swinging.parts.map(p => p === 'hair' ? 'hair' : p) : [];
-  const softInfo = health.soft || null, softOk = softInfo ? softAllowed(st, health) : false, softChecked = !!softInfo && softOk === true && softOn(st, designed);
-  const softSlider = (key, label, note) => {                   // (a slider moves its number as it is dragged and the card is not drawn again: dragging stays smooth)
-    const value = softValue(st, key, designed, softInfo), shown = h('span', { class: 'g-label', style: { textAlign: 'right' } }, `${Math.round(value * 100)} %`);
-    const range = h('input', { type: 'range', min: 0, max: 100, step: 5, value: Math.round(value * 100), 'aria-label': label, title: note });
-    range.addEventListener('input', () => { st.soft[key] = Number(range.value) / 100; shown.textContent = `${range.value} %`; });
-    return h('div', { class: 'g-row', title: note }, h('span', { class: 'g-label' }, label), range, shown, h('span', {}));
-  };
-  const softBlock = !softInfo ? null : h('div', { class: 'stack' },
-    h('label', { class: 'check', title: softOk === true ? softInfo.note : `${softInfo.label} is off. ${softOk}` },
-      h('input', { type: 'checkbox', checked: softChecked, disabled: softOk !== true || off, 'aria-label': softInfo.label, onchange: e => { st.softOn = e.target.checked; renderGallery(); } }),
-      h('span', {}, h('span', { class: 'name' }, `${softInfo.label} (jiggle)`), h('span', { class: 'hint', style: { display: 'block' } },
-        softOk === true ? `Off unless you tick it. Adds ${softInfo.bones} bones for each part chosen below (${softInfo.bones_by_part.belly} for the belly), for the game engine to move.` : softOk))),
-    softChecked ? h('div', { class: 'stack sub' },
-      softSlider('intensity', 'Intensity', 'How much of the skin around the chosen parts follows the spring bones. 100 % is all of it the body lets them have; each part’s slider takes its share of this.'),
-      softSlider('chest', 'Chest', 'The chest’s share of the intensity. At 0 the chest gets no spring bones and stays still.'),
-      softSlider('butt', 'Butt', 'The butt’s share of the intensity. At 0 the butt gets no spring bones and stays still.'),
-      softSlider('belly', 'Belly', 'The belly’s share of the intensity. At 0 (where it starts) the belly gets no spring bones and stays still.'),
-      softSlider('thighs', 'Thighs', 'The thighs’ share of the intensity. At 0 (where it starts) the thighs get no spring bones and stay still.'),
-      softSlider('softness', 'Softness', 'How loosely the springs swing: firm (0) is small and quick, soft (100) is bigger and slower; 50 is as suggested.')) : null);
-  const bustInfo = health.bust || null, bustOk = bustInfo ? softAllowed(st, health) : false;
-  const shapeData = health.body_shape || null, shape = shapeInPlay(st, designed, health, chosen.id);
-  const bustBlock = shape ? (() => {                           // (a body with a body shape has one bust size, in that shape: to the usual range, and as far as the shape's own number when that is beyond it)
-    const info = shapeData.bust, value = shapeBustValue(st, shape), label = info.labels?.[shape.form] || info.label, top = Math.max(Math.round(info.natural_max * 100), Math.ceil(value * 20) * 5);
-    const mm = shapeData.mm_per_unit?.[`${chosen.id}/${shape.form}`], shown = h('span', { class: 'g-label', style: { textAlign: 'right' } }, bustText(value));
-    const range = h('input', { type: 'range', min: Math.round(info.min * 100), max: top, step: 5, value: Math.round(value * 100), 'aria-label': label, disabled: off, title: info.note });
-    range.addEventListener('input', () => { st.shapeBust = Number(range.value) / 100; shown.textContent = bustText(st.shapeBust); });         // (dragging does not draw the card again)
-    return h('div', { class: 'stack' }, h('div', { class: 'g-row', title: info.note }, h('span', { class: 'g-label' }, label), range, shown, h('span', {})),
-      h('p', { class: 'hint' }, `This body has the body shape of the Body Designer tab (${shape.source === 'saved' ? 'the one saved there' : 'the one it was made with'}), and this is its one bust size: smaller to the left, larger to the right, 0 as that tab’s own shape. `
-        + (mm ? `+100 % puts the front of the bust about ${mm.forward} mm farther forward, -100 % about ${mm.back} mm farther back. ` : '') + (value > info.natural_max ? 'This is beyond the usual range (Advanced): some clothes may not fit it. ' : '') + 'Making the body again takes about a minute.'));
-  })() : !bustInfo ? null : (() => {
-    const value = bustValue(st, designed), shown = h('span', { class: 'g-label', style: { textAlign: 'right' } }, bustText(value));
-    const range = h('input', { type: 'range', min: -100, max: 100, step: 5, value: Math.round(value * 100), 'aria-label': bustInfo.label, disabled: bustOk !== true || off,
-      title: bustOk === true ? bustInfo.note : `${bustInfo.label} is off. ${bustOk}` });
-    range.addEventListener('input', () => { st.bust = Number(range.value) / 100; shown.textContent = bustText(st.bust); });         // (dragging does not draw the card again)
-    return h('div', { class: 'stack' }, h('div', { class: 'g-row', title: bustInfo.note }, h('span', { class: 'g-label' }, bustInfo.label), range, shown, h('span', {})),
-      h('p', { class: 'hint' }, bustOk === true ? 'Smaller to the left, larger to the right; 0 is the body as the Body Designer made it. Making the body again takes about a minute.' : bustOk));
-  })();
   const shaped = designed ? Object.entries(designed.recipe?.values || {}).filter(([, v]) => v).map(([k, v]) => `${k.replace(/_/g, ' ')} ${v > 0 ? '+' : ''}${v}`) : [];
   const wornList = designed ? [...(designed.wears?.kinds?.length ? [[`${designed.wears.kinds.join(' and ')} (underwear)`]] : designed.clothes_choice ? [[(clothesList.find(x => x.id === designed.clothes_choice)?.label || designed.clothes_choice).toLowerCase()]] : []),
     ...(designed.clothes || []).map(c => [kindName[c.kind] || c.kind, c.colour ? dot(c.colour) : ''])] : [];
-  const rigOk = !!(assets.rig_3d?.file && assets.rig_3d.joints_from === 'designed body');
-  if (S.softPreview && (S.softPreview.npcId !== npc.id || running || S.softPreview.stamp !== assets.rig_3d?.created)) closeSoftPreview();
-  const previewOpen = S.softPreview?.npcId === npc.id && !!S.softPreview.panel;
-  const previewWhy = !String(designed?.base || '').includes('female') ? 'Soft-body motion is made for the female body.' : !rigOk ? 'This character’s skeleton is not the designed body’s own: make the body again.'
-    : running ? 'The body is being made.' : S.outdated ? 'The server is older than this page: restart NPC Forge.' : '';
-  const previewButton = designed && softInfo ? btn(previewOpen ? 'Close the jiggle preview' : previewLoading ? 'Loading the preview…' : 'Preview the jiggle', null,
-    safe(() => previewOpen ? (closeSoftPreview(), renderGallery()) : openSoftPreview(npc, designed, assets.rig_3d, st, health)), { cls: 'small', disabled: (!previewOpen && !!previewWhy) || previewLoading,
-    title: previewWhy || 'Watch this body move with the spring bones of every part, and try the sliders live, before making it again' }) : null;
   return h('div', { class: 'model3d-rig stack', id: 'designed-body' },
     h('h4', {}, 'Designed body'),
     running ? h('div', { class: 'notice' }, h('div', { class: 'spinner' }), running) : null,
     st.recolouring ? h('div', { class: 'notice' }, h('div', { class: 'spinner' }), 'Putting the new colours on the body…') : null,
     designed ? h('p', { class: 'hint' }, `This character's model is a designed body: ${designed.label}, ${designed.skeleton} skeleton, ${designed.height_m} m tall`
-      + `${shaped.length ? ', ' + shaped.join(', ') : ', neutral proportions'}${designed.face ? `, ${designed.recipe?.version === 11 ? 'Polish' : designed.face === 'natural' ? 'Natural' : 'Classic'} face` : ''}${designed.recipe?.hair ? `, ${cap(designed.recipe.hair.style)} hair` : ''}${designed.marks?.text ? `, skin marks (${designed.marks.text})` : ''}${designed.expressions ? ', face expressions' : ''}${designed.bust ? `, bust size ${bustText(designed.bust.request)}` : ''}${designed.body_shape ? `, body shape (${designed.body_shape.form === 'pectoral' ? 'pectoral' : 'bust'} size ${bustText(designed.body_shape.bust)})` : ''}${swungNames.length ? `, spring bones on its ${swungNames.join(' and ')} (${designed.swinging.joints - designed.swinging.core_joints} more bones)` : ''}${designed.soft ? `, soft-body motion on its ${andList(Object.keys(designed.soft.made))} (${designed.soft.bones} more bones)` : ''}`,
+      + `${shaped.length ? ', ' + shaped.join(', ') : ', neutral proportions'}${designed.face ? `, ${designed.recipe?.version === 11 ? 'Polish' : designed.face === 'natural' ? 'Natural' : 'Classic'} face` : ''}${designed.recipe?.hair ? `, ${cap(designed.recipe.hair.style)} hair` : ''}${designed.marks?.text ? `, skin marks (${designed.marks.text})` : ''}${designed.expressions ? ', face expressions' : ''}${swungNames.length ? `, spring bones on its ${swungNames.join(' and ')} (${designed.swinging.joints - designed.swinging.core_joints} more bones)` : ''}`,
       wornList.length ? [', wearing ', ...wornList.flatMap((n, i) => [i ? ', ' : '', ...n])] : '',
       `${Object.keys(designed.clothes_failed || {}).length ? ` (no ${Object.keys(designed.clothes_failed).join(' or ')}: it did not fit this body)` : ''}${Object.keys(designed.swinging_left_off || {}).length ? ` (no swinging ${Object.keys(designed.swinging_left_off).join(' or ')}: ${Object.values(designed.swinging_left_off).join('; ')})` : ''}${designed.from_saved ? ' (from the Body Designer tab)' : ''}`
       + `${designed.matched?.said && Object.keys(designed.matched.said).length ? `, matched to the sheet (${Object.entries(designed.matched.said).map(([k, v]) => (sayings[k] || (x => x))(v)).join(', ')})` : ''}.`) : null,
     h('div', { class: 'row wrap' },
       h('label', { class: 'row wrap' }, h('span', { class: 'hint' }, 'Body'),
-        sel(health.bases.map(b => [b.id, b.label]), chosen.id, v => { st.base = v; st.shapeBust = null; renderGallery(); }, undefined, { 'aria-label': 'Body' })),
+        sel(health.bases.map(b => [b.id, b.label]), chosen.id, v => { st.base = v; bodyOptions.forEach(option => option.reset?.(st)); renderGallery(); }, undefined, { 'aria-label': 'Body' })),
       h('label', { class: 'row wrap', title: skeleton.note }, h('span', { class: 'hint' }, 'Skeleton'),
         sel(health.skeletons.map(k => [k.id, k.label]), skeleton.id, v => { st.skeleton = v; renderGallery(); }, undefined, { 'aria-label': 'Skeleton of the designed body' })),
       faces.length > 1 ? h('label', { class: 'row wrap', title: faceNote }, h('span', { class: 'hint' }, 'Face'),
@@ -1344,24 +1226,20 @@ function bodySection(npc, assets, busy) {
       textures.length ? h('label', { class: 'row wrap', title: textures.find(t => t.id === st.texture)?.note }, h('span', { class: 'hint' }, 'Skin'),
         sel(textures.map(t => [t.id, t.label]), st.texture, v => { st.texture = Number(v); renderGallery(); },
           undefined, { 'aria-label': 'Skin size of the designed body' })) : null),
-    bustBlock,
-    softBlock,
+    ...bodyOptions.map(option => option.render?.({ npc, assets, health, st, designed, chosen, off, running,
+      outdated: S.outdated, redraw: renderGallery })),
     hairList.length || clothesList.length ? h('p', { class: 'hint' }, hairList.length ? `Hair: ${hairNote} ` : '', clothesList.length ? ['Clothes: ', clothesNote] : '') : null,
     marksList.length || (shapesInfo && faceValue !== 'classic') ? h('p', { class: 'hint' }, marksList.length ? `Skin marks: ${marksNote} ` : '', shapesInfo && faceValue !== 'classic' ? `Face expressions: ${shapesNote}` : '') : null,
     swingInfo ? h('p', { class: 'hint' }, `Swinging hair and cloth: ${swingInfo.note}`, ...['hair', 'cloth'].filter(part => allowed[part] !== true).map(part => ` ${swingInfo[part].label} is off: ${allowed[part][0].toLowerCase()}${allowed[part].slice(1)}`)) : null,
-    softInfo ? h('p', { class: 'hint' }, `Soft-body motion: ${softInfo.note}`) : null,
-    shape || bustInfo ? h('p', { class: 'hint' }, `Bust size: ${shape ? shapeData.bust.note : bustInfo.note}`) : null,
     colourRow,
     savedBody ? null : check('Match the body to the character', st.match, v => { st.match = v; renderGallery(); }, matchNote),
-    st.saved ? check('Take the body saved in the Body Designer tab', st.useSaved, v => { st.useSaved = v; st.shapeBust = null; renderGallery(); },
+    st.saved ? check('Take the body saved in the Body Designer tab', st.useSaved, v => { st.useSaved = v; bodyOptions.forEach(option => option.reset?.(st)); renderGallery(); },
       'Its proportions, colours and face. For the other body: its proportions only, with the colours the sheet describes.') : null,
     h('div', { class: 'row wrap model3d-actions' },
-      btn(designed ? 'Make the body again' : 'Use this body', 'zap', safe(useBody), { cls: 'small', disabled: off || !!wearing?.problem,
-        title: why || wearing?.problem || "Build the body, rig it and add the animation library's clips" }),
+      btn(designed ? 'Make the body again' : 'Use this body', 'zap', safe(useBody), { cls: 'small', disabled: off || !!wearing?.problem || !!npc.body_extension_notice,
+        title: why || wearing?.problem || npc.body_extension_notice || "Build the body, rig it and add the animation library's clips" }),
       designed?.clothes?.length ? btn('Change the colours of this body', null, safe(recolourBody), { cls: 'small', disabled: off || st.recolouring || !Object.keys(touched).length,
-        title: Object.keys(touched).length ? 'Put the colours chosen above on the clothes this body wears, without making it again (a few seconds)' : 'Choose a colour above first' }) : null,
-      previewButton),
-    previewOpen ? S.softPreview.panel.element : null,
+        title: Object.keys(touched).length ? 'Put the colours chosen above on the clothes this body wears, without making it again (a few seconds)' : 'Choose a colour above first' }) : null),
     h('p', { class: 'hint' }, why || "Builds the Body Designer's adult body (no GPU; about a minute), rigs it with the animation library's 85 clips and makes it this "
       + (extra ? "character's 3D model. What it wears is as the Clothes choice above says, with the hair chosen above." : "character's 3D model. It wears plain underwear, a layer of its own, then the clothes and the hair chosen above.")
       + (assets.model_3d && !designed ? ' It replaces the current model and skeleton.' : '')));
@@ -2062,6 +1940,11 @@ function applyConfig(cfg) {
  *  setting, a tab): what the server lists has changed, and anything open that belonged to it is closed. */
 async function reloadConfig() {
   applyConfig(await api('GET', '/api/config'));
+  if (S.draft?.id) {
+    const draft = S.draft;
+    const saved = await api('GET', '/api/npcs/' + draft.id).catch(() => null);
+    if (saved) draft.body_extension_notice = saved.body_extension_notice;
+  }
   if (!S.cfg.settings[S.recipe.setting]) {
     S.recipe.setting = S.cfg.defaults.setting; S.recipe.constraints.occupation = ''; S.recipe.constraints.origin = ''; S.recipe.constraints.hair_color = '';
     S.recipe.constraints.hair_style = ''; saveRecipe();
@@ -2070,6 +1953,7 @@ async function reloadConfig() {
   if (S.draft && !S.cfg.settings[S.draft.setting]) { S.draft = null; S.dirty = false; S.dialogueDirty = false; S.locks.clear(); }
   await refreshLibrary();
   render();
+  refreshHealth().then(renderGallery);
 }
 
 // ---------- about + extensions --------------------------------------------------------------------------------------
@@ -2151,7 +2035,10 @@ $('#settingsBtn').addEventListener('click', openSettings);
 $('#about').addEventListener('click', e => { if (e.target === e.currentTarget) e.currentTarget.close(); });     // a click on the backdrop
 
 // What a local extension's script may use (see "Local extensions" in the README). Defined before any of them load.
-window.NPCForge = { version: 1, reload: reloadConfig, toast, aboutFooter: () => $('#aboutFoot') };
+window.NPCForge = {
+  version: 1, reload: reloadConfig, toast, aboutFooter: () => $('#aboutFoot'),
+  addBodyOptions(option) { bodyOptions.push(option); renderGallery(); },
+};
 
 function loadExtensionUi() {
   for (const u of S.cfg.ui || []) {

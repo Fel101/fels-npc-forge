@@ -274,7 +274,7 @@ def test_health_reports_comfyui_offline_instead_of_failing(api):
     assert status == 200 and health["online"] is False
     assert "gpu_rule" in health
     config = api("GET", "/api/config")[1]
-    assert health["fels"] == {"contract": 1, "app": "npc-forge", "version": config["version"], "api": 45}
+    assert health["fels"] == {"contract": 1, "app": "npc-forge", "version": config["version"], "api": config["api_version"]}
 
 
 def test_identity_health_does_not_need_comfyui(api, monkeypatch):

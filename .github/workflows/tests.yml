@@ -24,4 +24,4 @@ jobs:
         with:
           node-version: "22"
       # The page's own modules, run under Node (the *_real checks need a running NPC Forge and are not run here).
-      - run: node --test scripts/check_scene_studio.mjs scripts/check_scene_history.mjs scripts/check_soft_preview.mjs scripts/check_scene_director.mjs scripts/check_scene_motion.mjs scripts/check_voice_workspace.mjs
+      - run: node --test scripts/check_scene_studio.mjs scripts/check_scene_history.mjs scripts/check_scene_director.mjs scripts/check_scene_motion.mjs scripts/check_voice_workspace.mjs

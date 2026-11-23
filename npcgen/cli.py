@@ -18,7 +18,7 @@ import time
 import zipfile
 
 from . import __version__
-from . import best3d, bodymaker, cast, clothing, engines, equip, export, facefit, glasses, head3d, import3d, items, morphology, outfit, prompts, rig3d, roll, service, sheet, softbody, three_d
+from . import best3d, bodymaker, cast, config, clothing, engines, equip, export, facefit, glasses, head3d, import3d, items, morphology, outfit, prompts, rig3d, roll, service, sheet, three_d
 from .app import App
 from .comfy import ComfyError
 
@@ -290,16 +290,9 @@ def build_parser(data):
                     help="add 18 spring bones to the Long hair, for the game engine to swing (needs --hair long, or a sheet that says long hair); off unless asked; saying either swinging option leaves the other off")
     bu.add_argument("--swinging-cloth", action=argparse.BooleanOptionalAction, default=None,
                     help="add 24 spring bones to the hem of a skirt or a dress, for the game engine to swing (needs one of them on the body, with nothing over it); off unless asked")
-    bu.add_argument("--soft-body", action=argparse.BooleanOptionalAction, default=None,
-                    help="add soft-body spring bones to the chest and the butt of the female body (jiggle), for the game engine to move, and give the skin around them a share of its weight; off unless asked; "
-                         "--soft-chest, --soft-butt, --soft-belly, --soft-thighs, --soft-intensity and --softness set how much (saying any of them turns it on; the belly and the thighs only get bones when given a number above 0)")
-    for flag, what, default in (("soft-intensity", "how much of the skin follows the spring bones, overall", "1"), ("soft-chest", "the chest's own share of that", "1"), ("soft-butt", "the butt's own share of that", "1"),
-                                ("soft-belly", "the belly's own share of that", "0: no belly bones"), ("soft-thighs", "the thighs' own share of that", "0: no thigh bones"),
-                                ("softness", "how loosely the springs swing: 0 firm, 0.5 as suggested, 1 very soft", "0.5")):
-        bu.add_argument("--" + flag, type=float, default=None, metavar="0-1", help=f"{what} (a number from 0 to 1; the default is {default})")
-    bu.add_argument("--bust-size", type=float, default=None, metavar="-1..1",
-                    help="make the bust of the female body smaller (down to -1) or larger (up to 1) than the Body Designer made it, in the body itself, so the underwear and the clothes fit it; "
-                         "0 or nothing: as made (the soft-body motion, if asked for, follows the new size)")
+    for step in bodymaker._active_steps().values():
+        if step.cli:
+            step.cli.add_arguments(bu)
     bu.add_argument("--recipe", metavar="FILE", help="a complete recipe as JSON (python -m bodydesigner recipe writes one: skin, eye and brow colours, finish); "
                                                       "--set is then not used")
     bu.add_argument("--replace", action="store_true", help="replace the character's 3D model and skeleton, if it has them (without it, it is refused)")
@@ -746,16 +739,6 @@ def cmd_item(a, data, app):
     return 1 if failed else 0
 
 
-def soft_request(a):
-    """The `soft` field of a `body use` request from its flags: None when none is said (a new body has no soft-body motion), {} for --no-soft-body, else the numbers said (the others take their defaults)."""
-    said = {key: value for key, value in (("intensity", a.soft_intensity), ("chest", a.soft_chest), ("butt", a.soft_butt), ("belly", a.soft_belly), ("thighs", a.soft_thighs), ("softness", a.softness)) if value is not None}
-    if a.soft_body is False:
-        return {}
-    if a.soft_body or said:
-        return said or True
-    return None
-
-
 def garment_colours(texts):
     """{garment: '#rrggbb'} from --colour GARMENT=#RRGGBB arguments (the garments and the colours are checked by what uses them)."""
     out = {}
@@ -796,8 +779,9 @@ def cmd_body(a, data, app):
     raw = {"base": a.base, "skeleton": a.skeleton, "values": values or None, "saved": a.saved, "replace": a.replace, "face": a.face, "texture": a.texture,
            "match": not a.no_match, "clothes": a.clothes, "outer": a.outer, "colours": garment_colours(a.colour), "hair": a.hair,
            "marks": a.marks, "expressions": a.expressions,
-           "secondary": {"hair": bool(a.swinging_hair), "cloth": bool(a.swinging_cloth)} if a.swinging_hair is not None or a.swinging_cloth is not None else None,
-           "soft": soft_request(a), "bust": a.bust_size}
+           "secondary": {"hair": bool(a.swinging_hair), "cloth": bool(a.swinging_cloth)} if a.swinging_hair is not None or a.swinging_cloth is not None else None}
+    steps = bodymaker._active_steps()
+    raw.update({name: step.cli.value(a) for name, step in steps.items() if step.cli})
     if a.recipe:
         try:
             raw["recipe"] = json.loads(pathlib.Path(a.recipe).read_text("utf-8-sig"))
@@ -828,10 +812,9 @@ def cmd_body(a, data, app):
         print("  with face shapes and eyes that can look about")
     if body.get("secondary"):
         print("  with spring bones on its " + " and ".join(part for part in bodymaker.SWINGING_PARTS if body["secondary"].get(part)).replace("cloth", "skirt or dress") + " for the game engine to swing")
-    if body.get("soft"):
-        print("  with soft-body spring bones on its " + bodymaker.joined(softbody.amounts(body["soft"])) + " for the game engine to move")
-    if body.get("bust"):
-        print(f'  with its bust {"larger" if body["bust"] > 0 else "smaller"} than the Body Designer made it (bust size {body["bust"] * 100:+.0f} %)')
+    for name, step in steps.items():
+        if step.cli and body.get(name):
+            print("  " + step.cli.describe(body[name]))
     if body.get("body"):
         print(f'  with the body shape of the Body tab (chest form {body["body"]["form"]}, bust size {body["body"]["bust"]:+.2f})')
     results = wait_for(app, [job])
@@ -849,10 +832,18 @@ def cmd_health(a, data, app):
 
 
 def main(argv=None):
-    data = roll.load_data()
-    args = build_parser(data).parse_args(argv)
-    app = App() if args.cmd != "roll" else None
+    argv = sys.argv[1:] if argv is None else list(argv)
+    extension_dir = config.ROOT / "local" / "extensions"
+    app = None
     try:
+        if argv[:2] == ["body", "use"] and extension_dir.is_dir():
+            from server import load_extensions
+            app = App()
+            load_extensions(extension_dir, app=app)
+        data = roll.load_data()
+        args = build_parser(data).parse_args(argv)
+        if app is None and args.cmd != "roll":
+            app = App()
         return {"roll": cmd_roll, "generate": cmd_generate, "export": cmd_export, "export-sheet": cmd_export_sheet, "reassemble": cmd_reassemble,
                 "list": cmd_list, "health": cmd_health, "voice": cmd_voice, "item": cmd_item, "body": cmd_body}[args.cmd](args, data, app)
     finally:

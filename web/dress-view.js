@@ -32,7 +32,7 @@ export function dressPanel(first, { onItem }) {
 
   const element = h('div', { class: 'card g-tryon g-dress' },
     h('h3', {}, 'Try it on a character'),
-    h('p', { class: 'hint' }, 'Pick a character whose 3D model is a designed body (press Use this body on the character’s Designed body card). The Body Designer fits this garment to that body, in place of the one of the same ' +
+    h('p', { class: 'hint' }, 'Pick a character whose 3D model is a designed body (press Use this body on the character’s Designed body card). Forge fits this garment to that body, in place of the one of the same ' +
       'kind it was made with: it takes about half a minute (about a minute for a character with face shapes, whose body is built again) and is kept with this item, so it is there next time; the character itself is not changed. The download is the character wearing it, and the garment follows every animation. ' +
       'A colour or cloth you save is shown at once; a new looseness or length needs a new fit. A jacket or an apron goes over the shirt and trousers the body was made with, takes off the other one of the two, and needs a body that wears both; a skirt takes the trousers off, and a dress takes the shirt and the trousers off. ' +
       '(Save your changes to see them here.)'),
@@ -50,7 +50,7 @@ export function dressPanel(first, { onItem }) {
     if (!characters.length) {
       picker.replaceChildren(h('option', { value: '' }, 'No character has a designed body yet'));
       picker.disabled = true;
-      line.textContent = 'Open the character’s Designed body card and press Use this body: only a body made by the Body Designer can wear fitted clothes.';
+      line.textContent = 'Open the character’s Designed body card and press Use this body: a designed body can wear fitted clothes.';
       return;
     }
     picker.replaceChildren(h('option', { value: '' }, 'Choose a character…'), ...characters.map(card => h('option', { value: card.id }, card.name)));
@@ -149,7 +149,7 @@ export function dressPanel(first, { onItem }) {
     put(actions,
       working() ? btn('Stop', 'x', safe(stop), { cls: 'small' })
         : btn(fit ? 'Fit it again' : 'Put it on', 'zap', safe(() => fitNow(!!fit)), { cls: fit && !status.stale ? 'small' : 'primary small', disabled: !status.eligible,
-          title: 'The Body Designer fits the garment to this body (about half a minute; about a minute for a body with face shapes or swinging hair or cloth)' }));
+          title: 'Forge fits the garment to this body (about half a minute; about a minute for a body with face shapes or swinging hair or cloth)' }));
     const wore = fit?.replaced?.length ? fit.replaced.map(name => WEARS[name] || name.replace(/^Forge/, '').toLowerCase()).join(' and ') : '';
     const unswung = Object.keys(fit?.swinging_left_off || {});
     say(fit && [`${status.stale ? 'The fit that is kept' : `The ${fit.kind} ${fit.kind === 'trousers' ? 'fit' : 'fits'}`}: ${(fit.triangles || 0).toLocaleString()} triangles` + (fit.over_underwear_mm != null ? `, ${fit.over_underwear_mm} mm off the underwear where it is worn over it` : '')

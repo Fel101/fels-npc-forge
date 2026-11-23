@@ -35,6 +35,7 @@ How to drive it from a game's own scripts, with the options that matter for a bu
 
 ## Changes
 
+- **API 46.** Optional body build controls are served by their local extension. Existing characters keep their saved settings.
 - **API 45.** `GET /api/health` adds a `fels` object with `contract`, `app`, `version` and `api`. Use
   `GET /api/health?identity=1` to read just that object without waiting for the ComfyUI and tool checks.
 

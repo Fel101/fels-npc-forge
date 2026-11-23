@@ -4,6 +4,7 @@ Run:  python server.py [--open]        then browse to http://127.0.0.1:8766
 """
 import base64
 import contextvars
+import copy
 import hashlib
 import hmac
 import importlib.util
@@ -62,7 +63,7 @@ mimetypes.add_type("application/wasm", ".wasm")
 
 # Bump when web/app.js starts needing something an older server does not provide; the page compares it with its own
 # REQUIRED_API and switches the newer features off (with a banner) instead of crashing. A test keeps the two in sync.
-API_VERSION = 45             # 45: suite identity in GET /api/health (docs/api.md)
+API_VERSION = 46             # 46: optional build controls move to local extensions (docs/api.md)
 
 DEFAULT_ASSETS = {"portrait": True, "sprite": True, "model_3d": False, "expressions": ["happy", "sad", "angry", "surprised"]}
 
@@ -160,21 +161,52 @@ def reset_extensions():
         registry.clear()
     MOUNTS.clear()
     GATES.clear()
+    for steps in bodymaker.BUILD_STEPS.values():
+        steps.clear()
 
 
-def check_npc(npc):
+def check_npc(npc, *, require_adult=False):
     """Refuse a character that belongs to a switched-off section or that an extension's guard rules out. Returns it."""
     if npc.get("setting") in roll.hidden_setting_ids():
         raise ApiError(403, "That character belongs to a section that is switched off.")
+    if require_adult or npc.get("adult") is True or npc.get("setting") in roll.extension_adult_settings():
+        problem = roll.adult_problem(npc)
+        if problem:
+            raise ApiError(400, problem)
     for guard in GUARDS:
         try:
-            problem = guard(npc)
+            problem = guard(copy.deepcopy(npc))
         except Exception:                                # fail closed: a check that cannot run must not wave anything through
             traceback.print_exc()
             problem = "A safety check could not run, so nothing was made."
         if problem:
             raise ApiError(400, str(problem))
     return npc
+
+
+def _extension_route(method, pattern):
+    if not pattern.startswith("/api/ext/"):
+        raise ValueError("Extension routes must be under /api/ext/. Core routes cannot be replaced.")
+    return route(method, f"(?=/api/ext/)(?:{pattern})")
+
+
+def _extension_portrait(fn, *, setting=None):
+    if setting not in roll.extension_adult_settings():
+        raise ValueError("An extension portrait engine needs a registered extension setting with the core age check.")
+
+    def checked(**context):
+        npc = context["npc"]
+        if context["setting"] != setting:
+            return None
+        try:
+            check_npc(npc, require_adult=True)
+            result = fn(**{**context, "npc": copy.deepcopy(npc), "prompt": copy.deepcopy(context["prompt"])})
+            check_npc(npc, require_adult=True)
+        except ApiError as error:
+            raise ValueError(error.message) from None
+        return result
+
+    jobsmod.add_portrait_engine(checked)
 
 
 def current_app():
@@ -187,8 +219,10 @@ def current_app():
 def make_host(root=None, app=None):
     """What register(host) receives. `root` is where an extension keeps its own files (tests pass a temp folder)."""
     app = app or current_app()
-    return types.SimpleNamespace(route=route, ApiError=ApiError, Raw=Raw, add_page=add_page, add_ui=add_ui, add_guard=add_guard,
-                                 add_settings=roll.add_settings_dir, add_portrait_engine=jobsmod.add_portrait_engine, add_clothes_choice=bodymaker.add_clothes_choice,
+    return types.SimpleNamespace(route=_extension_route, ApiError=ApiError, Raw=Raw, add_page=add_page, add_ui=add_ui, add_guard=add_guard,
+                                 add_settings=lambda directory, visible=None: roll.add_settings_dir(directory, visible, adult_only=True),
+                                 add_portrait_engine=_extension_portrait, add_clothes_choice=bodymaker.add_clothes_choice, check_npc=check_npc,
+                                 add_body_build_step=bodymaker.add_build_step,
                                  PortraitFallback=jobsmod.PortraitFallback, app=app, cfg=app.cfg, comfy=app.comfy, lib=app.lib,
                                  jobs=app.jobs,
                                  root=pathlib.Path(root) if root else cfgmod.ROOT)
@@ -213,7 +247,8 @@ def load_extensions(directory=None, app=None, skip=()):
         # Registration is a transaction across every host registry. A broken extension must not leave a route, page, guard,
         # setting, portrait hook or choice of clothes behind while being reported as skipped.
         before = (list(ROUTES), list(EXTENSIONS), dict(MOUNTS), dict(GATES), list(UI), list(GUARDS),
-                  list(roll.EXTRA_SETTINGS), list(jobsmod.PORTRAIT_ENGINES), dict(bodymaker.EXTRA_CLOTHES))
+                  list(roll.EXTRA_SETTINGS), list(jobsmod.PORTRAIT_ENGINES), dict(bodymaker.EXTRA_CLOTHES),
+                  {stage: dict(steps) for stage, steps in bodymaker.BUILD_STEPS.items()})
         try:
             spec = importlib.util.spec_from_file_location(name, folder / "__init__.py", submodule_search_locations=[str(folder)])
             module = importlib.util.module_from_spec(spec)
@@ -222,7 +257,7 @@ def load_extensions(directory=None, app=None, skip=()):
             module.register(host)
             loaded.append(folder.name)
         except Exception:
-            routes, extensions, mounts, gates, ui, guards, settings, portraits, choices = before
+            routes, extensions, mounts, gates, ui, guards, settings, portraits, choices, build_steps = before
             ROUTES[:] = routes
             EXTENSIONS[:] = extensions
             MOUNTS.clear()
@@ -235,6 +270,9 @@ def load_extensions(directory=None, app=None, skip=()):
             jobsmod.PORTRAIT_ENGINES[:] = portraits
             bodymaker.EXTRA_CLOTHES.clear()
             bodymaker.EXTRA_CLOTHES.update(choices)
+            for stage, steps in bodymaker.BUILD_STEPS.items():
+                steps.clear()
+                steps.update(build_steps[stage])
             sys.modules.pop(name, None)
             traceback.print_exc()
             print(f"Extension {folder.name!r} failed to load and was skipped.", file=sys.stderr)
@@ -249,6 +287,8 @@ def load_npc(npc_id):
         raise ApiError(404, f"No NPC with id {npc_id}") from None
     if morphology.clean(npc.get("morphology")) is None:
         npc["morphology"] = morphology.infer(npc, roll.load_data())
+    if notice := bodymaker.extension_notice(npc):
+        npc["body_extension_notice"] = notice
     return voice_authoring.annotate(npc)
 
 
@@ -2063,19 +2103,6 @@ def body_colours(q, body, npc_id):
         return bodymaker.recolour(app.cfg, app.lib, npc_id, (body or {}).get("colours"))
     except (ValueError, bodymaker.BodyError) as e:
         raise ApiError(400, str(e)) from None
-
-
-@route("GET", "/api/npcs/([a-z0-9-]+)/body-3d/soft-preview\\.glb")
-def body_soft_preview(q, body, npc_id):
-    """The character's animated designed body with every part of the soft-body motion (chest, butt, belly, thighs) built in at full strength, for the page's live jiggle preview
-    (web/soft-preview.js; it moves the spring bones with the engine's own maths and lets the sliders choose how much of each shows). Nothing is stored and the character's files are not
-    touched: it is made again each time (about a quarter of a second). The header X-Soft-Preview says what the body was built with ({had, bones, seconds})."""
-    npc = load_npc(npc_id)
-    try:
-        glb, report = bodymaker.soft_preview(current_app().lib, npc)
-    except ValueError as e:
-        raise ApiError(400, str(e)) from None
-    return Raw(glb, "model/gltf-binary", {"Cache-Control": "no-store", "X-Soft-Preview": json.dumps(report, separators=(",", ":"))})
 
 
 @route("GET", "/api/npcs/([a-z0-9-]+)/face")

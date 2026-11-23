@@ -56,7 +56,7 @@ const MAKERS = {
     wordsHint: 'A note for yourself. Or press the button and the controls below are set from your words: a colour (“dark red”, “navy”, “canvas”), “loose”, “snug”, “baggy”, “cropped”, “long”, “woven”…',
     noWords: 'None of those words changed a setting. Try a colour (“dark red”, “navy”), “loose” or “snug”, “cropped” or “long”, “woven”.',
     tryTitle: 'Try it on a character',
-    tryHint: 'Save the garment first. Then you can put it on any character whose 3D model is a designed body (press Use this body on the character’s Designed body card); the Body Designer fits it to that body. A jacket or an apron needs a body that wears a shirt and trousers; a skirt takes the trousers off, and a dress the shirt and the trousers.',
+    tryHint: 'Save the garment first. Then you can put it on any character whose 3D model is a designed body (press Use this body on the character’s Designed body card). The garment is fitted to the selected character. A jacket or an apron needs a body that wears a shirt and trousers; a skirt takes the trousers off, and a dress the shirt and the trousers.',
     game: (item, model, spec) => [
       h('li', {}, `The pattern on its own: ${(model.fit?.size_m || []).map(v => `${Math.round(v * 1000)}`).join(' × ')} mm (x, y, z), real metres, standing where it would on an adult 1.7 m tall, the origin on the floor between the feet. It is not fitted to a body.`),
       h('li', {}, 'Worn: Try it on fits it to a character’s body. The download there is the character’s animated model with the garment added as a mesh of its own (ForgeShirt, ForgeTrousers, ForgeSkirt, ForgeDress, ForgeJacket or ForgeApron), skinned to the same skeleton as the body, so every animation moves it.'),

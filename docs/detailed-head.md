@@ -49,7 +49,7 @@ what Pixal3D saw). A head exports with its four pictures.
    whose side is 1.1 × the same height (the median of the four figures) and puts each figure in the middle of its own
    square, on black. Pixal3D reads the framing as the camera (the unit cube fills 1/1.1 of the frame, the same scale in
    every view), and its own crop node scales each picture to its own bounding box: right for a tall figure, where the
-   height decides in every view, wrong for a bust, where the width decides in some views (shoulders in the front and back)
+   height decides in every view, wrong for a head-and-shoulders image, where the width decides in some views (shoulders in the front and back)
    and the height in others. If the four heads were drawn at sizes more than 15% apart, a note says so.
 3. **Pixal3D multi-view** (`three_d.pixal3d_head_graph`): the shape, the texture and the baked maps, from the framed pictures
    as they are (no crop or background-removal nodes in the graph, and not the whole-body run's head-texture node). The graph
@@ -102,8 +102,8 @@ want it; Medium is the default and the right setting.
 
 ## Measured
 
-The shape alone, Medium steps (Natalie, seed of her library model): from the bust framing with a smile 786 s, from her model
-sheet's own head crops (no new pictures) 832 s, neutral 780 s, neutral with the tight framing 859 s. Devi: 793 s bust, 796 s
+The shape alone, Medium steps (Natalie, seed of her library model): from the head-and-shoulders image framing with a smile 786 s, from her model
+sheet's own head crops (no new pictures) 832 s, neutral 780 s, neutral with the tight framing 859 s. Devi: 793 s head-and-shoulders image, 796 s
 tight; Laura 809 s. The whole app step (masks, the ComfyUI graph with texture and maps, clean-up, painting), with the tight
 framing: Natalie 1094 s, Devi 1112 s, Laura 1106 s; the model files 33, 38 and 37 MB, 344k, 426k and 39k faces.
 
@@ -340,12 +340,12 @@ renders from the same cameras and two numbers: how far the patch's rim lies from
 
 ## Traps found
 
-- Pixal3D's own crop node cannot be used for a bust (above).
+- Pixal3D's own crop node cannot be used for a head-and-shoulders image (above).
 - The textured model's vertices are split along texture seams: finding loose pieces by vertex number cut holes in the nostrils
   and around the eyes; it goes by position now.
 - A silhouette overlap fits a picture to the model badly when the hair differs; the outlines' distance, trimmed, does not.
 - Whole-body portraits were first found from an outline against the picture's edge colour, which a grey studio gradient
-  fooled (Imani's photo-made portrait counted as a bust); BiRefNet's mask does not.
+  fooled (Imani's photo-made portrait counted as a head-and-shoulders image); BiRefNet's mask does not.
 - The app allows one process per library: a scratch server cannot open a library a command-line run is using.
 - The whole-body test suite's tests of the ComfyUI lock and the GPU gate (`test_comfy`, `test_voice`, the "unreachable
   ComfyUI" server test) fail while a head run holds the GPU; they pass on an idle card.

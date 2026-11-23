@@ -78,9 +78,7 @@ What a picture is drawn with, and what that allows, is on each character (`list_
 
 ## What it does not do
 
-- **No adult content.** The [adult features](../extensions/adult_studio/README.md) (the Adult studio and the Models setting) are
-  not offered through MCP, whether or not their 18+ box is ticked: an agent should not be able to skip a person's own
-  confirmation. Their setting, their characters and their routes are refused.
+- Agent tools use Forge's core character features. Optional add-ons require personal confirmation in the app.
 - **It does not start NPC Forge or ComfyUI**, and it does not change NPC Forge's settings. `forge_status` says what is missing.
 - **It does not delete anything.** Characters are removed in the Library tab.
 

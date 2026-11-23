@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 
 WEB = Path(__file__).resolve().parent.parent / "web"
-MODULES = ("app.js", "advanced.js", "core.js", "library-view.js", "licences-view.js", "queue-view.js", "scenes-view.js", "voice-designer.js", "voice-library-view.js", "voice-studio-view.js", "voice-effects-controls.js", "voice-lip-sync-view.js", "viseme-track.js", "character-rig-player.js", "character-rig-editor.js", "mesh-mouth-player.js", "mesh-rig-editor.js", "mesh-mouth-preview.js", "soft-solver.js", "soft-preview.js")
+MODULES = ("app.js", "advanced.js", "core.js", "library-view.js", "licences-view.js", "queue-view.js", "scenes-view.js", "voice-designer.js", "voice-library-view.js", "voice-studio-view.js", "voice-effects-controls.js", "voice-lip-sync-view.js", "viseme-track.js", "character-rig-player.js", "character-rig-editor.js", "mesh-mouth-player.js", "mesh-rig-editor.js", "mesh-mouth-preview.js")
 
 
 def test_mesh_mouth_overlay_preserves_baseline_and_never_accumulates_rotation():
