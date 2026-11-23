@@ -20,8 +20,39 @@ ComfyUI without touching your own characters, give it a library of its own and a
 
 ```bash
 set NPCGEN_LIBRARY=%TEMP%\npcforge-try          # Linux or macOS: export NPCGEN_LIBRARY=/tmp/npcforge-try
-python server.py --port 8766 --open
+python server.py --port 8775 --open
 ```
+
+## Fel's Studio ports
+
+The suite contract assigns these ports.
+
+| What | Port |
+|---|---|
+| Voice Lab | 8765 |
+| NPC Forge | 8766 (was 8765) |
+| Fel's Altera | 8767 for new installs (was 5001) |
+| A second copy of NPC Forge | 8768 |
+| Voice Lab's MCP server over HTTP | 8769 |
+| Altera's own voice service | 8770 |
+| ComfyUI | 8188 |
+| LM Studio | 1234 |
+| Ollama | 11434 |
+
+Voice Slate has no network port. Use 8775 when an example calls for a spare port.
+
+## Shared suite files
+
+Fel's Studio owns [`npcgen/fels_suite.py`](npcgen/fels_suite.py) and its shared
+[`tests/suite_vectors.json`](tests/suite_vectors.json). Copy both files unchanged from Voice Lab's
+`main`. Changes to either file go through the suite contract with the owner's approval.
+
+## Commit history for the suite update
+
+Start each step on its own branch from local `main`. Keep commits small enough to review, preserve them when
+merging, and say which checks passed in each commit message. Run the relevant Python tests and the page checks
+before each commit. Once the step meets its completion criteria and the full suite passes, fast-forward local
+`main`.
 
 ## The checks
 
