@@ -288,6 +288,54 @@ def test_identity_health_does_not_need_comfyui(api, monkeypatch):
     assert health["fels"]["app"] == "npc-forge"
 
 
+def test_gpu_light_reads_the_live_suite_lock_without_comfyui(api, monkeypatch, tmp_path):
+    from npcgen import fels_suite
+
+    monkeypatch.setenv("FELS_SUITE_DIR", str(tmp_path))
+    server = importlib.import_module("server")
+
+    def unexpected_check(*args, **kwargs):
+        pytest.fail("The GPU light must not contact ComfyUI")
+
+    def status():
+        code, data = api("GET", "/api/gpu?lock=1")
+        assert code == 200 and list(data) == ["suite_lock"]
+        return data["suite_lock"]
+
+    lab = fels_suite.GpuLock("voice-lab")
+    forge = fels_suite.GpuLock("npc-forge")
+    free = {"holders": [], "alone": None}
+    with monkeypatch.context() as scoped:
+        scoped.setattr(server.gpu, "check", unexpected_check)
+        assert status() == free
+        try:
+            assert lab.acquire("Kokoro 82M", timeout=0)
+            shared = status()
+            assert shared["alone"] is None
+            holder, = shared["holders"]
+            assert (holder["name"], holder["what"], holder["alone"], holder["since"]) == (
+                "Voice Lab", "Kokoro 82M", False, lab.since)
+
+            assert forge.want_alone("pictures")
+            waiting = status()
+            assert waiting["holders"] == shared["holders"]
+            assert waiting["alone"]["name"] == "NPC Forge"
+
+            lab.release()
+            assert forge.acquire("pictures", alone=True, timeout=0)
+            alone = status()
+            holder, = alone["holders"]
+            assert (holder["name"], holder["what"], holder["alone"]) == ("NPC Forge", "pictures", True)
+        finally:
+            forge.release()
+            lab.release()
+        assert status() == free
+
+    code, report = api("GET", "/api/gpu")
+    assert code == 200 and report["suite_lock"] == free
+    assert report["code"] == "comfy_down" and report["holders"] == []
+
+
 def test_roll_normal_and_freeform(api):
     _, npc = api("POST", "/api/roll", {"setting": "modern", "style": "pixel", "constraints": {"gender": "male"}})
     assert npc["profile"]["gender"] == "male" and not npc["freeform"]

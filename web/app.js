@@ -97,6 +97,44 @@ async function refreshHealth() {
   if (JSON.stringify(S.health.engines_missing || {}) !== before) rerenderSettings();      // Models & options greys out what is not installed
 }
 
+const gpuTime = new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit' });
+let gpuSnapshot, gpuRefreshing = false;
+
+function renderGpuLight(lock) {
+  const light = $('#gpuLight');
+  const snapshot = JSON.stringify(lock);
+  if (snapshot === gpuSnapshot || (!lock && light.hidden)) return;
+  gpuSnapshot = snapshot;
+  light.hidden = false;
+
+  const holders = lock?.holders || [];
+  const exclusive = holders.some(holder => holder.alone === true);
+  const request = exclusive ? null : lock?.alone;
+  const state = !lock ? 'status unavailable' : exclusive ? 'alone' : request ? 'making room' : holders.length ? 'shared' : 'free';
+  const dot = state === 'free' ? 'ok' : holders.length || request ? 'warn' : '';
+  $('.dot', light).className = `dot ${dot}`;
+  $('#gpuLabel').textContent = `GPU ${state}`;
+
+  const line = (holder, mode) => {
+    const since = Date.parse(holder.since);
+    const time = Number.isFinite(since) ? ` · since ${gpuTime.format(since)}` : '';
+    return `${holder.name} · ${holder.what || 'a model'}${mode}${time}`;
+  };
+  const lines = holders.map(holder => line(holder, holder.alone ? ' · alone' : ''));
+  if (request) lines.unshift(line(request, ' · waiting for the GPU'));
+  if (!lines.length) lines.push(lock ? 'The suite GPU lock is free.' : 'Reconnect to NPC Forge to check the GPU lock.');
+  $('summary', light).title = lines.join('\n');
+  $('#gpuDetails').replaceChildren(...lines.map(text => h('p', {}, text)));
+}
+
+async function refreshGpuLight() {
+  if (document.hidden || gpuRefreshing) return;
+  gpuRefreshing = true;
+  try { renderGpuLight((await api('GET', '/api/gpu?lock=1')).suite_lock); }
+  catch { renderGpuLight(null); }
+  finally { gpuRefreshing = false; }
+}
+
 // ---------- create view: sidebar -----------------------------------------------------------------------------------
 function buildCreate() {
   $('#view').replaceChildren(h('div', { class: 'create' }, h('aside', { id: 'sidebar', 'aria-label': 'Recipe' }), h('section', { class: 'sheet', id: 'sheet' })));
@@ -2054,7 +2092,12 @@ async function init() {
   const jobs = await api('GET', '/api/jobs').catch(() => []);
   for (const j of jobs) { S.seen[j.id] = j.version; if (!isActive(j)) S.notified.add(j.id); }
   S.jobs = jobs;
+  new ResizeObserver(([entry]) => {
+    document.documentElement.style.setProperty('--topbar-h', `${entry.target.offsetHeight}px`);
+  }).observe($('.topbar'), { box: 'border-box' });
   refreshHealth(); setInterval(refreshHealth, 20000);
+  refreshGpuLight(); setInterval(refreshGpuLight, 5000);
+  document.addEventListener('visibilitychange', refreshGpuLight);
   if (!S.outdated) loadVoiceEngines().then(() => renderGallery()).catch(() => { /* the Voice card works without the labels */ });
   await refreshLibrary();
   render(); renderQueue();

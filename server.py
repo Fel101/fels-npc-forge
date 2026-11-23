@@ -2383,14 +2383,17 @@ def list_jobs(q, body):
 
 @route("GET", "/api/gpu")
 def gpu_check(q, body):
-    """The GPU as NPC Forge's next job will find it (npcgen/gpu.py check): read only, nothing is unloaded or waited for. A program
-    that drives NPC Forge asks before it queues a picture and can tell its user at once what is in the way, instead of after
-    minutes of tries: {ready, code, message, device, integrated, total_mb, free_mb, comfy_mb, forge_loaded, holders [{name, mb}],
-    other_gpus, warning, one_model_at_a_time}."""
+    """Picture-job readiness and the suite GPU lock. Use `?lock=1` to read just the suite lock."""
+    suite_lock = fels_suite.gpu_status()
+    for entry in [*suite_lock["holders"], suite_lock["alone"]]:
+        if entry is not None:
+            entry["name"] = fels_suite.short_name(entry["app"])
+    if q.get("lock") == ["1"]:
+        return {"suite_lock": suite_lock}
     app = current_app()
     with app.jobs.lock:
         busy = app.jobs.current is not None
-    return gpu.check(app.comfy, forge_busy=busy)
+    return {**gpu.check(app.comfy, forge_busy=busy), "suite_lock": suite_lock}
 
 
 @route("POST", "/api/jobs/cancel-all")
@@ -2504,6 +2507,11 @@ MAX_DRAIN = 16_000_000     # largest refused body read and thrown away so the er
 
 class Handler(BaseHTTPRequestHandler):
     server_version = "NPCForge/1.0"
+
+    def log_request(self, code="-", size="-"):
+        if code == 200 and self.command == "GET" and self.path == "/api/gpu?lock=1":
+            return
+        super().log_request(code, size)
 
     def log_message(self, fmt, *args):
         line = fmt % args                                    # args are not always strings (send_error passes an HTTPStatus)

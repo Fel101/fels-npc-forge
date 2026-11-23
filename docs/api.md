@@ -16,6 +16,11 @@ The rules every request follows:
 
 How to drive it from a game's own scripts, with the options that matter for a bulk run: [game-clients.md](game-clients.md).
 
+`GET /api/gpu` includes `suite_lock` alongside its picture-job readiness and per-process memory readings.
+`GET /api/gpu?lock=1` returns just `suite_lock` without contacting ComfyUI. `suite_lock.holders` lists the apps holding the
+lock, with `app`, `name`, `pid`, `what`, `since` and `alone`. `suite_lock.alone` gives the request for exclusive use, with the
+same identity and timing fields, or `null`.
+
 ## Changes
 
 - **API 46.** Optional body build controls are served by their local extension. Existing characters keep their saved settings.
@@ -35,7 +40,7 @@ How to drive it from a game's own scripts, with the options that matter for a bu
 | `GET` | `/api/choices` | What each character-sheet field can be in a setting, for the Advanced options popup (roll.field_choices). |
 | `POST` | `/api/manner` | Suggest how a character talks and comes across, from their traits: {setting, traits: [...]} -> {speech, demeanor}. |
 | `GET` | `/api/jobs` | The queue: every job with its steps, status and `code`. |
-| `GET` | `/api/gpu` | The GPU as NPC Forge's next job will find it (npcgen/gpu.py check): read only, nothing is unloaded or waited for. |
+| `GET` | `/api/gpu` | Picture-job readiness and the suite GPU lock. |
 | `POST` | `/api/jobs/cancel-all` | Stop every queued and running job. |
 | `POST` | `/api/jobs/{job}/cancel` | Stop one job. |
 | `POST` | `/api/jobs/{job}/retry` | Run a failed or stopped job again from its first unfinished step. |

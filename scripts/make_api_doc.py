@@ -33,6 +33,11 @@ The rules every request follows:
 
 How to drive it from a game's own scripts, with the options that matter for a bulk run: [game-clients.md](game-clients.md).
 
+`GET /api/gpu` includes `suite_lock` alongside its picture-job readiness and per-process memory readings.
+`GET /api/gpu?lock=1` returns just `suite_lock` without contacting ComfyUI. `suite_lock.holders` lists the apps holding the
+lock, with `app`, `name`, `pid`, `what`, `since` and `alone`. `suite_lock.alone` gives the request for exclusive use, with the
+same identity and timing fields, or `null`.
+
 ## Changes
 
 - **API 46.** Optional body build controls are served by their local extension. Existing characters keep their saved settings.
