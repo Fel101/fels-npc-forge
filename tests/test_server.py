@@ -48,6 +48,60 @@ def test_requests_that_did_not_come_from_our_own_page_are_refused(api):
     assert api("GET", "/api/health", headers={"Host": "evil.example"})[0] == 403
 
 
+def test_character_card_endpoints_and_altera_inbox(api, monkeypatch, tmp_path):
+    from npcgen import character_card, fels_suite
+
+    monkeypatch.setenv("FELS_SUITE_DIR", str(tmp_path / "suite"))
+    _, draft = api("POST", "/api/roll", {"setting": "modern", "style": "semi_real"})
+    _, npc = api("POST", "/api/npcs", draft)
+    npc_id = npc["id"]
+    url = f"/api/npcs/{npc_id}/card"
+    status, problem = api("GET", url + ".png")
+    assert status == 400 and "Make a portrait" in problem["error"]
+    image = io.BytesIO()
+    Image.new("RGB", (8, 8)).save(image, "PNG")
+    api.app.lib.write_asset(npc_id, "portrait.png", image.getvalue())
+    api.app.lib.update(npc_id, lambda n: n["assets"].update(portrait={"file": "portrait.png"}))
+    assert api("GET", url + "-options") == (200, {"altera_inbox": False, "cast_voice": None})
+    assert api("POST", url + ".charx", {"send": True})[0] == 409
+    assert api("GET", url + ".png", headers={"Sec-Fetch-Site": "cross-site"})[0] == 403
+    assert api("GET", url + ".png", raw=True)[1][:8] == b"\x89PNG\r\n\x1a\n"
+    assert api("POST", url + ".charx", {"permission": "true"})[0] == 400
+    assert api("POST", url + ".charx", {"permission": True})[0] == 409
+
+    inbox = fels_suite.inbox_dir("altera", make=True)
+    assert api("GET", url + "-options")[1]["altera_inbox"]
+    assert api("POST", url + ".charx", {"send": True}) == (200, {"sent": True})
+    waiting = list(inbox.iterdir())
+    assert len(waiting) == 1 and waiting[0].name.endswith(f"-npc-forge-{npc_id[:40].rstrip('-')}.charx")
+    with zipfile.ZipFile(waiting[0]) as archived:
+        card = json.loads(archived.read("card.json"))
+        assert card["data"]["extensions"]["fels"]["made_by"]["id"] == npc_id
+    status, raw = api("GET", url + ".charx", raw=True)
+    assert status == 200 and raw.startswith(b"PK")
+
+    def clone(n):
+        n["voice"] = {"lab_voice": {"identity_id": "first", "lab_id": "test", "model": "turbo", "name": "Test voice", "cloned_from_person": True}}
+
+    api.app.lib.update(npc_id, clone)
+    consent = api("GET", url + "-options")[1]["cast_voice"]["consent_for"]
+    assert consent
+    api.app.lib.update(npc_id, lambda n: n["voice"]["lab_voice"].update(identity_id="second"))
+    assert api("POST", url + ".charx", {"permission": True, "consent_for": consent})[0] == 409
+
+    def export_persona(voice, text, permission):
+        assert permission is True and voice["identity_id"] == "second"
+        return b"test Lab persona bytes", voice
+
+    monkeypatch.setattr(character_card, "_persona", export_persona)
+    consent = api("GET", url + "-options")[1]["cast_voice"]["consent_for"]
+    status, raw = api("POST", url + ".charx", {"permission": True, "consent_for": consent}, raw=True)
+    assert status == 200
+    with zipfile.ZipFile(io.BytesIO(raw)) as archived:
+        voice = json.loads(archived.read("card.json"))["data"]["extensions"]["fels"]["voice"]
+        assert voice["cloned_from_person"] and archived.read(voice["file"][10:]) == b"test Lab persona bytes"
+
+
 def test_character_audition_api_validates_before_queueing_and_keeps_partial_reports(api, monkeypatch):
     from npcgen.voice import audio, record
     import numpy as np

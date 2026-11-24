@@ -45,7 +45,7 @@ INSTRUCTIONS = (
     "forge_options (the settings, styles, ages, expressions and export formats it knows). make_characters rolls or describes "
     "characters and queues their pictures; pictures take about 30 s each on the GPU and run one at a time, so call "
     "wait_for_jobs afterwards. Then get_character or export_characters (ZIPs for Godot, Unity, Aseprite or a plain atlas, and "
-    "dialogue). Nothing here makes adult content.")
+    "dialogue). Use export_card for a CHARX or PNG character card for chat apps. Nothing here makes adult content.")
 
 
 class ToolError(Exception):
@@ -320,6 +320,22 @@ def export_characters(forge, args):
     return {"files": written}
 
 
+def export_card(forge, args):
+    npc_id = args.get("npc_id")
+    if not isinstance(npc_id, str) or not ID.fullmatch(npc_id):
+        raise ToolError("Use a saved character id from list_characters.")
+    form = args.get("format", "charx")
+    if form not in ("charx", "png"):
+        raise ToolError("Choose charx or png for the card format.")
+    folder = Path(args.get("output_dir") or ".").expanduser().resolve()
+    path = folder / f"{npc_id}.{form}"
+    query = "?voice=0" if args.get("include_voice") is False else ""
+    data = forge.request("GET", f"/api/npcs/{npc_id}/card.{form}{query}", raw=True, timeout=2400 if form == "charx" else 60)
+    folder.mkdir(parents=True, exist_ok=True)
+    path.write_bytes(data)
+    return {"files": [str(path)]}
+
+
 def make_item(forge, args):
     config = forge.request("GET", "/api/config")
     families = {f["id"]: f for f in (config.get("items") or {}).get("families", [])}
@@ -400,6 +416,10 @@ TOOLS = [
      _schema({"npc_ids": IDS, "format": {"type": "string", "enum": list(FORMATS)},
               "output_dir": {"type": "string", "description": "Where to write the files (made if missing)."},
               "clip": {"type": "string"}, "frame": {"type": "integer"}}, ["npc_ids", "output_dir"]), export_characters),
+    ("export_card", "Save a character card. PNG contains the portrait and character text. CHARX also carries the available art "
+     "and designed Voice Lab voice. Ask the person to use Forge's export dialog if the card needs a recorded voice.",
+     _schema({"npc_id": {"type": "string"}, "format": {"type": "string", "enum": ["charx", "png"]},
+              "output_dir": {"type": "string"}, "include_voice": {"type": "boolean"}}, ["npc_id", "output_dir"]), export_card),
     ("make_item", "Make a game-ready 3D item (weapon, armour, hat, shoes, bag or prop) from a description: about 15-20 minutes.",
      _schema({"family": {"type": "string"}, "kind": {"type": "string"}, "name": {"type": "string"}, "description": {"type": "string"},
               "setting": {"type": "string"}, "size_m": {"type": "number"}, "finish": {"type": "boolean"}}), make_item),

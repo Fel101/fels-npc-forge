@@ -68,13 +68,24 @@ def call(name, arguments, forge=None):
     return answer["result"], forge
 
 
-def test_initialize_lists_ten_tools_each_with_a_schema():
+def test_initialize_lists_eleven_tools_each_with_a_schema():
     init = mcp.handle({"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"protocolVersion": "2024-11-05"}}, FakeForge())
     assert init["result"]["protocolVersion"] == "2024-11-05" and init["result"]["serverInfo"]["version"] == __version__
     assert mcp.handle({"jsonrpc": "2.0", "method": "notifications/initialized"}, FakeForge()) is None
     tools = mcp.handle({"jsonrpc": "2.0", "id": 2, "method": "tools/list"}, FakeForge())["result"]["tools"]
-    assert len(tools) == 10 and all(t["inputSchema"]["type"] == "object" and t["description"] for t in tools)
+    assert len(tools) == 11 and all(t["inputSchema"]["type"] == "object" and t["description"] for t in tools)
     assert mcp.handle({"jsonrpc": "2.0", "id": 3, "method": "nope"}, FakeForge())["error"]["code"] == -32601
+
+
+def test_export_card_uses_card_endpoints_and_writes_the_reply(tmp_path):
+    result, forge = call("export_card", {"npc_id": "a-1", "format": "png", "output_dir": str(tmp_path)})
+    assert not result["isError"]
+    assert forge.calls == [("GET", "/api/npcs/a-1/card.png", None)]
+    assert (tmp_path / "a-1.png").read_bytes() == b"PK zip bytes"
+    result, forge = call("export_card", {"npc_id": "a-1", "include_voice": False, "output_dir": str(tmp_path)})
+    assert not result["isError"] and forge.calls == [("GET", "/api/npcs/a-1/card.charx?voice=0", None)]
+    result, forge = call("export_card", {"npc_id": "../escape", "output_dir": str(tmp_path)})
+    assert result["isError"] and forge.calls == []
 
 
 def test_make_characters_rolls_a_batch_with_its_pictures_in_one_request():

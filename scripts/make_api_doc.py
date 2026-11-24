@@ -38,8 +38,23 @@ How to drive it from a game's own scripts, with the options that matter for a bu
 lock, with `app`, `name`, `pid`, `what`, `since` and `alone`. `suite_lock.alone` gives the request for exclusive use, with the
 same identity and timing fields, or `null`.
 
+## Character cards
+
+- `GET /api/npcs/<id>/card.png` returns the portrait with Character Card V3 in its `ccv3` chunk and V2 in its `chara` chunk.
+- `GET /api/npcs/<id>/card.charx` returns a ZIP with `card.json` and assets listed by `embeded://` URI. Its `extensions.fels`
+  block links the sheet, the living-portrait manifest and any Voice Lab persona included in the archive. The manifest's
+  frame paths are relative to the archive root. Check the main icon against `living_portrait.portrait_sha256` before use.
+  Licence ratings are `commercial_ok`, `commercial_conditions`, `not_cleared` and `non_commercial`.
+- A preset uses its model and name. A Cast voice whose origin is established as synthetic can be packaged by a GET.
+  Append `?voice=0` to omit voice metadata and any persona.
+- Forge's card dialog reads `GET /api/npcs/<id>/card-options`. Its `altera_inbox` enables sending. When the dialog asks for
+  recording permission, `POST /api/npcs/<id>/card.charx` sends the user's `permission: true` with the `cast_voice.consent_for`
+  value from the options. Set `include_voice: false` to omit the voice. A POST with `send: true` puts the file in Altera's
+  inbox and returns `{"sent": true}`. A download POST returns the archive directly.
+
 ## Changes
 
+- **API 48.** Saved characters export as PNG and CHARX, with a consent-aware Voice Lab file and Altera inbox handoff.
 - **API 47.** Voice Lab provides new speech through `GET /api/voice/lab` and the character's `/voice/lab` routes.
   Forge's local speech workers, model discovery and Drama studio routes are retired. Old voice records and packs remain readable.
 - **API 46.** Optional body build controls are served by their local extension. Existing characters keep their saved settings.

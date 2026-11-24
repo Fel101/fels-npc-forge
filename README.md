@@ -225,6 +225,20 @@ The pronoun placeholders in the tables (`{poss} own jokes`) are filled in, so `g
 
 In the app's **Options**, **Save portrait and sprite rerolls as candidates** goes one step further: a new reroll is saved beside the picture in use instead of replacing it, so you compare first and choose; a saved candidate is listed with the earlier versions and is never dropped to make room.
 
+### Character cards
+
+Open a saved character with a portrait and select **Export character card**. **Download PNG** packages the portrait
+and character text for chat apps that read Character Card V3 or V2. **Download CHARX** also carries the character sheet,
+current expressions and sprite when available, and living-portrait frames that match the portrait. Both formats record
+which models made the included assets and their commercial-use rating.
+
+A preset travels by name and model. For a designed Cast voice, CHARX asks Voice Lab to make an audition and package the
+voice. Start the Voice Lab library that holds the voice, or clear the voice checkbox to export without it. Check the
+sharing box only if you have the person's permission to include their recording.
+
+**Send to Altera** appears after Altera sets up its inbox. It places the CHARX there for review and import in Altera.
+Scripts can use the [card API](docs/api.md#characters) or the [MCP export tool](docs/agents.md#the-tools).
+
 ## Living portrait
 
 The **Living portrait** card on a character makes the frames a companion app needs to bring a portrait to life: `blink` (eyes

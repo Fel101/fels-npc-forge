@@ -1,6 +1,7 @@
 import { $, S, api, assetUrl, btn, debounce, fullName, getPath, h, icon, isActive, loadRecipe, npcPayload, photoToSquareDataUrl,
   safe, saveRecipe, setPath, slug, toast } from './core.js';
 import { createAdvanced } from './advanced.js';
+import { openCharacterCard } from './character-card.js';
 import { createLibraryController } from './library-view.js';
 import { createQueueController } from './queue-view.js';
 import { createVoiceDesigner } from './voice-designer.js';
@@ -14,7 +15,7 @@ import { commercialBadge, licenceNote, openLicences, optionTag } from './licence
 // disagree. The server reports its api_version; if it is older than this page needs, features that depend on the
 // newer server are switched off and a banner says how to fix it (instead of crashing on a missing field).
 // Keep in sync with API_VERSION in server.py (a test checks this).
-const REQUIRED_API = 47;
+const REQUIRED_API = 48;
 
 // ---------- small components ---------------------------------------------------------------------------------
 const card = (title, ...kids) => h('section', { class: 'card' }, h('h3', {}, title), ...kids);
@@ -494,6 +495,10 @@ function renderSheet() {
     h('div', { class: 'actions' },
       btn('Roll again', 'dice', safe(rollNpc), { title: 'Re-roll every field that is not locked' }),
       btn('Save', 'save', safe(saveDraft), { title: 'Save this NPC to the library' }),
+      npc.id && btn('Export character card', 'download', safe(() => {
+        if (S.dirty || S.dialogueDirty) throw new Error('Save your character and any dialogue edits before exporting its card.');
+        return openCharacterCard(npc);
+      }), { disabled: S.outdated }),
       npc.id && btn('Start scene', 'plus', () => sceneController.createWithNpc(npc),
         { title: 'Start a scene with this NPC', disabled: S.outdated || S.dirty || S.dialogueDirty }),
       npc.id && S.health?.body_3d?.bases?.length > 0 && btn('Body options', null, jumpToBody,

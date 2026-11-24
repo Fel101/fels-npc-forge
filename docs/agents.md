@@ -66,6 +66,7 @@ app's identity at each address. To try a specific address first, add `--url http
 | `list_characters` | The library: id, name, setting, occupation, age, what each has, and what its models allow for commercial use. |
 | `get_character` | One character's sheet (profile, personality, looks, bio, dialogue) and the address of every picture and model file. |
 | `export_characters` | Writes ZIPs to a folder: everything, the model sheet, a finished animation for Godot 4, Unity, Aseprite or a plain atlas, or dialogue as JSON, Ink or Yarn. |
+| `export_card` | Writes a saved character as a CHARX or PNG card. Use `include_voice: false` to export without the voice. Sharing a person's recording requires confirmation in Forge. |
 | `make_item` | A game-ready 3D weapon, piece of armour, hat, shoes, bag or prop from a description (about 15-20 minutes). |
 | `cancel_jobs` | Stops the named jobs, or all of them. |
 

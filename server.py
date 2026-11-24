@@ -29,7 +29,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import npcgen
 from npcgen import config as cfgmod
-from npcgen import fels_suite
+from npcgen import character_card, fels_suite
 from npcgen import suite_gpu
 from npcgen import anim, best3d, bodymaker, cast, check3d, cleanup3d, dialogue, engines, equip, export, eyes, facefit, facescan, gpu, hairmask, hands3d, head3d, headdetail, headgraft, import3d, items, licences, posekeys, prompts, rig3d, roll, service, sheet, three_d
 from npcgen import morphology, scene_export, scene_recording, scene_takes, scene_sound, scene_writer
@@ -66,7 +66,7 @@ mimetypes.add_type("application/wasm", ".wasm")
 
 # Bump when web/app.js starts needing something an older server does not provide; the page compares it with its own
 # REQUIRED_API and switches the newer features off (with a banner) instead of crashing. A test keeps the two in sync.
-API_VERSION = 47             # 47: speech runs through Voice Lab (docs/api.md)
+API_VERSION = 48             # 48: portable character cards (docs/api.md)
 
 DEFAULT_ASSETS = {"portrait": True, "sprite": True, "model_3d": False, "expressions": ["happy", "sad", "angry", "surprised"]}
 
@@ -652,6 +652,75 @@ def list_npcs(q, body):
     if test in ("0", "1"):
         cards = [n for n in cards if n.get("test") == (test == "1")]
     return cards
+
+
+def _card_npc(npc_id):
+    npc = check_npc(load_npc(npc_id))
+    if not character_card.allowed(npc):
+        raise ApiError(400, "Cards export characters from Forge's core settings. Open a character from a core setting and try again.")
+    if not (npc.get("assets", {}).get("portrait") or {}).get("file"):
+        raise ApiError(400, "Make a portrait for this character, then export its card.")
+    return npc
+
+
+@route("GET", "/api/npcs/([a-z0-9-]+)/card-options")
+def card_options(q, body, npc_id):
+    """Options for the card dialog: inbox availability and the saved Cast voice's sharing requirements."""
+    npc = _card_npc(npc_id)
+    selection = character_card.voice_selection(npc) or {}
+    cast_voice = None
+    if selection.get("identity_id"):
+        consent = character_card.consent_for(selection) if character_card.needs_permission(selection) else None
+        cast_voice = {"name": selection["name"], "consent_for": consent}
+    return {"altera_inbox": character_card.inbox_ready(), "cast_voice": cast_voice}
+
+
+def _card_bytes(npc, form, *, include_voice=True, permission=False):
+    try:
+        return character_card.build(current_app().lib, npc, form, include_voice=include_voice, permission=permission)
+    except LabError as error:
+        raise ApiError(502, str(error)) from None
+    except ValueError as error:
+        raise ApiError(400, str(error)) from None
+
+
+def _card_download(data, npc_id, form):
+    mime = "image/png" if form == "png" else "application/zip"
+    return Raw(data, mime, {"Cache-Control": "no-store", "Content-Disposition": f'attachment; filename="{npc_id}.{form}"'})
+
+
+@route("GET", r"/api/npcs/([a-z0-9-]+)/card\.(charx|png)")
+def download_card(q, body, npc_id, form):
+    """Download a CCv3 CHARX or PNG. Set voice=0 to omit the voice. GET never grants permission to include a person's recording."""
+    npc = _card_npc(npc_id)
+    return _card_download(_card_bytes(npc, form, include_voice=q.get("voice") != ["0"]), npc_id, form)
+
+
+@route("POST", r"/api/npcs/([a-z0-9-]+)/card\.charx")
+def export_card(q, body, npc_id):
+    """Download CHARX or send it to Altera (send: true). include_voice defaults to true. permission: true requires consent_for from card-options."""
+    npc = _card_npc(npc_id)
+    for field in ("send", "include_voice", "permission"):
+        if field in body and type(body[field]) is not bool:
+            raise ApiError(400, f"{field} must be true or false.")
+    send = body.get("send", False)
+    if send and not character_card.inbox_ready():
+        raise ApiError(409, "Altera's inbox is unavailable. Start Altera or download the CHARX card.")
+    permission = body.get("permission", False)
+    if permission:
+        selection = character_card.voice_selection(npc)
+        if not selection or body.get("consent_for") != character_card.consent_for(selection):
+            raise ApiError(409, "The saved voice changed. Reopen Export character card and review the voice before sharing.")
+    data = _card_bytes(npc, "charx", include_voice=body.get("include_voice", True), permission=permission)
+    if not send:
+        return _card_download(data, npc_id, "charx")
+    try:
+        if not character_card.inbox_ready():
+            raise FileNotFoundError
+        fels_suite.inbox_write("altera", cfgmod.APP_ID, f"{npc_id}.charx", data)
+    except OSError:
+        raise ApiError(409, "Altera's inbox could not accept the card. Start Altera or download the CHARX card.") from None
+    return {"sent": True}
 
 
 @route("GET", "/api/npcs/([a-z0-9-]+)/licences")
@@ -2612,6 +2681,8 @@ class Handler(BaseHTTPRequestHandler):
             for m, rx, fn in ROUTES:
                 match = rx.match(path)
                 if match and m == method:
+                    if fn is download_card and self.headers.get("Sec-Fetch-Site") == "cross-site":
+                        raise ApiError(403, "Open NPC Forge directly to export a character card.")
                     return self._send(fn(query, body, *match.groups()))
             allowed = any(rx.match(path) for _, rx, _ in ROUTES)
             raise ApiError(405 if allowed else 404, "Method not allowed" if allowed else "Unknown API endpoint")
