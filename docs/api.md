@@ -28,7 +28,7 @@ same identity and timing fields, or `null`.
   `GET /api/health?identity=1` to read just that object without waiting for the ComfyUI and tool checks.
 
 
-165 routes.
+168 routes.
 
 
 ## Server, settings and the queue
@@ -80,6 +80,8 @@ same identity and timing fields, or `null`.
 | `GET` | `/api/npcs/{npc}/voice/references` | Voice reference history. |
 | `POST` | `/api/npcs/{npc}/voice/references/{reference}/select` | Voice reference restore. |
 | `POST` | `/api/npcs/{npc}/voice/suggest` | The voice the character sheet suggests: a description, the best stock voices, and what a take reads. |
+| `PUT` | `/api/npcs/{npc}/voice/lab` | Use a named Voice Lab voice for new speech while keeping the character's saved WAV files. |
+| `POST` | `/api/npcs/{npc}/voice/lab` | Queue a new Voice Lab Cast voice from a description or an uploaded or saved reference recording. |
 | `PUT` | `/api/npcs/{npc}/voice` | Voice save. |
 | `PUT` | `/api/npcs/{npc}/voice/studio` | Voice studio save. |
 | `POST` | `/api/npcs/{npc}/voice/studio/preview` | Voice studio preview. |
@@ -202,6 +204,7 @@ same identity and timing fields, or `null`.
 | `POST` | `/api/voice/library/versions/{version}/assign` | Voice library assign. |
 | `POST` | `/api/voice/batch` | Voice many characters: {npc_ids, engine, takes 1-4, lines: bool, redo: bool}. |
 | `GET` | `/api/voice/review` | Characters whose voice waits for you (batch takes, first take in use), with their takes. |
+| `GET` | `/api/voice/lab` | Find Voice Lab and list the named preset and Cast voices it offers. |
 
 ## Scenes
 

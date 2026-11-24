@@ -1,10 +1,15 @@
 """The Forge client is checked against ed1a4e1's frozen Voice Lab OpenAPI and an HTTP-only stand-in."""
 
 import base64
+import copy
+import io
 import json
 import threading
+import zipfile
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from urllib.error import HTTPError
+from urllib.request import Request, urlopen
 
 import pytest
 
@@ -136,6 +141,123 @@ def test_refusal_consent_and_cancellation(lab):
     with pytest.raises(LabError) as refusal:
         client.unload()
     assert (refusal.value.status, refusal.value.code, refusal.value.doing) == (409, "busy", "speaking a scene")
+
+
+@pytest.fixture
+def forge_api(tmp_path):
+    import server
+
+    from npcgen.config import DEFAULTS
+
+    cfg = copy.deepcopy(DEFAULTS)
+    cfg.update(library_path=tmp_path / "forge", comfy_url="http://127.0.0.1:9")
+    with server.App(cfg) as app, server.create_server(("127.0.0.1", 0), app) as http:
+        worker = threading.Thread(target=http.serve_forever, daemon=True)
+        worker.start()
+
+        def api(method, path, body=None, raw=False):
+            headers = {"Content-Type": "application/json"} if method != "GET" else {}
+            data = json.dumps(body or {}).encode() if method != "GET" else None
+            request = Request(f"http://127.0.0.1:{http.server_port}{path}", method=method, data=data, headers=headers)
+            with urlopen(request, timeout=10) as response:
+                payload = response.read()
+                return response.status, payload if raw else json.loads(payload), dict(response.headers)
+
+        api.app = app
+        try:
+            yield api
+        finally:
+            http.shutdown()
+            worker.join()
+
+
+def test_forge_lists_designs_speaks_and_exports_using_the_lab_stand_in(forge_api, lab, monkeypatch):
+    import numpy as np
+
+    from npcgen.voice import audio, binding
+    from test_voice_api import _new_npc, _wait
+
+    api = forge_api
+    url, handlers, calls = lab
+    monkeypatch.setenv("VOICE_LAB_URL", url)
+
+    def forbidden(*args, **kwargs):
+        pytest.fail("Lab-linked speech must not use the old worker or inspect the Lab's model files")
+
+    monkeypatch.setattr(api.app.jobs.voice, "run", forbidden)
+    monkeypatch.setattr(binding, "capture", forbidden)
+
+    sample = audio.write_wav(.2 * np.sin(2 * np.pi * 220 * np.arange(16000) / 16000), 16000)
+    handlers.update({
+        ("GET", "/api/health"): (200, HEALTH),
+        ("GET", "/api/voices"): (200, {"voices": [CAST]}),
+        ("POST", "/api/characters/from-design"): (201, {"voice": CAST}),
+        ("POST", "/v1/audio/speech"): (200, sample),
+    })
+    assert api("GET", "/api/voice/lab")[1]["voices"] == [CAST]
+    npc = _new_npc(api)
+    npc_path = f"/api/npcs/{npc['id']}"
+    status, body, _ = api("POST", npc_path + "/voice/lab", {"source": "description", "description": "A warm, low speaking voice."})
+    assert status == 200, body
+    complete = _wait(api, body["job"]["id"])
+    assert complete["status"] == "done", complete
+    linked = api("GET", npc_path)[1]["voice"]["lab_voice"]
+    assert linked["identity_id"] == CAST["identity_id"] and linked["lab_id"] == HEALTH["lab_id"]
+    called_design = next(json.loads(data) for _, path, _, data in calls if path == "/api/characters/from-design")
+    assert called_design["name"] == " ".join([npc["profile"]["first_name"], npc["profile"]["last_name"]]).strip()
+
+    api("POST", npc_path + "/dialogue/generate")
+    status, body, _ = api("POST", npc_path + "/voice/lines", {"ids": ["greeting_1"]})
+    assert status == 200, body
+    complete = _wait(api, body["job"]["id"])
+    assert complete["status"] == "done", complete
+    assert any(path == "/v1/audio/speech" and json.loads(data)["voice"] == CAST["name"] for _, path, _, data in calls)
+
+    status, payload, _ = api("GET", npc_path + "/voice-pack.zip", raw=True)
+    assert status == 200
+    with zipfile.ZipFile(io.BytesIO(payload)) as packed:
+        files = packed.namelist()
+        assert any(name.endswith("/game/godot/forge_lip_player.gd") for name in files)
+        assert any(name.endswith("/lines/greeting_1.wav") for name in files)
+        manifest = json.loads(packed.read(next(name for name in files if name.endswith("/lines.json"))))
+        assert manifest["voice"]["provider"] == "voice-lab" and manifest["voice"]["name"] == CAST["name"]
+
+
+def test_forge_queues_a_consented_upload_to_voice_lab(forge_api, lab, monkeypatch):
+    import numpy as np
+
+    from npcgen.voice import audio
+    from test_voice_api import _new_npc, _wait
+
+    url, handlers, calls = lab
+    monkeypatch.setenv("VOICE_LAB_URL", url)
+    new_voice = {**CAST, "model": "turbo"}
+    ref_route = f"/api/identities/{CAST['identity_id']}/references"
+    handlers.update({
+        ("GET", "/api/health"): (200, HEALTH),
+        ("GET", "/api/voices"): (200, {"voices": [new_voice]}),
+        ("POST", "/api/characters"): (201, {"character": {"id": CHARACTER}}),
+        ("POST", f"/api/characters/{CHARACTER}/identities"): (201, {"identity": {"id": CAST["identity_id"]}}),
+        ("POST", ref_route): (201, {"reference": {"id": REFERENCE}}),
+        ("POST", f"/api/identities/{CAST['identity_id']}/update"): (200, {}),
+    })
+    npc = _new_npc(forge_api)
+    path = f"/api/npcs/{npc['id']}"
+    sample = audio.write_wav(.3 * np.sin(2 * np.pi * 200 * np.arange(64000) / 16000), 16000)
+    data = {"source": "recording", "engine": "turbo", "audio": base64.b64encode(sample).decode("ascii"),
+            "transcript": "This is a fixture clip.", "origin": "Synthetic test audio", "allowed_use": "Local test"}
+    with pytest.raises(HTTPError) as error:
+        forge_api("POST", path + "/voice/lab", data)
+    assert error.value.code == 400 and not calls
+    status, result, _ = forge_api("POST", path + "/voice/lab", {**data, "consent": True})
+    assert status == 200
+    complete = _wait(forge_api, result["job"]["id"])
+    assert complete["status"] == "done", complete
+    voice = forge_api("GET", path)[1]["voice"]["lab_voice"]
+    _, _, headers, sent = next(row for row in calls if row[1] == ref_route)
+    meta = json.loads(base64.urlsafe_b64decode(headers["X-Reference-Metadata"] + "=="))
+    assert (meta["transcript"], meta["origin"], meta["allowed_use"]) == (data["transcript"], data["origin"], data["allowed_use"])
+    assert audio.duration(sent) > 0 and voice["cloned_from_person"] is True
 
 
 @pytest.mark.parametrize("url", ["https://example.com", "http://127.0.0.1@other.test", "file:///D:/voice-lab", "http://localhost/api"])

@@ -34,14 +34,15 @@ def voiced_lines(npc):
 def build(lib, npc):
     """The Voice pack ZIP bytes. Raises ValueError when the character has no voice."""
     v = record.voice_of(npc)
+    linked = v.get("lab_voice")
     ref = v.get("reference")
-    if not ref and not record.is_preset(v):
+    if not linked and not ref and not record.is_preset(v):
         raise ValueError("This character has no voice yet")
-    ref = ref or {}
+    ref = {} if linked else (ref or {})
     p = npc["profile"]
     stem = export.slugify(f'{p.get("first_name", "")}-{p.get("last_name", "")}') or npc["id"]
     lines = voiced_lines(npc)
-    made_with = sorted({e for e in (v.get("engine"), record.speaker_for(v), ref.get("engine")) if e})
+    made_with = [record.speaker_for(v)] if linked else sorted({e for e in (v.get("engine"), record.speaker_for(v), ref.get("engine")) if e})
     licences = {e: engines.ENGINES[e]["licence"] for e in made_with if e in engines.ENGINES}
     manifest = {
         "npc": {"id": npc["id"], "name": f'{p.get("first_name", "")} {p.get("last_name", "")}'.strip()},
@@ -57,6 +58,9 @@ def build(lib, npc):
     manifest["voice"].update(reference_version=ref.get("id"), reference_sha256=ref.get("sha256"),
                              library_binding=v.get("library_binding"), reference_provenance=ref, preset_identity=v.get("preset_identity"))
     manifest["voice"].update(identity_version=record.identity_id(v), file_role="audition" if record.is_preset(v) else "cloning_reference")
+    if linked:
+        manifest["voice"].update(mode=linked["kind"], engine=linked["model"], stock_voice=linked.get("voice_id"), file_role=None,
+                                 provider="voice-lab", name=linked["name"])
     for packed, (line_id, _, _, meta) in zip(manifest["lines"], lines):
         packed["reference_version"] = meta.get("reference")
         packed["voice_snapshot"] = meta.get("voice_snapshot")
@@ -70,7 +74,9 @@ def build(lib, npc):
     readme = [
         f"Voice pack: {manifest['npc']['name']}",
         "",
-        "voice.wav is the character's voice; lines/ holds each voiced dialogue line. lines.json lists them with their text, mood,",
+        "Voice Lab provides the named voice. lines/ holds each voiced dialogue line with its playback files." if linked else
+        "voice.wav is the character's voice. lines/ holds each voiced dialogue line.",
+        "lines.json lists them with their text, mood,",
         f"length and a mouth-opening track ({manifest['mouth_fps']} values a second, 0 = closed, 1 = wide open) for lip sync.",
         "dialogue.json and dialogue.yarn are the dialogue pack with the audio files (Yarn: #line:<id> tags).",
         "",
@@ -78,9 +84,9 @@ def build(lib, npc):
     ]
     if not record.commercial_ok(v):
         readme += ["", "NON-COMMERCIAL: a model used for this voice has a non-commercial licence. Do not ship it in a game you sell."]
-    if v.get("mode") == "upload":
+    if not linked and v.get("mode") == "upload":
         readme += ["", "This voice was copied from a recording you uploaded, confirming you have the right to use it."]
-    if record.is_preset(v):
+    if not linked and record.is_preset(v):
         readme += ["", "This is a reference-free model preset. lines.json stores its speaker/checkpoint identity.",
                    "An optional voice.wav is audition media, never a cloning reference. Rendered lines can be imported directly."]
     out = io.BytesIO()

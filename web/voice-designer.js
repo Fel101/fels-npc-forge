@@ -18,6 +18,7 @@ const engineTag = x => (S.cfg?.licences ? optionTag('voice:' + x.id) : (x.commer
 
 export function createVoiceDesigner({ afterSubmit, renderGallery, saveDraft, standalone = false, render, refreshLibrary, openNpc, openWorkspace }) {
   let ENG = null;                    // GET /api/voice/engines, fetched once per page load
+  let labCatalog;
   let draft = null;                  // the designer's working copy of the voice settings
   let suggestion = null;             // POST .../voice/suggest for the open character
   let tab = 'design';
@@ -64,8 +65,8 @@ export function createVoiceDesigner({ afterSubmit, renderGallery, saveDraft, sta
   const npc = () => standalone ? selectedNpc : S.draft;
   const voice = () => npc()?.voice || {};
   const presetVoice = v => v.engine === 'qwen_custom' && v.mode === 'stock' && v.preset_identity;
-  const assigned = v => !!(v.reference || presetVoice(v));
-  const identityId = v => presetVoice(v)?.id || v.reference?.id;
+  const assigned = v => !!(v.lab_voice || v.reference || presetVoice(v));
+  const identityId = v => v.lab_voice?.identity_id || v.lab_voice?.voice_id || v.lab_voice?.name || presetVoice(v)?.id || v.reference?.id;
   const engine = id => ENG?.engines.find(e => e.id === id);
   const presets = () => ENG.presets;
   const url = meta => `/api/npcs/${npc().id}/files/${meta.file}?v=${encodeURIComponent(meta.created || '')}`;
@@ -79,8 +80,75 @@ export function createVoiceDesigner({ afterSubmit, renderGallery, saveDraft, sta
   });
 
   async function loadEngines(fresh = false) {
-    if (!ENG || fresh) ENG = await api('GET', '/api/voice/engines');
+    if (!ENG || fresh) {
+      ENG = await api('GET', '/api/voice/engines');
+      if (ENG.lab_api) await loadLab();
+    }
     return ENG;
+  }
+
+  async function loadLab() {
+    labCatalog = await api('GET', '/api/voice/lab').catch(error => ({ connected: false, message: error.message }));
+  }
+
+  async function makeLabVoice(request) {
+    const res = await api('POST', `/api/npcs/${npc().id}/voice/lab`, request);
+    afterSubmit({ jobs: [res.job] });
+    toast('Voice Lab voice queued');
+  }
+
+  function labControls(n, v, busy) {
+    if (!labCatalog) return null;
+    const refresh = btn('Refresh Voice Lab', 'refresh', act(async () => { await loadLab(); paint(); }), { cls: 'small' });
+    if (!labCatalog.connected) return h('section', { class: 'card stack' }, h('h3', {}, 'Voice Lab'),
+      h('p', {}, labCatalog.message), h('p', {}, h('a', { href: 'https://github.com/Fel101/fels-voice-lab/releases' }, 'Get Voice Lab')), refresh);
+
+    const drafts = labCatalog.voices || [];
+    const choices = h('select', { 'aria-label': 'Voice Lab voice' }, h('option', { value: '' }, 'Choose a voice'),
+      ...drafts.map(row => h('option', { value: row.name, disabled: row.ready !== true },
+        `${row.name} · ${row.model_name || row.model}${row.ready ? '' : ` · ${row.why_not || 'Unavailable'}`}`)));
+    choices.value = v.lab_voice?.name || '';
+    const locked = !!busy.voice_lab_create;
+    const description = h('textarea', { id: 'labVoiceDescription', rows: 3, maxLength: 1000,
+      value: draft.labDescription ?? (compose(draft) || suggestion?.description || ''), 'aria-label': 'Voice Lab description',
+      oninput: event => { draft.labDescription = event.target.value; } });
+    const recorded = h('details', {}, h('summary', {}, 'Use a recording'), (() => {
+      const hasSaved = !!(v.reference?.file && v.reference?.text);
+      const file = h('input', { type: 'file', accept: 'audio/*', 'aria-label': 'Recording to send to Voice Lab' });
+      const transcript = h('textarea', { rows: 2, maxLength: 600, 'aria-label': 'Exact words of the new recording' });
+      const origin = h('input', { type: 'text', 'aria-label': 'Recording origin' });
+      const allowedUse = h('input', { type: 'text', 'aria-label': 'Recording permission terms' });
+      const consent = h('input', { type: 'checkbox' });
+      const cloner = h('select', { 'aria-label': 'Model for the recording' },
+        h('option', { value: 'qwen3-tts-1.7b-base' }, 'Qwen3-TTS 1.7B Base'),
+        h('option', { value: 'turbo' }, 'Chatterbox Turbo'), h('option', { value: 'voxcpm2' }, 'VoxCPM2'));
+      return h('div', { class: 'stack' }, h('label', {}, 'Choose an audio file', file),
+        hasSaved ? h('p', { class: 'hint' }, 'Leave the file blank to use the saved recording and its transcript.') : null,
+        h('label', {}, 'Exact words of the new recording', transcript), h('label', {}, 'Who made the recording?', origin),
+        h('label', {}, 'How may the recording be used?', allowedUse), h('label', {}, 'Voice Lab model', cloner),
+        h('label', { class: 'check' }, consent, 'I have permission to use this recording in Voice Lab.'),
+        btn('Make the voice from this recording', 'zap', act(async () => {
+          if (!consent.checked) throw new Error('Confirm that you may use the recording in Voice Lab.');
+          const upload = file.files[0];
+          if (!upload && !hasSaved) throw new Error('Choose a recording first.');
+          const request = { source: 'recording', origin: origin.value, allowed_use: allowedUse.value, consent: true, engine: cloner.value };
+          if (upload) {
+            request.audio = await toWavDataUrl(upload);
+            request.transcript = transcript.value;
+          }
+          await makeLabVoice(request);
+        }), { cls: 'small', disabled: locked }));
+    })());
+    return h('section', { class: 'card stack' }, h('h3', {}, 'Voice Lab'),
+      v.lab_voice ? h('p', {}, `New speech uses ${v.lab_voice.name} · ${v.lab_voice.label}`) : null,
+      h('div', { class: 'row wrap' }, choices, btn('Use this voice', '', act(async () => {
+        if (!choices.value) throw new Error('Choose a Voice Lab voice first.');
+        applyNpc(await api('PUT', `/api/npcs/${n.id}/voice/lab`, { name: choices.value }));
+        toast('Voice Lab voice assigned');
+      }), { cls: 'small', disabled: locked }), refresh),
+      h('label', {}, 'Describe a voice to make in Voice Lab', description),
+      btn('Make this voice in Voice Lab', 'zap', act(() => makeLabVoice({ source: 'description', description: description.value })),
+        { cls: 'small', disabled: locked }), recorded);
   }
 
   /** What a design model reads: the accent chip first, then the description, the voice type and the other chips. With an
@@ -119,7 +187,7 @@ export function createVoiceDesigner({ afterSubmit, renderGallery, saveDraft, sta
     const e = ENG && engine(v.engine), pending = v.review === 'pending';
     const lines = n.dialogue?.lines ? Object.values(n.dialogue.lines).flat() : [];
     const badges = [];
-    if (assigned(v)) badges.push(h('span', { class: 'badge accent' }, e ? e.label : v.engine));
+    if (assigned(v)) badges.push(h('span', { class: 'badge accent' }, v.lab_voice?.label || e?.label || v.engine));
     if (pending) badges.push(h('span', { class: 'badge warn', title: 'The first take is used until you pick one' }, 'take to review'));
     const defaultEffects = v.studio?.presets?.find(p => p.id === v.studio.default_performance)?.effects ?? v.studio?.effects;
     if (defaultEffects?.enabled) badges.push(h('span', { class: 'badge' }, 'delivery effects enabled'));
@@ -127,15 +195,22 @@ export function createVoiceDesigner({ afterSubmit, renderGallery, saveDraft, sta
     if (v.sheet_changed) badges.push(h('span', { class: 'badge', title: 'The character sheet changed after this voice was made. Your voice is kept; Suggest again in the designer if you want a new one.' }, 'sheet changed'));
     const source = { design: 'Designed from a description', stock: `Stock voice ${v.stock_voice || ''}`, upload: 'From your recording',
       copy: 'Copied from another character' }[v.mode] || '';
+    const migrate = labCatalog && !v.lab_voice && assigned(v);
     return h('section', { class: 'card voice-card' }, h('h3', {}, 'Voice'),
       running ? h('div', { class: 'notice' }, h('div', { class: 'spinner' }), running) : null,
+      v.lab_voice ? h('p', {}, `${v.lab_voice.name} · Voice Lab`) : null,
       ref ? h('div', { class: 'voice-now' }, player(ref, `${fullName(n)}'s voice`),
         h('div', { class: 'clip-head' }, ...badges), h('p', { class: 'hint' }, [source, v.mode === 'design' ? v.description : ''].filter(Boolean).join(': ').slice(0, 220)))
         : presetVoice(v) ? h('p', {}, `${v.stock_voice} · preset identity · no cloning reference needed`)
-          : h('p', { class: 'hint' }, v.takes?.length ? 'Takes are waiting: open the designer and pick one.' : 'No voice yet. The designer suggests one from the character sheet.'),
+          : !v.lab_voice ? h('p', { class: 'hint' }, v.takes?.length ? 'Takes are waiting: open the designer and pick one.' : 'No voice yet. The designer suggests one from the character sheet.') : null,
       pending && v.takes?.length ? quickTakes(v) : null,
       h('div', { class: 'chips', style: { marginTop: '10px' } },
-        btn(assigned(v) ? 'Voice designer…' : 'Design a voice…', 'zap', safe(openDesigner), { cls: 'small' }),
+        btn(migrate ? 'Make this voice in Voice Lab' : assigned(v) ? 'Voice designer…' : 'Design a voice…', 'zap',
+          safe(async () => {
+            if (migrate && labCatalog.connected && v.mode === 'design' && v.description?.trim()) {
+              await makeLabVoice({ source: 'description' });
+            } else await openDesigner();
+          }), { cls: 'small', disabled: !!busy.voice_lab_create }),
         assigned(v) && ENG?.effects_schema ? btn('Voice effects', '', safe(() => openVoiceStudio('effects')), { cls: 'small' }) : null,
         assigned(v) && ENG?.alignment_schema ? btn('Lip sync', '', safe(openLipSync), { cls: 'small' }) : null,
         assigned(v) && lines.length ? btn('Voice the dialogue', 'refresh', safe(() => voiceLines()), { cls: 'small', disabled: !!busy.voice_line,
@@ -210,7 +285,7 @@ export function createVoiceDesigner({ afterSubmit, renderGallery, saveDraft, sta
 
   async function speak(text, mood, preview = false) {
     await ensureSaved();
-    if (!preview) await saveSettings(true);
+    if (!preview && !voice().lab_voice) await saveSettings(true);
     const res = await api('POST', `/api/npcs/${npc().id}/voice/test`, { text, mood, preview });
     afterSubmit({ jobs: [res.job] });
     paint();
@@ -241,7 +316,7 @@ export function createVoiceDesigner({ afterSubmit, renderGallery, saveDraft, sta
   const lineMoods = {};              // line id -> the mood picked before voicing it
   const MOODS = ['neutral', 'happy', 'excited', 'sad', 'angry', 'surprised', 'scared', 'whisper', 'flirty', 'tired'];
 
-  const hasVoice = () => !!voice().reference || (voice().mode === 'stock' && !!voice().stock_voice);
+  const hasVoice = () => !!(voice().lab_voice || voice().reference) || (voice().mode === 'stock' && !!voice().stock_voice);
 
   /** 'none' | 'ok' | 'stale' (the text changed, or the voice changed, since the line was voiced; npcgen/voice/record.line_is_stale) */
   function lineState(line) {
@@ -536,7 +611,7 @@ export function createVoiceDesigner({ afterSubmit, renderGallery, saveDraft, sta
     const lines = Object.values(n.dialogue?.lines || {}).flat();
     const changed = JSON.stringify(settingsBody()) !== savedSettings;
     const current = h('section', { class: 'card stack' }, h('h3', {}, 'Assigned voice'),
-      v.reference ? player(v.reference, `${fullName(n)}'s assigned voice`) : presetVoice(v)
+      v.lab_voice ? h('p', {}, `${v.lab_voice.name} · Voice Lab`) : v.reference ? player(v.reference, `${fullName(n)}'s assigned voice`) : presetVoice(v)
         ? h('p', {}, `${v.stock_voice} · reference-free preset identity`) : h('p', { class: 'hint' }, 'No voice assigned yet. Generate candidates and choose a take.'),
       assigned(v) ? h('span', { class: 'badge ' + (v.review === 'pending' ? 'warn' : 'ok') }, v.review === 'pending' ? 'First take in use · awaiting review' : 'Assigned to character') : null,
       v.commercial_ok === false ? h('span', { class: 'badge warn' }, 'Non-commercial') : null,
@@ -564,7 +639,7 @@ export function createVoiceDesigner({ afterSubmit, renderGallery, saveDraft, sta
       loading || working || Object.values(busy).length ? h('div', { class: 'notice', role: 'status' }, h('span', { class: 'spinner small' }),
         loading ? 'Loading character…' : working ? 'Saving request…' : Object.values(busy).join(' · ')) : null,
       h('fieldset', { class: 'voice-columns', disabled: working || loading, 'aria-label': 'Voice design and audition' },
-        h('div', { class: 'voice-design-column stack' }, h('section', { class: 'card stack' }, modelSection()),
+        h('div', { class: 'voice-design-column stack' }, labControls(n, v, busy), h('section', { class: 'card stack' }, modelSection()),
           h('section', { class: 'card stack' }, h('h3', {}, 'Design a voice'), sources, body), h('section', { class: 'card stack' }, speakerSection(v))),
         h('div', { class: 'voice-audition-column stack' }, current,
           ENG.audition_schema ? auditionSection({ npc: n, jobs: S.jobs, busy: !!busy.voice_test, changed,
@@ -575,7 +650,7 @@ export function createVoiceDesigner({ afterSubmit, renderGallery, saveDraft, sta
             },
             review: async (suite, row, body) => applyNpc(await api('PUT', `/api/npcs/${n.id}/voice/auditions/${suite}/cases/${row}`, body)) }) : null,
           h('section', { class: 'card stack' }, takesSection(v, busy)),
-          v.reference || draft.mode === 'design' || (draft.mode === 'stock' && draft.stock_voice)
+          v.lab_voice || v.reference || draft.mode === 'design' || (draft.mode === 'stock' && draft.stock_voice)
             ? h('section', { class: 'card stack' }, trySection(v, busy)) : null,
           lines.length ? h('section', { class: 'card stack' }, h('h3', {}, 'Dialogue audition'),
             ...lines.map(line => h('div', { class: 'dialogue-line' }, h('p', {}, line.text), lineControls(line)))) : null))].filter(Boolean));
@@ -761,7 +836,7 @@ export function createVoiceDesigner({ afterSubmit, renderGallery, saveDraft, sta
   }
 
   function trySection(v, busy) {
-    const e = engine(draft.speaker || draft.engine), speakerCaps = e?.caps || {};
+    const e = engine(draft.speaker || draft.engine), speakerCaps = v.lab_voice ? { direction: v.lab_voice.takes_direction } : e?.caps || {};
     if (!speakerCaps.direction) tryMood = 'neutral';
     const text = h('textarea', { id: 'voiceTry', rows: 2, value: tryText, placeholder: suggestion?.script || 'Type a line…', oninput: ev => { tryText = ev.target.value; } });
     const mood = h('select', { 'aria-label': 'Mood', disabled: !speakerCaps.direction, onchange: ev => { tryMood = ev.target.value; } },
@@ -830,7 +905,8 @@ export function createVoiceDesigner({ afterSubmit, renderGallery, saveDraft, sta
         modelSection(),
         h('section', { class: 'adv-group' }, h('h4', { class: 'lbl' }, 'Where the voice comes from'), tabs, body),
         takesSection(v, busy),
-        v.reference || draft.mode === 'design' || (draft.mode === 'stock' && draft.stock_voice) ? trySection(v, busy) : null,
+        labControls(n, v, busy),
+        v.lab_voice || v.reference || draft.mode === 'design' || (draft.mode === 'stock' && draft.stock_voice) ? trySection(v, busy) : null,
         speakerSection(v)),
       h('div', { class: 'about-foot adv-foot' },
         h('span', { class: 'hint grow' }, v.reference ? (v.review === 'pending' ? 'Using take 1 until you pick one.' : 'Voice chosen.') : 'Make takes, then use the one you like.'),

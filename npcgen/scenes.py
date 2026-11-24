@@ -347,6 +347,7 @@ def scene_voice_of(npc, stock_voice=None, binding=None):
         v.update(engine="kokoro", speaker="kokoro", mode="stock", stock_voice=stock_voice,
                  reference=None, language="English", studio={})
         v.pop("preset_identity", None)
+        v.pop("lab_voice", None)
     return v
 
 
@@ -355,6 +356,8 @@ def voice_signature(npc, stock_voice=None, binding=None):
     source = {"reference": (v.get("reference") or {}).get("id"), "stock_voice": v.get("stock_voice"),
               "speaker": voice_record.speaker_for(v), "engine": v.get("engine"), "settings": v.get("settings") or {},
               "language": v.get("language", "English"), "studio": v.get("studio") or {}}
+    if v.get("lab_voice"):
+        source["lab_voice"] = v["lab_voice"]
     return hashlib.sha256(json.dumps(source, sort_keys=True).encode()).hexdigest()
 
 

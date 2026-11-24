@@ -104,7 +104,7 @@ def lines_request(npc, raw):
         if problem:
             raise ValueError(problem)
     v = record.voice_of(npc)
-    if not v.get("reference") and not (v["mode"] == "stock" and v.get("stock_voice")):
+    if not v.get("lab_voice") and not v.get("reference") and not (v["mode"] == "stock" and v.get("stock_voice")):
         raise ValueError("Pick a voice for this character first (make takes and choose one).")
     inputs = {}
     for category, rows in (pack.get("lines") or {}).items():

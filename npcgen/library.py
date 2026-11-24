@@ -122,7 +122,7 @@ def voice_status(npc):
     """For the Library's Voice filter: "picked" (a voice you chose), "review" (takes waiting for you; the first take is used
     until then), or "none"."""
     v = npc.get("voice") or {}
-    if v.get("reference") or v.get("preset_identity"):
+    if v.get("lab_voice") or v.get("reference") or v.get("preset_identity"):
         return "review" if v.get("review") == "pending" else "picked"
     return "review" if v.get("takes") else "none"
 

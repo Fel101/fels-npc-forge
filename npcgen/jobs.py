@@ -853,6 +853,8 @@ class Jobs:
                 steps.append(step("assemble", clip, f"Assemble {clip}"))
         voice = assets.get("voice")
         if voice:                                     # see npcgen/voice/steps.py
+            if voice.get("lab_create"):
+                steps.append(step("voice_lab_create", None, "Make this voice in Voice Lab"))
             steps.extend(step("voice_take", str(n), f"Voice take {n}") for n in range(1, int(voice.get("takes") or 0) + 1))
             if voice.get("takes") and voice.get("auto_pick"):
                 steps.append(step("voice_pick", None, "Use the first take until you pick one"))

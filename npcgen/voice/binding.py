@@ -243,7 +243,8 @@ def for_npc_job(cfg,npc,options,steps):
             add(v.get('speaker') or request.get('engine') or v['engine'],'clone')
         else:
             engine,command=speak_request(npc,v,'Runtime binding check.','neutral',0)
-            add(engine,command['cmd'])
+            if command['cmd'] != 'lab':
+                add(engine,command['cmd'])
     return freeze_job(cfg,wanted)
 
 
@@ -253,5 +254,6 @@ def for_scene_job(cfg,lib,beats):
     for row in beats.values():
         npc=lib.get(row['speaker_id']);v=row['voice_snapshot']
         engine,command=speak_request(npc,v,row.get('synthesis_text') or row['text'],row['mood'],row['seed'])
-        wanted.setdefault(engine,set()).add(command['cmd'])
+        if command['cmd'] != 'lab':
+            wanted.setdefault(engine,set()).add(command['cmd'])
     return freeze_job(cfg,wanted)

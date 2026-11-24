@@ -57,6 +57,9 @@ def voice_of(npc):
 
 def speaker_for(v):
     """Which engine speaks lines in this voice."""
+    if v.get("lab_voice"):
+        model = v["lab_voice"]["model"]
+        return engines.LAB_MODELS.get(model, model)
     speaker = v.get("speaker")
     if is_preset(v):
         return "qwen_custom"
@@ -72,6 +75,9 @@ def is_preset(v):
 
 
 def identity_id(v):
+    if v.get("lab_voice"):
+        selected = v["lab_voice"]
+        return selected.get("identity_id") or selected.get("voice_id") or selected["name"]
     return (v.get("preset_identity") or {}).get("id") if is_preset(v) else (v.get("reference") or {}).get("id")
 
 
@@ -81,6 +87,8 @@ def instruction(v):
 
 def commercial_ok(v):
     """False if a non-commercial model made or speaks this voice."""
+    if v.get("lab_voice"):
+        return (engines.spec(speaker_for(v)) or {}).get("commercial_ok", True)
     used = {v.get("engine"), speaker_for(v), (v.get("reference") or {}).get("engine")}
     return all((engines.spec(e) or {}).get("commercial_ok", True) for e in used if e)
 
@@ -266,7 +274,7 @@ def install_reference(lib, npc, v, data, reference):
 def freeze_voice(lib, npc_id, v):
     """Also pin legacy mutable references when submitting a durable render job."""
     snapshot = render_snapshot(v)
-    if is_preset(v):
+    if v.get("lab_voice") or is_preset(v):
         return snapshot  # Any audition WAV is display media, never generation conditioning.
     ref = snapshot.get("reference")
     if ref and ref.get("file"):

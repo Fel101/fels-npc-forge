@@ -27,6 +27,13 @@ import json
 
 DEFAULT_ENGINE = "qwen"
 
+# Legacy Forge ids are still used for markup and model licence notes in saved dialogue packs.
+LAB_MODELS = {
+    "qwen3-tts-1.7b-base": "qwen", "qwen3-tts-0.6b-base": "qwen",
+    "qwen3-tts-1.7b-custom-voice": "qwen_custom", "breeze-tts-2": "breeze",
+    "turbo": "chatterbox", "orig": "chatterbox_original", "drama-3": "drama3",
+}
+
 LANGUAGES_QWEN = ["English", "Chinese", "Japanese", "Korean", "German", "French", "Russian", "Portuguese", "Spanish", "Italian"]
 
 ENGINES = {

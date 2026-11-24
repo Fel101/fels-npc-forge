@@ -37,7 +37,7 @@ const check = (name, checked, onchange, hint) =>
 
 // ---------- shell: tabs, status, banner ------------------------------------------------------------------------
 // The newer tabs work, but have been checked on fewer characters than Create, Library and Items (README, Status).
-const experimental = () => h('span', { class: 'tab-tag', title: 'Experimental: it works, but has been tested less than Create, Library and Items. See the README.' }, 'Experimental');
+const experimental = (label = 'Experimental') => h('span', { class: 'tab-tag', title: 'This feature has been tested less than Create, Library and Items. See the README.' }, label);
 function renderTabs() {
   $('#tabs').replaceChildren(
     h('button', { class: 'tab', 'aria-current': S.view === 'create' ? 'page' : null, onclick: () => { S.view = 'create'; render(); } }, 'Create'),
@@ -48,7 +48,7 @@ function renderTabs() {
     h('button', { class: 'tab', 'aria-current': S.view === 'creatures' ? 'page' : null,
       disabled: S.outdated, onclick: safe(() => creatureController.openTab()) }, 'Creatures', experimental()),
     h('button', { class: 'tab', 'aria-current': S.view === 'voices' ? 'page' : null,
-      disabled: S.outdated, onclick: safe(() => voiceWorkspace.openTab()) }, 'Voice Designer', experimental()),
+      disabled: S.outdated, onclick: safe(() => voiceWorkspace.openTab()) }, 'Voice Designer', experimental('Preview')),
     h('button', { class: 'tab', 'aria-current': S.view === 'scenes' ? 'page' : null,
       disabled: S.outdated, onclick: safe(() => sceneController.showList()) }, 'Scenes', experimental()),
     // pages added by local extensions (an older server has no `extensions` field: then there are none)

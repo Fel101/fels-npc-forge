@@ -14,7 +14,7 @@ import hashlib
 import uuid
 
 from ..library import now
-from . import alignment, audio, authoring, describe, effects, engines, markup, record
+from . import alignment, audio, authoring, describe, effects, engines, lab_voice, markup, record
 from .runtime import VoiceError
 
 
@@ -24,6 +24,10 @@ def _work_path(lib, npc_id):
 
 def _make(jobs, job, npc, engine_id, request):
     """Run one request in the engine's worker and return (final WAV bytes, seconds, mouth track, worker reply)."""
+    if request["cmd"] == "lab":
+        wav, seconds, mouth = audio.finish(lab_voice.speak(job, request))
+        voice = request["voice"]
+        return wav, seconds, mouth, {"model_identity": {"source": "voice-lab", "model": voice["model"], "voice": voice["name"]}}
     tmp = _work_path(jobs.lib, npc["id"])
     tmp.parent.mkdir(parents=True, exist_ok=True)
     try:
@@ -45,6 +49,14 @@ def direction(engine_id, mood):
 
 def speak_request(npc, v, text, mood, seed):
     """(engine id, request) that says `text` in the character's current voice."""
+    if v.get("lab_voice"):
+        voice = v["lab_voice"]
+        engine = record.speaker_for(v)
+        mood_text = engines.MOODS.get(mood) or ""
+        acting = " ".join(filter(None, (f"Speak {mood_text}." if mood_text else None, v.get("acting_direction"))))
+        return engine, {"cmd": "lab", "voice": voice, "text": markup.for_engine(text, engine),
+                        "direction": acting if voice.get("takes_direction") else None,
+                        "speed": (v.get("settings") or {}).get("speed")}
     speaker = record.speaker_for(v)
     ref = v.get("reference")
     language = v.get("language") or "English"
@@ -228,7 +240,7 @@ def line(jobs, job, step, npc):
     jobs.lib.update(npc["id"], apply)
 
 
-RUNNERS = {"voice_take": take, "voice_pick": pick, "voice_test": test, "voice_line": line}
+RUNNERS = {"voice_take": take, "voice_pick": pick, "voice_test": test, "voice_line": line, "voice_lab_create": lab_voice.create}
 
 
 def run(jobs, job, step, npc):

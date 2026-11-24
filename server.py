@@ -54,6 +54,9 @@ from npcgen.voice import comparison as voice_comparison
 from npcgen.voice import audition as voice_audition
 from npcgen.voice import transcript_draft as voice_transcript_draft
 from npcgen.voice import voice_match as voice_match_mod
+from npcgen.voice import lab_voice
+from npcgen.voice import audio as voice_audio
+from npcgen.voice.lab_client import LabClient, LabError
 
 _CURRENT_APP = contextvars.ContextVar("npcforge_app", default=None)
 WEB = cfgmod.ROOT / "web"
@@ -1058,7 +1061,7 @@ def drama_artifact(q,body,job_id,kind):
 def voice_engines(q, body):
     """Every voice model (what it can do, whether it is installed here), the stock voices, presets, moods and tags."""
     app = current_app()
-    return {"engines": voice_engines_mod.choices(app.cfg, app.jobs.voice.status()), "default": voice_engines_mod.DEFAULT_ENGINE,
+    return {"engines": voice_engines_mod.choices(app.cfg, app.jobs.voice.status()), "default": voice_engines_mod.DEFAULT_ENGINE, "lab_api": 1,
             "stock": {e: voice_engines_mod.stock_voices(e, app.cfg) for e in voice_engines_mod.ENGINES if voice_engines_mod.can(e, "stock")}, "presets": voice_describe.presets(), "library_schema": 1,
             "studio_schema": 1, "effects_schema": 1, "effects_caps": voice_effects.capabilities(),
             "audition_schema": 1, "drama_studio_schema":1,
@@ -1206,6 +1209,57 @@ def voice_suggest(q, body, npc_id):
             "script": voice_describe.take_script(npc, v["language"]), "adult": voice_describe.is_adult(npc)}
 
 
+@route("GET", "/api/voice/lab")
+def voice_lab(q, body):
+    """Find Voice Lab and list the named preset and Cast voices it offers."""
+    try:
+        lab = LabClient.discover()
+        return {"connected": True, "voices": lab.voices(), "url": lab.url}
+    except LabError as error:
+        return {"connected": False, "voices": [], "message": str(error)}
+
+
+@route("PUT", "/api/npcs/([a-z0-9-]+)/voice/lab")
+def voice_lab_assign(q, body, npc_id):
+    """Use a named Voice Lab voice for new speech while keeping the character's saved WAV files."""
+    _voice_npc(npc_id)
+    name = body.get("name")
+    if not isinstance(name, str) or not name.strip():
+        raise ApiError(400, "Choose a voice from Voice Lab's list.")
+    try:
+        selected = lab_voice.assign(LabClient.discover(), name)
+    except LabError as error:
+        raise ApiError(400 if error.code in ("voice_missing", "voice_not_ready") else 503, str(error)) from None
+    return voice_authoring.annotate(current_app().lib.update(npc_id, lambda rec: lab_voice.save(rec, selected)))
+
+
+@route("POST", "/api/npcs/([a-z0-9-]+)/voice/lab")
+def voice_lab_create(q, body, npc_id):
+    """Queue a new Voice Lab Cast voice from a description or an uploaded or saved reference recording."""
+    npc = _voice_npc(npc_id)
+    lib = current_app().lib
+    try:
+        if body.get("source") == "recording" and "audio" in body:
+            transcript = str(body.get("transcript") or "").strip()
+            if not 3 <= len(transcript) <= 600:
+                raise ValueError("Enter the exact words the recording says (3 to 600 characters).")
+            if body.get("consent") is not True:
+                raise ValueError("Confirm that you may use the recording in Voice Lab.")
+            wav, _ = voice_audio.check_upload(voice_service.decode_upload(body["audio"]))
+            digest = hashlib.sha256(wav).hexdigest()
+            ref = {"file": f"voice/references/{digest}.wav", "sha256": digest, "text": transcript}
+            request = lab_voice.request(npc, body, uploaded=ref)
+            lib.write_asset(npc_id, ref["file"], wav)
+        else:
+            request = lab_voice.request(npc, body)
+        if request.get("reference") and "sha256" not in request["reference"]:
+            frozen = voice_record.freeze_voice(lib, npc_id, {"reference": request["reference"]})
+            request["reference"] = frozen["reference"]
+    except (ValueError, KeyError, OSError) as error:
+        raise ApiError(400, str(error)) from None
+    return {"job": _voice_job(npc_id, {"lab_create": request, "quick": True})}
+
+
 @route("PUT", "/api/npcs/([a-z0-9-]+)/voice")
 def voice_save(q, body, npc_id):
     npc = _voice_npc(npc_id)
@@ -1221,9 +1275,11 @@ def voice_studio_save(q, body, npc_id):
     npc = _voice_npc(npc_id)
     try:
         studio = voice_authoring.clean_studio(body)
-        speaker = voice_record.speaker_for(voice_record.voice_of(npc))
+        voice = voice_record.voice_of(npc)
+        speaker = voice_record.speaker_for(voice)
         for preset in studio["presets"]:
-            voice_authoring.validate_performance({k: preset[k] for k in ("direction", "parameters", "effects") if k in preset}, speaker)
+            voice_authoring.validate_performance({k: preset[k] for k in ("direction", "parameters", "effects") if k in preset},
+                                                 speaker, lab_voice=voice.get("lab_voice"))
             problem = voice_describe.adult_problem(npc, preset["direction"])
             if problem:
                 raise ValueError(problem)

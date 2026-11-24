@@ -169,6 +169,9 @@ class LabClient:
     def voices(self):
         return self._json("GET", "/api/voices")["voices"]
 
+    def voice(self, identity):
+        return _voice_for(self.voices(), identity)
+
     def speak(self, voice, text, *, direction=None, speed=None, cancel=None):
         if direction:
             path = "/api/speak"
@@ -195,16 +198,17 @@ class LabClient:
             raise LabError("Confirm you have permission to use this recording before sending it to Voice Lab.", code="consent_required")
         if not all(isinstance(value, str) and value.strip() for value in (transcript, origin, allowed_use)):
             raise LabError("Enter the exact words, who made the recording, and how you may use it.", code="reference_details")
+        recording = _wav(recording)
         character = self._json("POST", "/api/characters", body={"name": name}, status=201, cancel=cancel)["character"]
         identity = self._json("POST", f"/api/characters/{_path(character['id'])}/identities",
                               body={"engine_id": engine, "label": "Recorded"}, status=201, cancel=cancel)["identity"]["id"]
         path = f"/api/identities/{_path(identity)}"
         fields = {"filename": "recording.wav", "transcript": transcript, "origin": origin, "allowed_use": allowed_use}
         metadata = base64.urlsafe_b64encode(json.dumps(fields, ensure_ascii=False).encode("utf-8")).decode("ascii").rstrip("=")
-        reference = self._json("POST", f"{path}/references", data=_wav(recording), status=201, timeout=120, cancel=cancel,
+        reference = self._json("POST", f"{path}/references", data=recording, status=201, timeout=120, cancel=cancel,
                                headers={"Content-Type": "application/octet-stream", "X-Reference-Metadata": metadata})["reference"]
         self._json("POST", f"{path}/update", body={"status": "approved", "reference_version_id": reference["id"]}, cancel=cancel)
-        return _voice_for(self.voices(), identity)
+        return self.voice(identity)
 
     def voice_file(self, identity, audition, *, permission=False, cancel=None):
         take = {"identity_id": identity, "text": audition, "line_id": "forge-card-audition", "wait_seconds": WAIT_SECONDS}
