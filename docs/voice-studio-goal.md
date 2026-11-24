@@ -1,8 +1,10 @@
 # NPC Voice Studio goal
 
+> This page records earlier Forge voice experiments. The current workflow is in [Voices](voices.md).
+
 Current guide update, October 20, 2026: the original October 13 completion details
 below describe that milestone's services and adapters at that time. DramaBox and
-[Fish Drama 3](voice-drama3.md) were added afterward; see the [current designer
+[Fish Drama 3](voices.md) were added afterward; see the [current designer
 capability map](voice-designer-tab.md#integration-scope). Historical PIDs and
 measurements are not live service status. Missing weights/runtimes still require
 separate setup; all Drama cloning and production-studio jobs remain CPU-only.
@@ -37,7 +39,7 @@ milestones and their historical remaining work; the final production gate is res
 | Performance presets and model-supported per-line direction | Saved named presets/defaults, dialogue/scene selection, effective adapter controls and frozen queued inputs implemented. Supported controls exercised with real speech; unsupported direction is disabled for the effective engine. Human perceptual quality remains a manual review. |
 | Pronunciation dictionary and audio invalidation | Case-insensitive whole-word/phrase rules, synthesis-text previews, authored-text preservation, targeted freshness signatures, frozen job input and export provenance implemented and checked. Older clips without full snapshots retain documented compatibility limits. |
 | Same-script candidate comparisons, ratings, favorites, take selection | Retained same-script/language sessions, human stars/listening notes/favorites and explicit assignment implemented; candidates protected from pruning/deletion. Unit/API/browser checks pass. |
-| VoxCPM2, Qwen CustomVoice, Chatterbox Original; capability discovery and GPU coordination | All three integrated with pinned local checkpoints and model receipts. Vox native CFG/steps, reference-free CustomVoice identity versions/direction/sampling and Original numeric cloning controls checked with real dialogue/scenes/exports. Shared Lab/Forge residency lease and Forge/ComfyUI gate retained. Cached operation/stock discovery and checksum-bound queue-time checkpoint/runtime inputs are implemented and checked for all seven adapters; see voice-runtime-bindings.md. |
+| VoxCPM2, Qwen CustomVoice, Chatterbox Original; capability discovery and GPU coordination | All three integrated with pinned local checkpoints and model receipts. Vox native CFG/steps, reference-free CustomVoice identity versions/direction/sampling and Original numeric cloning controls checked with real dialogue/scenes/exports. Shared Lab/Forge residency lease and Forge/ComfyUI gate retained. Cached operation/stock discovery and checksum-bound queue-time checkpoint/runtime inputs are implemented and checked for all seven adapters; see [Voices](voices.md). |
 | Reversible creature/robotic effects and preserved originals | CPU Creature/Robot presets, pitch with preserved/pitch-linked formants, filters, distortion, modulation and layering implemented. Paired previews, performance overrides, frozen scenes, dry masters, effect-only reuse and original/delivery exports verified with real prior speech. Independent formant scaling is unavailable in the installed backend. See voice-effects.md. |
 | Word/phoneme alignment, visemes, synchronized previews and Godot/Unreal mappings | Final-audio hash-bound, independently checked word/English phone timing, explicit fallback, configurable 15-group visemes, immutable audio preview and synchronized timing diagram, voice/scene JSON and game playback artifacts implemented. Godot4.7.2 mesh/sprite adapters and Unreal5.8.2 CurveTable/SoundWave imports verified on real retained speech and pinned scene clips; editable target maps documented in voice-game-exports.md. Character-specific portrait/sprite frame maps, immutable versions/restoration, audio-clock browser previews and native CPU scene frame animation implemented and verified on copied real NPC artwork (voice-character-mouths.md). Existing 3D morph/jaw mappings, immutable model snapshots, native stage/MP4 capture and a real-model Godot modifier are implemented (voice-mesh-mouths.md); model intervals are estimates, not manually proven phonetic accuracy. See voice-lip-sync.md. |
 
@@ -120,14 +122,14 @@ reversible effects, followed by alignment, visemes, previews and game-engine exp
 
 ## First additional-engine bridge
 
-[voice-lab-engines.md](voice-lab-engines.md) documents VoxCPM2 discovery, control bounds,
+[Voices](voices.md) documents VoxCPM2 discovery, control bounds,
 the reused environments/source/checkpoint, shared residency lease, and current limits.
 87 checks passed including GPU regression coverage; actual cross-process lock contention
 and release were checked. Native UI persisted the nondefault CFG/step settings with
 desktop/mobile screenshots. Real 48 kHz voice-reuse and pinned scene evidence is in
 `local/voice-studio-real-20261012-144048-ae6f89/report.json` and its WAV/MP4/ZIP artifacts.
 Actual receipts carry checkpoint/source revisions and effective CFG 2.5/steps 8.
-The subsequent [native identity milestone](voice-native-identities.md) adds CustomVoice
+The subsequent [native identity milestone](voices.md) adds CustomVoice
 and Original, with real generation, pinned scenes and export checks. Complete model
 pins, effects and aligned lip sync remain required.
 
@@ -178,7 +180,7 @@ with the planned beat mix at zero offset. Original NPC/model/WAV bytes remain un
 Jaw-only opening is explicitly distinguished from independent phonetic lip shapes.
 No production assignment, runtime pin change or software install was needed.
 
-The all-adapter queue-time binding and capability audit is implemented; see voice-runtime-bindings.md. The full goal remains **active** for the final live-service completion check. Physical microphone
+The all-adapter queue-time binding and capability audit is implemented; see [Voices](voices.md). The full goal remains **active** for the final live-service completion check. Physical microphone
 and human speaker/phonetic quality reviews are not claimed. The latest game/character/mesh
 backend additions postdate production PID15556; an eventual fresh backend loads those
 capability flags. Port8765 remains available throughout isolated QA.

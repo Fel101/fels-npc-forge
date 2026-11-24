@@ -161,6 +161,10 @@ def prepare(v, text, mood="neutral", line_id=None, preset_id=None, override=None
     speaker = record.speaker_for(v)
     perf = resolve_performance(v, line_id, preset_id, override)
     lab_voice = v.get("lab_voice")
+    if lab_voice:
+        perf["parameters"] = {key: value for key, value in perf.get("parameters", {}).items() if key == "speed"}
+        if not lab_voice["takes_direction"]:
+            perf["direction"] = ""
     perf = validate_performance(perf, speaker, lab_voice=lab_voice)
     effective = copy.deepcopy(v)
     caps = capabilities(speaker, bool(perf["direction"] or (mood != "neutral" and speaker == "breeze")))
@@ -181,9 +185,10 @@ def prepare(v, text, mood="neutral", line_id=None, preset_id=None, override=None
     if record.is_preset(v):
         source["preset_identity"] = v.get("preset_identity")
     if lab_voice:
-        source["lab_voice"] = lab_voice
-        source["mood"] = mood if lab_voice["takes_direction"] else "neutral"
-    if not ref and v.get("mode") == "design":
+        source = {key: source[key] for key in ("parameters", "direction", "synthesis_text")}
+        source.update(voice=record.identity_id(v), model=lab_voice["model"], lab_id=lab_voice.get("lab_id"),
+                      mood=mood if lab_voice["takes_direction"] else "neutral")
+    elif not ref and v.get("mode") == "design":
         source["design_instruction"] = record.instruction(v)
     signature = hashlib.sha256(json.dumps(source, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
     delivery = effects.clean(perf.get("effects", (v.get("studio") or {}).get("effects", {})))

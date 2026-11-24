@@ -215,7 +215,7 @@ def test_comfy_wait_beats_on_every_poll_and_a_run_hands_its_cancel_flag_to_the_g
     client.fetch_image = lambda filename, subfolder="", image_type="temp": b"png"
     client._request = lambda method, path, data=None, headers=None, timeout=30: json.dumps({"prompt_id": "p1"}).encode()
     monkeypatch.setattr(comfy_mod.time, "sleep", lambda s: None)
-    monkeypatch.setattr(gpu, "claim", lambda key, release=None, comfy=None, cancel=None: claims.append(cancel))
+    monkeypatch.setattr(gpu.GATE, "claim_picture", lambda comfy, graph, cancel: claims.append(cancel))
     flag = Flag()
     assert client.run({"1": {"class_type": "KSampler", "inputs": {}}}, cancel=flag) == b"png"
     assert len(beats) >= 3 and claims == [flag]                 # a cancel during the GPU hand-off now reaches it

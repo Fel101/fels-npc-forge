@@ -75,7 +75,7 @@ commercial game. The Models card says so next to both Qwen Image 2.1 entries.
 ## Voice models (optional, the voice designer)
 
 NPC Forge can give characters voices with these text-to-speech models, each installed in its own Python environment by
-`scripts/install_voice.py` (see `npcgen/voice/`). No weights and no model code are bundled. Licences as each model's page
+Voice Lab (see [Voices](docs/voices.md)). Forge includes voice authoring and export code. Licences as each model's page
 declared them in September 2026; read them yourself before you ship anything.
 
 | Model | Where | Licence |

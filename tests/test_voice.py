@@ -1,6 +1,4 @@
-"""Character voices (npcgen/voice) without a GPU: the description writer and its safety rules, the sound-tag rewriting, the audio
-helpers, the settings checks, and a real worker process running the fake engine (a tone generator) through the runtime and the
-job queue: protocol, timeouts, cancelling, one worker at a time, the quick lane and every voice step."""
+"""Voice descriptions, authored audio and queued Voice Lab previews."""
 import copy
 import io
 import threading
@@ -10,27 +8,13 @@ import wave
 import numpy as np
 import pytest
 
-from npcgen import engines as picture_engines
 from npcgen import roll
-from npcgen.comfy import Cancelled
 from npcgen.jobs import JobQueue, Jobs
 from npcgen.library import Library
-from npcgen.voice import audio, describe, engines, markup, record, runtime, service
+from npcgen.voice import audio, describe, engines, markup, lab_voice, record, service
 
 
 # ---- helpers -------------------------------------------------------------------------------------------------------------
-@pytest.fixture
-def fake_engine(monkeypatch):
-    """A registered engine "fake" whose worker runs npcgen/voice/adapters/fake.py under this Python."""
-    spec = {**copy.deepcopy(engines.ENGINES["qwen"]), "label": "Fake engine", "adapter": "fake", "min_free_vram_mb": 0,
-            "min_free_ram_mb": 0, "rtf": 0.1, "separate_parts": False, "caps": {"design": True, "clone": True, "stock": True, "direction": True,
-                                                      "tags": ["laugh"]}}
-    monkeypatch.setitem(engines.ENGINES, "fake", spec)
-    monkeypatch.setitem(engines.STOCK_VOICES, "fake", [{"id": "af_heart", "label": "Heart", "gender": "female",
-                                                        "accent": "American", "grade": "A"}])
-    return spec
-
-
 def _npc(setting="modern", style="photoreal", **profile):
     data = roll.load_data()
     npc = roll.roll_npc(data, setting, {"gender": profile.pop("gender", "female")}, {})
@@ -255,68 +239,17 @@ def test_the_quick_lane_goes_first_but_never_ahead_of_shutdown():
     assert q.empty()
 
 
-# ---- a real worker process (the fake engine) --------------------------------------------------------------------------------------
-def test_the_runtime_runs_a_worker_and_stops_it_when_asked(tmp_path, fake_engine):
-    rt = runtime.VoiceRuntime({}, tmp_path / "logs")
-    try:
-        out = tmp_path / "a.wav"
-        reply = rt.run("fake", {"cmd": "design", "text": "Hello there, how are you?", "instruct": "x", "seed": 1}, out)
-        assert reply["ok"] and reply["audio_seconds"] > 1 and out.is_file()
-        assert rt.status() == {"fake": True}
-        rt.run("fake", {"cmd": "stock", "text": "Again.", "voice": "fake_a"}, tmp_path / "b.wav")
-        assert rt.worker.loaded == {"design", "stock"}
-        picture_engines._clear_gpu_for_big()                        # a big picture engine is about to start
-        assert rt.status() == {}
-    finally:
-        rt.close()
-
-
-def test_a_failing_clip_reports_the_reason_and_keeps_the_worker(tmp_path, fake_engine):
-    rt = runtime.VoiceRuntime({}, tmp_path / "logs")
-    try:
-        with pytest.raises(runtime.VoiceError, match="asked to fail"):
-            rt.run("fake", {"cmd": "design", "text": "[fail]", "instruct": "x"}, tmp_path / "x.wav")
-        assert rt.status() == {"fake": True}
-    finally:
-        rt.close()
-
-
-def test_a_clip_past_its_time_limit_or_cancelled_kills_the_worker(tmp_path, fake_engine, monkeypatch):
-    cfg = {"voice": {"engines": {"fake": {"env": {"NPCFORGE_FAKE_SLEEP": "30"}}}}}
-    monkeypatch.setattr(runtime, "MIN_SECONDS", 2)
-    rt = runtime.VoiceRuntime(cfg, tmp_path / "logs")
-    try:
-        with pytest.raises(runtime.VoiceError, match="took longer"):
-            rt.run("fake", {"cmd": "design", "text": "Hi", "instruct": "x"}, tmp_path / "x.wav")
-        assert rt.status() == {}
-        cancel = threading.Event()
-        threading.Timer(1.0, cancel.set).start()
-        with pytest.raises(Cancelled):
-            rt.run("fake", {"cmd": "design", "text": "Hi", "instruct": "x"}, tmp_path / "y.wav", cancel=cancel)
-        assert rt.status() == {}
-    finally:
-        rt.close()
-
-
-def test_an_engine_that_is_not_installed_says_how_to_install_it(tmp_path):
-    rt = runtime.VoiceRuntime({"voice": {"engines": {}}}, tmp_path / "logs")
-    try:
-        with pytest.raises(runtime.VoiceError, match="install_voice.py breeze"):
-            rt.run("breeze", {"cmd": "design", "text": "Hi", "instruct": "x"}, tmp_path / "x.wav")
-    finally:
-        rt.close()
-
-
 class _NoComfy:
     models = {}
 
 
-def test_takes_pick_test_and_lines_run_through_the_job_queue(tmp_path, fake_engine):
+def test_takes_pick_test_and_lines_run_through_the_job_queue(tmp_path, monkeypatch):
+    monkeypatch.setattr(lab_voice, "speak", lambda job, request: _wav(3.0))
     lib = Library(tmp_path / "library")
     jobs = Jobs({}, _NoComfy(), lib)
     try:
         npc = lib.create(_npc(age=26, first_name="Nong"))
-        clean = record.clean_settings({"engine": "fake", "mode": "design", "description": "A bright, quick voice.",
+        clean = record.clean_settings({"engine": "qwen", "mode": "design", "description": "A bright, quick voice.",
                                        "voice_type": "anime"}, npc)
         npc = lib.update(npc["id"], lambda rec: record.save_settings(rec, clean))
 
@@ -332,7 +265,8 @@ def test_takes_pick_test_and_lines_run_through_the_job_queue(tmp_path, fake_engi
         picked = record.select_take(lib, npc["id"], v["takes"][2]["id"])["voice"]
         assert picked["review"] == "picked" and picked["chosen_take"] == v["takes"][2]["id"]
 
-        npc = lib.get(npc["id"])
+        npc = lib.update(npc["id"], lambda rec: lab_voice.save(rec, {
+            "identity_id": "1" * 32, "name": "Nong", "kind": "cast", "model": "qwen3-tts-1.7b-base", "takes_direction": True}))
         row = _wait(jobs, jobs.submit(npc, {"voice": service.test_request(npc, {"text": "[laugh] Try me.", "mood": "happy"})}, {})["id"])
         assert row["status"] == "done", row
         assert lib.get(npc["id"])["voice"]["tests"]["try"]["mood"] == "happy"
@@ -348,7 +282,7 @@ def test_takes_pick_test_and_lines_run_through_the_job_queue(tmp_path, fake_engi
         assert lines["greeting_1"]["mouth"] and not record.line_is_stale(npc, "greeting_1")
         npc["dialogue"]["lines"]["greeting"][0]["text"] = "Something new."
         assert record.line_is_stale(npc, "greeting_1") and not record.line_is_stale(npc, "farewell_1")
-        record.select_take(lib, npc["id"], v["takes"][0]["id"])
+        lib.update(npc["id"], lambda rec: rec["voice"]["lab_voice"].update(identity_id="2" * 32))
         assert record.line_is_stale(lib.get(npc["id"]), "farewell_1")       # a new voice: every line is out of date
     finally:
         jobs.close()
@@ -370,7 +304,7 @@ def test_choosing_a_take_makes_its_model_speak_the_lines(tmp_path):
     assert (v["engine"], v["mode"], v["stock_voice"], record.speaker_for(v)) == ("kokoro", "stock", "bf_emma", "kokoro")
 
 
-def test_a_stock_voice_takes_the_best_matches_in_turn(tmp_path, fake_engine):
+def test_a_stock_voice_takes_the_best_matches_in_turn():
     npc = _npc(age=40, gender="female")
     npc["voice"] = {"engine": "kokoro", "mode": "stock", "stock_voice": "af_sky"}
     req = service.takes_request(npc, {"count": 3})
@@ -402,25 +336,3 @@ def test_an_upload_needs_consent_and_the_words(tmp_path):
     copied = service.apply_copy(lib, other, lib.get(npc["id"]))
     assert copied["voice"]["reference"]["source"] == f"copy:{npc['id']}"
     assert lib.read_asset(other["id"], record.REFERENCE) == lib.read_asset(npc["id"], record.REFERENCE)
-
-
-def test_the_installer_takes_breeze_code_only_from_a_folder_you_name(tmp_path):
-    import importlib.util
-    spec = importlib.util.spec_from_file_location("install_voice", "scripts/install_voice.py")
-    inst = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(inst)
-    with pytest.raises(SystemExit, match="breeze-code"):
-        inst.install_breeze_code(tmp_path / "env", None)
-    src = tmp_path / "src" / "breeze"
-    (src / "vendor").mkdir(parents=True)
-    for name in inst.BREEZE_FILES + ["vendor/codec_model.py"]:
-        (src / name).write_text("# code\n", encoding="utf-8")
-    code = inst.install_breeze_code(tmp_path / "env", tmp_path / "src")             # the parent of breeze/ works too
-    assert (code / "breeze" / "loader.py").is_file() and (code / "breeze" / "vendor" / "codec_model.py").is_file()
-    assert (code / "breeze" / "__init__.py").is_file()
-    with pytest.raises(SystemExit, match="not the Breeze"):
-        inst.install_breeze_code(tmp_path / "env2", tmp_path)
-    inst.write_config("qwen", tmp_path / "py.exe", {"HF_HOME": "x"}, tmp_path / "config.json")
-    import json
-    cfg = json.loads((tmp_path / "config.json").read_text("utf-8"))
-    assert cfg["voice"]["engines"]["qwen"]["env"] == {"HF_HOME": "x", "HF_HUB_OFFLINE": "1"} and cfg["voice"]["idle_minutes"] == 3

@@ -30,7 +30,8 @@ def cases(npc, names=''):
             ('whisper', 'Whispered', shared, 'whisper'), ('amused', 'Amused', shared, 'happy'),
             ('names', 'Names & pronunciation', f'I am looking for {names}. Please tell me where to find them.', 'neutral'),
             ('long', 'Longer speech', 'Before we set out, check the map and count our supplies. We need water, a warm coat, and enough food for the journey. The old bridge may be closed, so we will follow the river until we reach the next village. If the weather turns, we can wait at the inn. Take your time, keep the group together, and tell me if anything seems wrong.', 'neutral')]
-    directed = bool(engines.can(record.speaker_for(v), 'direction'))
+    linked = v.get('lab_voice')
+    directed = linked['takes_direction'] if linked else engines.can(record.speaker_for(v), 'direction')
     if record.speaker_for(v)=='drama3':
         rows.extend([
             ('drama-inline','Inline delivery change','[whispers] Stay close. [normal voice] The gate is open.','neutral'),
@@ -46,7 +47,7 @@ def request(lib, npc, raw):
     if not isinstance(raw, dict) or set(raw) - {'names'}:
         raise ValueError('An audition accepts names to test')
     v = record.voice_of(npc)
-    if not v.get('reference') and not (v.get('mode') == 'stock' and v.get('stock_voice')):
+    if not (v.get('lab_voice') or v.get('reference') or (v.get('mode') == 'stock' and v.get('stock_voice'))):
         raise ValueError('Assign a voice before running a character audition')
     rows = cases(npc, raw.get('names', ''))
     # Run CPU word checks for these clips without changing the character's saved lip-sync settings.

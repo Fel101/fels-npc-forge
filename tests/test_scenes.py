@@ -122,7 +122,7 @@ def test_close_shot_frames_top_of_tall_portrait(sample):
 
 def test_scene_voice_job_uses_scene_storage_and_marks_changes_stale(sample, monkeypatch):
     from npcgen.jobs import Jobs
-    from npcgen.voice.runtime import VoiceRuntime
+    from npcgen.voice import lab_voice
 
     class DummyComfy:
         models = {}
@@ -132,11 +132,10 @@ def test_scene_voice_job_uses_scene_storage_and_marks_changes_stale(sample, monk
     lib.update(npc_id, lambda npc: npc.update(voice={"engine": "kokoro", "mode": "stock",
                                                     "speaker": "kokoro", "stock_voice": "af_heart"}))
     scene = scenes.create(raw)
-    def fake_run(self, engine_id, request, output, cancel=None):
-        assert engine_id == "kokoro" and request["text"] == "Hello there."
-        output.write_bytes(_tone())
-        return {}
-    monkeypatch.setattr(VoiceRuntime, "run", fake_run)
+    def fake_run(job, request):
+        assert request["model"] == "kokoro" and request["text"] == "Hello there."
+        return _tone()
+    monkeypatch.setattr(lab_voice, "speak", fake_run)
     monkeypatch.setattr("npcgen.jobs.engines.release", lambda comfy: None)
     monkeypatch.setattr("npcgen.jobs.gpu.release_comfy", lambda comfy: None)
     jobs = Jobs({}, DummyComfy(), lib, scenes=scenes)
@@ -160,7 +159,8 @@ def test_scene_voice_job_uses_scene_storage_and_marks_changes_stale(sample, monk
 
 def test_scene_voice_retry_uses_current_line(sample, monkeypatch):
     from npcgen.jobs import Jobs
-    from npcgen.voice.runtime import VoiceError, VoiceRuntime
+    from npcgen.voice import lab_voice
+    from npcgen.voice.lab_client import LabError
 
     class DummyComfy:
         models = {}
@@ -171,14 +171,13 @@ def test_scene_voice_retry_uses_current_line(sample, monkeypatch):
     scene = scenes.create(raw)
     spoken = []
 
-    def fake_run(self, engine_id, request, output, cancel=None):
+    def fake_run(job, request):
         spoken.append(request["text"])
         if len(spoken) == 1:
-            raise VoiceError("Temporary voice failure")
-        output.write_bytes(_tone())
-        return {}
+            raise LabError("Temporary voice failure")
+        return _tone()
 
-    monkeypatch.setattr(VoiceRuntime, "run", fake_run)
+    monkeypatch.setattr(lab_voice, "speak", fake_run)
     monkeypatch.setattr("npcgen.jobs.engines.release", lambda comfy: None)
     monkeypatch.setattr("npcgen.jobs.gpu.release_comfy", lambda comfy: None)
     jobs = Jobs({}, DummyComfy(), lib, scenes=scenes)

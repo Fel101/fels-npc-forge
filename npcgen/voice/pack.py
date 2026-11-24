@@ -60,7 +60,7 @@ def build(lib, npc):
     manifest["voice"].update(identity_version=record.identity_id(v), file_role="audition" if record.is_preset(v) else "cloning_reference")
     if linked:
         manifest["voice"].update(mode=linked["kind"], engine=linked["model"], stock_voice=linked.get("voice_id"), file_role=None,
-                                 provider="voice-lab", name=linked["name"])
+                                 provider="voice-lab", name=linked["name"], licence=linked.get("licence"))
     for packed, (line_id, _, _, meta) in zip(manifest["lines"], lines):
         packed["reference_version"] = meta.get("reference")
         packed["voice_snapshot"] = meta.get("voice_snapshot")
@@ -82,7 +82,9 @@ def build(lib, npc):
         "",
         "Made with: " + ", ".join(f"{engines.ENGINES[e]['label']} ({licences[e]})" for e in made_with if e in licences),
     ]
-    if not record.commercial_ok(v):
+    if linked and linked.get("licence"):
+        readme += ["", linked["licence"]["reason"]]
+    elif not record.commercial_ok(v):
         readme += ["", "NON-COMMERCIAL: a model used for this voice has a non-commercial licence. Do not ship it in a game you sell."]
     if not linked and v.get("mode") == "upload":
         readme += ["", "This voice was copied from a recording you uploaded, confirming you have the right to use it."]

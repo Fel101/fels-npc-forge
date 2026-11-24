@@ -30,6 +30,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import npcgen
 from npcgen import config as cfgmod
 from npcgen import fels_suite
+from npcgen import suite_gpu
 from npcgen import anim, best3d, bodymaker, cast, check3d, cleanup3d, dialogue, engines, equip, export, eyes, facefit, facescan, gpu, hairmask, hands3d, head3d, headdetail, headgraft, import3d, items, licences, posekeys, prompts, rig3d, roll, service, sheet, three_d
 from npcgen import morphology, scene_export, scene_recording, scene_takes, scene_sound, scene_writer
 from npcgen import creaturepack
@@ -53,7 +54,6 @@ from npcgen.voice import mesh_rig as voice_mesh_rig
 from npcgen.voice import comparison as voice_comparison
 from npcgen.voice import audition as voice_audition
 from npcgen.voice import transcript_draft as voice_transcript_draft
-from npcgen.voice import voice_match as voice_match_mod
 from npcgen.voice import lab_voice
 from npcgen.voice import audio as voice_audio
 from npcgen.voice.lab_client import LabClient, LabError
@@ -66,7 +66,7 @@ mimetypes.add_type("application/wasm", ".wasm")
 
 # Bump when web/app.js starts needing something an older server does not provide; the page compares it with its own
 # REQUIRED_API and switches the newer features off (with a banner) instead of crashing. A test keeps the two in sync.
-API_VERSION = 46             # 46: optional build controls move to local extensions (docs/api.md)
+API_VERSION = 47             # 47: speech runs through Voice Lab (docs/api.md)
 
 DEFAULT_ASSETS = {"portrait": True, "sprite": True, "model_3d": False, "expressions": ["happy", "sad", "angry", "surprised"]}
 
@@ -363,8 +363,7 @@ def health(q, body):
     if status.get("online"):
         status["engines_missing"] = engines.availability(comfy)       # {engine id: [missing files]}, for the Models card
         status["three_d_missing"] = three_d.availability(comfy)       # {generator id: [missing files/nodes]}
-    status["voice"] = {e: {"installed": voice_engines_mod.installed(app.cfg, e), "loaded": bool(app.jobs.voice.status().get(e))}
-                       for e in voice_engines_mod.ENGINES}
+    status["voice"] = {"provider": "voice-lab"}
     status["gpu_rule"] = gpu.status()           # "gpu" is already the card's name
     status["rig_3d"] = rig3d.availability(app.cfg)                   # Blender, for skeletons and animation clips
     status["rig_library"] = rig3d.library_availability(app.cfg)      # the animation library's clips (Quaternius, CC0)
@@ -719,7 +718,7 @@ def list_cast_packs(q, body):
 @route("GET", "/api/scenes/capabilities")
 def scene_capabilities(q, body):
     return {"mp4": bool(ffmpeg_path()), "voice_studio_schema": 1, "director_schema": 1, "studio_schema": 1,
-            "stock_voices":voice_engines_mod.stock_voices('kokoro',current_app().cfg)}
+            "stock_voices":voice_engines_mod.stock_voices('kokoro')}
 
 
 @route("GET", "/api/scenes")
@@ -1012,59 +1011,14 @@ def export_dialogue(q, body, npc_id, format_id):
 
 
 # ---- voices (npcgen/voice) ------------------------------------------------------------------------------------------------
-def _drama_studio():
-    app=current_app()
-    with app.drama_studio_lock:
-        if not getattr(app,'drama_studio',None):
-            from npcgen.voice.drama_studio import create
-            app.drama_studio=create(app,_voice_npc)
-        return app.drama_studio
-
-
-def _drama_call(fn):
-    try:return fn(_drama_studio())
-    except (KeyError,FileNotFoundError):raise ApiError(404,'Drama job or source voice not found') from None
-    except (ValueError,TypeError) as exc:raise ApiError(400,str(exc)) from None
-    except RuntimeError as exc:raise ApiError(409,str(exc)) from None
-
-
-@route('GET','/api/voice/drama3/info')
-def drama_info(q,body):
-    from npcgen.voice.drama_studio import shared
-    return _drama_call(lambda studio:{**shared(current_app().cfg).capabilities(),'sources':studio.sources(),'jobs':studio.list()})
-
-
-@route('POST','/api/voice/drama3/jobs')
-def drama_start(q,body):
-    return _drama_call(lambda studio:{'job':studio.start(body)})
-
-
-@route('GET','/api/voice/drama3/jobs/([a-f0-9]{32})')
-def drama_job(q,body,job_id):
-    return _drama_call(lambda studio:studio.get(job_id,int(q.get('offset',['0'])[0])))
-
-
-@route('POST','/api/voice/drama3/jobs/([a-f0-9]{32})/cancel')
-def drama_cancel(q,body,job_id):
-    return _drama_call(lambda studio:{'job':studio.cancel(job_id)})
-
-
-@route('GET','/api/voice/drama3/jobs/([a-f0-9]{32})/(audio|metadata|package)')
-def drama_artifact(q,body,job_id,kind):
-    def result(studio):
-        data,ctype=studio.artifact(job_id,kind)
-        return Raw(data,ctype,{} if kind=='audio' else {'Content-Disposition':'attachment; filename=drama-take.'+('zip' if kind=='package' else 'json')})
-    return _drama_call(result)
-
-
 @route("GET", "/api/voice/engines")
 def voice_engines(q, body):
-    """Every voice model (what it can do, whether it is installed here), the stock voices, presets, moods and tags."""
+    """Voice authoring options and compatibility metadata for saved records. See /api/voice/lab for available voices."""
     app = current_app()
-    return {"engines": voice_engines_mod.choices(app.cfg, app.jobs.voice.status()), "default": voice_engines_mod.DEFAULT_ENGINE, "lab_api": 1,
-            "stock": {e: voice_engines_mod.stock_voices(e, app.cfg) for e in voice_engines_mod.ENGINES if voice_engines_mod.can(e, "stock")}, "presets": voice_describe.presets(), "library_schema": 1,
+    return {"engines": voice_engines_mod.choices(), "default": voice_engines_mod.DEFAULT_ENGINE, "lab_api": 1,
+            "stock": {e: voice_engines_mod.stock_voices(e) for e in voice_engines_mod.ENGINES if voice_engines_mod.can(e, "stock")}, "presets": voice_describe.presets(), "library_schema": 1,
             "studio_schema": 1, "effects_schema": 1, "effects_caps": voice_effects.capabilities(),
-            "audition_schema": 1, "drama_studio_schema":1,
+            "audition_schema": 1,
             "alignment_schema": 1, "alignment_caps": voice_alignment.capabilities(app.cfg), "game_export_schema": 1, "character_rig_schema": 1, "mesh_rig_schema": 1,
             "performance_caps": {e: voice_authoring.capabilities(e, directed=True) for e in voice_engines_mod.ENGINES}}
 
@@ -1135,19 +1089,6 @@ def voice_library_transcript_draft(q, body, version_id):
 def voice_library_denoise(q, body, version_id):
     """A new unapproved draft with background noise reduced. Words and timing are unchanged; identity is not checked."""
     return _voice_library_call(lambda store: {"version": store.denoise(version_id, body)})
-
-
-@route("GET", "/api/npcs/([a-z0-9-]+)/voice/takes/([a-f0-9]+)/match")
-def voice_take_match(q, body, npc_id, take_id):
-    """Proxy voice match of one take against its voice's reference (Voice Lab's calibrated encoder)."""
-    app = current_app()
-    voice = _voice_npc(npc_id).get("voice") or {}
-    try:
-        return voice_match_mod.for_take(app.lib, npc_id, voice, take_id, app.cfg)
-    except KeyError:
-        raise ApiError(404, "Take not found") from None
-    except ValueError as e:
-        raise ApiError(400, str(e)) from None
 
 
 @route("POST", "/api/voice/library/versions/([a-f0-9]{32})/assign")
@@ -2450,6 +2391,17 @@ def gpu_check(q, body):
     with app.jobs.lock:
         busy = app.jobs.current is not None
     return {**gpu.check(app.comfy, forge_busy=busy), "suite_lock": suite_lock}
+
+
+@route("POST", "/api/gpu/free-voice-lab")
+def free_voice_lab(q, body):
+    """Ask the current Voice Lab GPU holder to unload after the user requests it in the picture queue."""
+    if gpu.GATE.strict:
+        raise ApiError(409, "NPC Forge makes room for pictures automatically with One model at a time on.")
+    status, answer = suite_gpu.ask_voice_lab()
+    if status != 200:
+        raise ApiError(status, answer["message"])
+    return answer
 
 
 @route("POST", "/api/jobs/cancel-all")

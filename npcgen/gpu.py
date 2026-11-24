@@ -1,50 +1,9 @@
-"""One model on the GPU at a time.
+"""Check what ComfyUI can fit on its GPU, including Windows per-process VRAM.
 
-NPC Forge has two kinds of GPU users: ComfyUI (Mage-Flow, Mage-Flow-Edit, the big picture engines, Hunyuan 3D) and the voice
-workers (npcgen/voice). Left to themselves they share the card: ComfyUI keeps Mage-Flow and Mage-Flow-Edit loaded side by side,
-and a voice model could load next to whatever ComfyUI holds. With "gpu" -> "one_model_at_a_time" on (the default), every user
-claims the GPU first, naming the models it is about to use:
-
-  - ComfyUI claims ("comfy", the model files its graph loads) in Comfy.submit, so every graph is covered, whoever builds it;
-  - a voice worker claims ("voice", engine id) before each clip (VoiceRuntime.run).
-
-When the claim names different models from what is loaded (Mage-Flow to Mage-Flow-Edit, a picture to a voice, Qwen3-TTS to
-Kokoro...), the gate unloads first: the previous holder's release runs (a voice worker is stopped, its process ends), ComfyUI is
-told to unload everything and free its memory, and nothing new starts until the card reads empty again:
-  - ComfyUI's own reading (/system_stats) shows at most `idle_vram_mb` in use, and
-  - on Windows, Windows' per-process counters (npcgen/gpumem.py) show ComfyUI's process holding at most `idle_vram_mb` and no
-    other process holding more than `other_process_mb`. ComfyUI's reading alone is not enough, measured on an AMD card
-    under Windows (2026-09-24): it cannot see other processes (0.8 GB "in use" while a voice worker held 6.8 GB), and after
-    an unload it reads 0.76 GB within a second while its process really keeps 4.8 GB for another 12-22 s (once, with a voice
-    model loading next to it, for 5 minutes). /free is sent again every 20 s while waiting.
-If it does not empty within `wait_seconds`, something outside NPC Forge holds the GPU (LM Studio, a model loaded in ComfyUI by
-hand, another NPC Forge, another app) and the step fails with GpuBusy, naming it, rather than loading on top of it. Its `code`
-says which (gpu_busy, with the programs in `holders`; gpu_comfy_held; comfy_busy) for programs that read the job list.
-
-Only the card ComfyUI draws on counts (2026-11-11). A PC with two GPUs (here a Radeon 780M built into the processor and an
-R9700) has Windows counters for both: a program on the other card is not in ComfyUI's way, and counting it refused pictures
-for nothing (a 24.6 GB LM Studio model). The card is found by the name ComfyUI reports, else by where its process holds memory;
-when neither works every card counts, as before. On a GPU built into the processor its memory is mostly shared system memory,
-so that is counted too, and the message says so when a separate card sits unused. check() (GET /api/gpu) reads all this
-without unloading anything, for a program that wants to know before it asks for a picture.
-
-ComfyUI 0.4x keeps the last model's weights in its dynamic VRAM cache after /free (4.6 GB on the R9700, measured 2026-11-11):
-its own reading drops, its process does not, ever. ComfyUI hands that memory to its own next model, so a ComfyUI claim goes
-ahead on ComfyUI's own reading then (before, every switch to another model was refused after 90 s, portrait to expression
-included). A voice worker is another process and cannot use it: that claim is still refused, and the message suggests a
-ComfyUI restart or its --disable-dynamic-vram start option.
-
-Claims are made while holding the ComfyUI endpoint's operation lock (Comfy.run / run_entry / the big-engine runner hold it, and
-VoiceRuntime.run takes it too), so a voice clip can never start in the middle of a picture. The same models drawing picture
-after picture, or the same voice making clip after clip, stay loaded: nothing is reloaded between them.
-
-When the job queue runs empty, ComfyUI is unloaded once it has stayed empty for `unload_idle_seconds` (120; the job worker
-calls release_comfy). A job started in that time with the same models finds them still loaded: unloading at once made the
-next job reload the same weights (Qwen Image 2.1 for a sheet started 43 s after its sprite, 2026-09-26) and, started
-straight away, wait 12-22 s for the card to empty first. 0 unloads as soon as the queue is empty.
-
-Off, the older rules still apply: the big picture engines unload around themselves (npcgen/engines.py) and a voice worker only
-checks there is enough free memory before it starts (npcgen/voice/runtime.py).
+Local picture graphs use the suite lock while their models stay resident. With
+One model at a time on, Forge also waits for ComfyUI and other programs to free
+the card before switching models. ComfyUI's dynamic cache can still be used by
+its next graph. Remote ComfyUI and CPU graphs do not take the local lock.
 """
 import os
 import re
@@ -52,8 +11,8 @@ import threading
 import time
 import urllib.parse
 
-from . import gpumem
-from .comfy import Cancelled, ComfyError
+from . import fels_suite, gpumem, suite_gpu
+from .comfy import Cancelled, ComfyError, beat
 
 DEFAULTS = {"one_model_at_a_time": True, "idle_vram_mb": 2048, "other_process_mb": 1536, "wait_seconds": 90,
             "unload_idle_seconds": 120}
@@ -108,6 +67,8 @@ class Gate:
         self.settings = dict(DEFAULTS)
         self._state = threading.Lock()           # guards the holder only; never held while calling out
         self._holder = None                      # (key, release) of what is on the GPU now, or None
+        self._picture_lock = None
+        self._picture_endpoint = None
         self.last_switch = None                  # {"from", "to", "seconds", "used_mb"} of the latest unload, for the UI
 
     def configure(self, cfg):
@@ -138,6 +99,34 @@ class Gate:
         with self._state:
             self._holder = None
         self.last_switch = None
+        self._release_picture_lock()
+
+    def _release_picture_lock(self):
+        if self._picture_lock is not None:
+            self._picture_lock.release()
+            self._picture_lock = self._picture_endpoint = None
+
+    def claim_picture(self, comfy, graph, cancel):
+        """Take the suite lock before the ComfyUI graph's models load. The endpoint operation lock is already held."""
+        address = suite_gpu.local_origin(comfy.base)
+        if address is None:
+            return
+        new = self._picture_lock is None
+        if not new and comfy.operation_lock is not self._picture_endpoint:
+            raise GpuBusy("Another local ComfyUI still holds Forge's model. Wait for it to unload and retry.", code="gpu_busy")
+        if new:
+            stats = _stats(comfy)
+            if stats is None or stats.get("cpu"):
+                return
+            lock = fels_suite.GpuLock("npc-forge")
+            suite_gpu.acquire_pictures(lock, self.strict, self.settings["wait_seconds"], cancel)
+            self._picture_lock, self._picture_endpoint = lock, comfy.operation_lock
+        try:
+            self.claim(("comfy", graph_models(graph)), comfy=comfy, cancel=cancel)
+        except BaseException:
+            if new:
+                self._release_picture_lock()
+            raise
 
     # ---- claiming ----------------------------------------------------------------------------------------------------------
     def claim(self, key, release=None, comfy=None, cancel=None):
@@ -146,6 +135,8 @@ class Gate:
         to read the GPU memory. Does nothing when the rule is off or `key` already holds the GPU."""
         if not self.strict:
             return
+        if key[0] != "comfy" and self._picture_lock is not None:
+            self.release_comfy(comfy)
         with self._state:
             current = self._holder
             if current and current[0] == key:
@@ -165,28 +156,39 @@ class Gate:
                             "seconds": round(_clock() - started, 1), "used_mb": used}
 
     def drop(self, key):
-        """`key` unloaded itself (an idle voice worker, ComfyUI freed when the queue ran empty)."""
+        """`key` unloaded its model."""
         with self._state:
             if self._holder and self._holder[0] == key:
                 self._holder = None
 
     def release_comfy(self, comfy):
-        """When the job queue has stayed empty for `unload_idle_seconds`: if ComfyUI holds the GPU, unload it so nothing sits
-        on the card between jobs."""
-        if not self.strict:
-            return
+        """Unload ComfyUI and release its suite lease after idle or before asking another app to work."""
+        lock = getattr(comfy, "operation_lock", None)
+        if lock is not None:
+            with lock:
+                return self._release_comfy_locked(comfy)
+        return self._release_comfy_locked(comfy)
+
+    def _release_comfy_locked(self, comfy):
+        suite_held = self._picture_lock is not None and self._picture_endpoint is getattr(comfy, "operation_lock", None)
         with self._state:
             current = self._holder
-            if not current or current[0][0] != "comfy":
+            if not suite_held and (not current or current[0][0] != "comfy"):
                 return
-            self._holder = None
-        _free(comfy)
+            if current and current[0][0] == "comfy":
+                self._holder = None
+        try:
+            if suite_held:
+                _wait_idle(comfy, self.settings["wait_seconds"])
+            _free(comfy)
+        finally:
+            if suite_held:
+                self._release_picture_lock()
 
     # ---- emptying the card ------------------------------------------------------------------------------------------------
     def _empty(self, comfy, key, cancel):
         """Unload everything in ComfyUI and wait until the GPU reads empty. Returns the VRAM in use (MB) at the end, or None
-        when it cannot be read (ComfyUI not running: then nothing of ComfyUI's is on the GPU, and a stopped voice worker's
-        memory went back when its process ended)."""
+        when it cannot be read."""
         if comfy is None:
             return None
         limit, wait = self.settings["idle_vram_mb"], self.settings["wait_seconds"]
@@ -198,11 +200,13 @@ class Gate:
         deadline = asked = _clock()
         deadline += wait
         while True:
+            beat(cancel, "Waiting for ComfyUI to free GPU memory")
             look = self._look(comfy, comfy_pid)
             used, others = look["used_mb"], look["others"]
             if key and key[0] == "comfy" and _cache_only(look, limit):
                 used = look["reading_mb"]          # ComfyUI's dynamic VRAM cache: its own next model reuses that memory
             if (used is None or used <= limit) and not others:
+                beat(cancel)
                 return used
             if cancel is not None and cancel.is_set():
                 raise Cancelled()
@@ -464,7 +468,7 @@ def _stats(comfy):
         dev = d["devices"][0]
         total, free = int(dev["vram_total"]), int(dev["vram_free"])
         return {"used_mb": int((total - free) // 2 ** 20), "total_mb": int(total // 2 ** 20), "free_mb": int(free // 2 ** 20),
-                "name": _device_name(dev.get("name")), "dynamic_vram": _dynamic_vram(d)}
+                "name": _device_name(dev.get("name")), "dynamic_vram": _dynamic_vram(d), "cpu": dev.get("type") == "cpu"}
     except Exception:
         return None
 

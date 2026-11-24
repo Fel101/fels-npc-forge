@@ -66,7 +66,6 @@ class App:
                 _ACTIVE_LIBRARIES.discard(self._library_key)
             raise
         self.closed = False
-        self.drama_studio_lock = threading.Lock()
         self._library_lock_released = False
 
     def _release_library_lock(self):
@@ -82,7 +81,6 @@ class App:
             self.closed = True
             try:
                 try:
-                    if getattr(self,'drama_studio',None):self.drama_studio.close()
                     self.scene_jobs.close()
                 finally:
                     try:

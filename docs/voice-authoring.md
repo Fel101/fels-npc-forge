@@ -27,7 +27,7 @@ The presets use the controls actually forwarded by the current Forge adapters:
 | Breeze cloning | Temperature, acting direction, CFG when a nonempty acting direction is supplied. Plain cloning always uses CFG 1. |
 | Kokoro stock | Speed. No cloning or acting direction. |
 | Chatterbox Turbo | No parameter overrides or acting direction; supported sound tags still work. Its backend ignores CFG/exaggeration. |
-| VoxCPM2 | Guidance strength (CFG), whole-number inference steps; clone mood direction stays experimental. See the [Lab bridge workflow](voice-lab-engines.md). |
+| VoxCPM2 | Guidance strength (CFG), whole-number inference steps; clone mood direction stays experimental. See the [Lab bridge workflow](voices.md). |
 | Qwen CustomVoice | Direct preset identity; acting direction, temperature, top-k, top-p, repetition penalty and maximum speech tokens. No reference conditioning. |
 | Chatterbox Original | English cloning; temperature, exaggeration, CFG weight, top-p, minimum probability and repetition penalty. No text direction, Turbo tags or native speed. |
 | DramaBox | Acting direction, CFG scale, STG scale and duration multiplier in its isolated LTX/Gemma runtime. Separate model-license conditions apply. |

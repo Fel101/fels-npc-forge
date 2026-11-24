@@ -10,7 +10,7 @@ import pytest
 
 from npcgen.jobs import Jobs
 from npcgen.library import Library
-from npcgen.voice import audition, audio, authoring, record, steps
+from npcgen.voice import audition, audio, authoring, lab_voice, record, steps
 
 
 @pytest.fixture
@@ -62,14 +62,18 @@ def test_unsupported_moods_skipped_and_bad_requests_leave_no_session(actor):
 
 def test_batch_step_selects_each_input_retains_flags_reviews_and_checked_export(actor, monkeypatch):
     lib, npc_id, data = actor
+    lib.update(npc_id, lambda rec: lab_voice.save(rec, {
+        'name': 'Clara Test', 'kind': 'cast', 'identity_id': 'b' * 32,
+        'model': 'qwen3-tts-1.7b-base', 'takes_direction': True}))
     suite_id, req = audition.request(lib, lib.get(npc_id), {'names': 'Vael'})
     seen = []
-    def run(engine, request, target, cancel=None):
-        seen.append(copy.deepcopy(request)); target.write_bytes(data)
-        return {'model_identity': {'backend': 'DramaBox', 'queue_binding': {'source': 'queue'}}}
+    def run(job, request):
+        seen.append(copy.deepcopy(request))
+        return data
+    monkeypatch.setattr(lab_voice, 'speak', run)
     monkeypatch.setattr(steps.alignment, 'process', lambda *a, **k: {'status': 'amplitude_fallback',
         'reason': 'Recognized words differ', 'validation': {'transcript_match': False}})
-    jobs = SimpleNamespace(lib=lib, voice=SimpleNamespace(run=run))
+    jobs = SimpleNamespace(lib=lib)
     job = SimpleNamespace(options={'voice': req}, cancel=None)
     selected = [req['tests'][0], req['tests'][5]]
     for item in selected: steps.test(jobs, job, {'key': item['key']}, lib.get(npc_id))
@@ -88,8 +92,8 @@ def test_batch_step_selects_each_input_retains_flags_reviews_and_checked_export(
         assert {'reference.wav', 'greeting.wav', 'names.wav', 'audition.json'} == set(archive.namelist())
         manifest = json.loads(archive.read('audition.json'))
         assert hashlib.sha256(archive.read('greeting.wav')).hexdigest() == row['quality']['sha256']
-        assert manifest['clips']['greeting']['model_identity']['backend'] == 'DramaBox'
-    lib.update(npc_id, lambda rec: rec['voice']['settings'].update(cfg_scale=3))
+        assert manifest['clips']['greeting']['model_identity']['source'] == 'voice-lab'
+    lib.update(npc_id, lambda rec: rec['voice']['settings'].update(speed=1.1))
     assert audition.annotate(lib.get(npc_id))['voice']['auditions'][0]['cases'][0]['stale']
     meta = saved['voice']['tests'][row['key']]
     lib.write_asset(npc_id, meta['file'], b'changed')

@@ -13,7 +13,7 @@ from npcgen.library import Library
 from npcgen.scenes import Scenes, compile_timeline
 from npcgen import scene_voice
 from npcgen.scene_export import make_zip
-from npcgen.voice import alignment, audio, authoring, effects, pack, record, service, steps
+from npcgen.voice import alignment, audio, authoring, effects, lab_voice, pack, record, service, steps
 
 
 def wave(hz=440, seconds=2, rate=24000):
@@ -73,22 +73,24 @@ def test_missing_effect_backend_fails_clearly_but_dry_audio_remains_available(mo
 
 
 @pytest.fixture
-def local(tmp_path):
+def local(tmp_path, monkeypatch):
     lib = Library(tmp_path / 'library')
     npc = lib.create({'profile': {'first_name': 'Effect', 'last_name': 'QA', 'age': 30}, 'assets': {}, 'setting': 'fantasy'})
     wav = wave(seconds=6)
     def assign(rec):
         v = record.voice_of(rec)
-        v.update(engine='qwen', mode='upload', speaker='qwen', studio={})
+        v.update(engine='qwen', mode='upload', speaker='qwen', studio={},
+                 lab_voice={'identity_id': 'a' * 12, 'name': 'Effect QA', 'kind': 'cast',
+                            'model': 'qwen3-tts-1.7b-base', 'takes_direction': True})
         record.install_reference(lib, rec, v, wav, {'id': 'a' * 12, 'text': 'A source reference.'})
         rec.update(voice=v, dialogue={'lines': {'greeting': [{'id': 'hello', 'text': 'The lantern is lit.'}]}})
     lib.update(npc['id'], assign)
     seen = []
-    def generate(engine, request, path, cancel=None):
+    def generate(job, request):
         seen.append(request)
-        path.write_bytes(wav)
-        return {'model_identity': {'checkpoint': 'test fixture', 'seed_requested': request['seed']}}
-    jobs = SimpleNamespace(lib=lib, scenes=Scenes(lib), voice=SimpleNamespace(run=generate))
+        return wav
+    monkeypatch.setattr(lab_voice, 'speak', generate)
+    jobs = SimpleNamespace(lib=lib, scenes=Scenes(lib))
     return lib, npc['id'], jobs, seen
 
 

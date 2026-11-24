@@ -174,19 +174,21 @@ def forge_api(tmp_path):
 def test_forge_lists_designs_speaks_and_exports_using_the_lab_stand_in(forge_api, lab, monkeypatch):
     import numpy as np
 
-    from npcgen.voice import audio, binding
+    from npcgen.voice import audio
     from test_voice_api import _new_npc, _wait
 
     api = forge_api
     url, handlers, calls = lab
     monkeypatch.setenv("VOICE_LAB_URL", url)
 
-    def forbidden(*args, **kwargs):
-        pytest.fail("Lab-linked speech must not use the old worker or inspect the Lab's model files")
-
-    monkeypatch.setattr(api.app.jobs.voice, "run", forbidden)
-    monkeypatch.setattr(binding, "capture", forbidden)
-
+    from pathlib import Path
+    legacy_lab = api.app.lib.root.parent / "lab-files-that-forge-must-never-read"
+    api.app.cfg["voice"] = {"lab_path": str(legacy_lab)}
+    stat = Path.stat
+    def guarded_stat(path, *args, **kwargs):
+        assert not path.is_relative_to(legacy_lab)
+        return stat(path, *args, **kwargs)
+    monkeypatch.setattr(Path, "stat", guarded_stat)
     sample = audio.write_wav(.2 * np.sin(2 * np.pi * 220 * np.arange(16000) / 16000), 16000)
     handlers.update({
         ("GET", "/api/health"): (200, HEALTH),

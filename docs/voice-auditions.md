@@ -53,18 +53,6 @@ independent script dispatch, pronunciation, measured flags, human reviews,
 freshness and checksum-checked packages. API tests exercise validation and partial
 packages; the controller fixture checks submission and unsaved-setting guards.
 
-For a real offline DramaBox suite in an isolated copied library:
-
-```powershell
-python scripts/check_voice_audition_real.py --serve
-```
-
-This uses the retained approved reference from prior local voice QA, passes through
-the normal Forge API/queue, verifies every generated receipt and exported WAV,
-checks the original source hashes, and optionally keeps an isolated Forge open
-for browser review. It does not write production characters or install software.
-Human listening judgments remain unreviewed in generated evidence.
-
 October 13 real evidence is retained under
 `local/voice-audition-real-20261013-175813-165f8b/`: seven real DramaBox clips
 (7.28–28.42 seconds), `audition.zip` and `report.json`. Every clip retained

@@ -40,6 +40,8 @@ same identity and timing fields, or `null`.
 
 ## Changes
 
+- **API 47.** Voice Lab provides new speech through `GET /api/voice/lab` and the character's `/voice/lab` routes.
+  Forge's local speech workers, model discovery and Drama studio routes are retired. Old voice records and packs remain readable.
 - **API 46.** Optional body build controls are served by their local extension. Existing characters keep their saved settings.
 - **API 45.** `GET /api/health` adds a `fels` object with `contract`, `app`, `version` and `api`. Use
   `GET /api/health?identity=1` to read just that object without waiting for the ComfyUI and tool checks.

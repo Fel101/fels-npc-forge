@@ -189,7 +189,7 @@ def take_script(npc, language="English"):
 
 def stock_match(npc, engine_id="kokoro", cfg=None):
     """Stock voices ordered best match first: the character's gender, then British for a British-sounding sheet, then grade."""
-    voices = engines.stock_voices(engine_id,cfg) if cfg is not None else engines.STOCK_VOICES.get(engine_id, [])
+    voices = engines.stock_voices(engine_id)
     p = npc.get("profile") or {}
     gender = p.get("gender")
     british = bool(re.search(r"(?i)british|english|scottish|welsh|irish", str(p.get("heritage") or ""))) or \

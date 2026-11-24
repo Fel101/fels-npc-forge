@@ -30,10 +30,7 @@ DEFAULTS = {
     # picture_history of them are kept next to it (0 keeps none), listed under it with Restore and Delete. A 3D model that is replaced or deleted is kept
     # the same way: the last model_history of them (0 keeps none; a picture-made model with its skeleton takes 60 to 140 MB).
     "library": {"trash_days": 30, "picture_history": 6, "model_history": 2},
-    # Voice engines (npcgen/voice): each runs in its own Python environment. scripts/install_voice.py fills this in:
-    #   "engines": {"qwen": {"python": ".../python.exe", "env": {"HF_HOME": "...", "HIP_VISIBLE_DEVICES": "1"}}, ...}
-    # An idle voice model is unloaded after idle_minutes (0 = never).
-    "voice": {"idle_minutes": 3, "engines": {}},
+    "voice": {},          # Forge-local audio tools, such as optional alignment. Speech uses Voice Lab.
     # One model on the GPU at a time (npcgen/gpu.py): before a different model loads (Mage-Flow to Mage-Flow-Edit, a picture
     # to a voice...), everything is unloaded and the card must read at most idle_vram_mb in use within wait_seconds.
     # Slower (models reload more often) but the GPU is never shared. false = the older, faster sharing rules.

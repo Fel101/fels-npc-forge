@@ -1,4 +1,4 @@
-"""Scene-owned speech through the same voice worker and GPU queue as NPC dialogue."""
+"""Scene-owned speech through Voice Lab and the same queue as NPC dialogue."""
 import hashlib
 import uuid
 
@@ -6,7 +6,7 @@ from .comfy import ComfyError
 from .library import now
 from .scenes import compile_timeline, scene_voice_of, voice_signature
 from .voice import authoring, record, steps
-from .voice.runtime import VoiceError
+from .voice.lab_client import LabError
 
 
 def requests(scene, scenes, raw):
@@ -39,7 +39,7 @@ def requests(scene, scenes, raw):
         seed = record.new_seed()
         try:
             steps.speak_request(npc, effective, spoken, beat.get("mood", "neutral"), seed)
-        except VoiceError as e:
+        except LabError as e:
             raise ValueError(f"{npc['profile'].get('first_name', 'This NPC')}: {e}") from None
         result[beat_id] = {"speaker_id": beat["speaker_id"], "text": beat["text"], "mood": beat.get("mood", "neutral"),
                            "text_sha256": hashlib.sha256(beat["text"].encode()).hexdigest(),
@@ -65,7 +65,7 @@ def run(jobs, job, step):
     try:
         engine, wav, seconds, mouth = steps.speak(jobs, job, npc, effective, spoken, request["mood"], request["seed"], details,
                                                 (scene.get("audio") or {}).get(beat_id))
-    except VoiceError as e:
+    except LabError as e:
         raise ComfyError(str(e)) from None
     rel = f"audio/{beat_id}-{uuid.uuid4().hex[:10]}.wav"
     jobs.scenes.write_audio(scene_id, rel, wav)

@@ -6,23 +6,18 @@
 // The suggested description comes from the character sheet (POST .../voice/suggest); what the model reads is that description plus
 // the voice type and chips, composed the same way as npcgen/voice/describe.compose.
 import { $, S, api, btn, fullName, h, isActive, safe, toast } from './core.js';
-import { conditionsTag, engineNotice } from './voice-engine-notices.js';
-import { licenceNote, optionTag } from './licences-view.js';
 import { auditionSection } from './voice-audition-view.js';
+import { licenceNote, optionTag, ratingTag, statusBadge } from './licences-view.js';
 
-const SOURCES = [['design', 'Describe'], ['stock', 'Stock voice'], ['upload', 'Upload a recording'], ['copy', 'Copy a character']];
 const MAX_UPLOAD_SECONDS = 40, UPLOAD_RATE = 16000;
 
 /** What goes after a voice model's name in a drop-down: the licence list's wording (data/licences.json), or the model's own flag on an older server. */
-const engineTag = x => (S.cfg?.licences ? optionTag('voice:' + x.id) : (x.commercial_ok ? '' : ' · non-commercial'));
 
 export function createVoiceDesigner({ afterSubmit, renderGallery, saveDraft, standalone = false, render, refreshLibrary, openNpc, openWorkspace }) {
   let ENG = null;                    // GET /api/voice/engines, fetched once per page load
   let labCatalog;
   let draft = null;                  // the designer's working copy of the voice settings
   let suggestion = null;             // POST .../voice/suggest for the open character
-  let tab = 'design';
-  let upload = { file: null, text: '', consent: false, speaker: '' };
   let tryText = '', tryMood = 'neutral';
   let selectedNpc = null, loading = false, working = false, search = '', filter = '';
   let savedSettings = '', selectionVersion = 0;
@@ -30,20 +25,6 @@ export function createVoiceDesigner({ afterSubmit, renderGallery, saveDraft, sta
   let voiceLibrary = null;
   let voiceStudio = null;
   let voiceLipSync = null;
-  let dramaDialog=null,dramaView=null;
-  async function openDramaStudio() {
-    if(!ENG?.drama_studio_schema)throw new Error('Restart NPC Forge to enable Drama studio.');
-    if(!dramaDialog){
-      const mount=h('div',{});
-      dramaDialog=h('dialog',{class:'drama-studio-dialog','aria-label':'Drama scene and narration studio'},
-        btn('Close','',()=>dramaDialog.close(),{cls:'small'}),mount);
-      dramaDialog.addEventListener('close',()=>dramaView?.stopListening());
-      document.body.append(dramaDialog);dramaDialog.showModal();
-      const {mountDramaStudio}=await import('./voice-drama3-studio.js');
-      dramaView=await mountDramaStudio(mount,{base:'/api/voice/drama3'});
-    }else dramaDialog.showModal();
-  }
-
   async function openLipSync() {
     await loadEngines();
     if (!voiceLipSync) {
@@ -92,6 +73,7 @@ export function createVoiceDesigner({ afterSubmit, renderGallery, saveDraft, sta
   }
 
   async function makeLabVoice(request) {
+    await ensureSaved();
     const res = await api('POST', `/api/npcs/${npc().id}/voice/lab`, request);
     afterSubmit({ jobs: [res.job] });
     toast('Voice Lab voice queued');
@@ -104,37 +86,53 @@ export function createVoiceDesigner({ afterSubmit, renderGallery, saveDraft, sta
       h('p', {}, labCatalog.message), h('p', {}, h('a', { href: 'https://github.com/Fel101/fels-voice-lab/releases' }, 'Get Voice Lab')), refresh);
 
     const drafts = labCatalog.voices || [];
-    const choices = h('select', { 'aria-label': 'Voice Lab voice' }, h('option', { value: '' }, 'Choose a voice'),
+    const choices = h('select', { class: 'voice-lab-picker', 'aria-label': 'Voice Lab voice' }, h('option', { value: '' }, 'Choose a voice'),
       ...drafts.map(row => h('option', { value: row.name, disabled: row.ready !== true },
-        `${row.name} · ${row.model_name || row.model}${row.ready ? '' : ` · ${row.why_not || 'Unavailable'}`}`)));
+        `${row.name} · ${row.model_name || row.model}${ratingTag(row.licence?.rating)}${row.ready ? '' : ` · ${row.why_not || 'Unavailable'}`}`)));
     choices.value = v.lab_voice?.name || '';
     const locked = !!busy.voice_lab_create;
-    const description = h('textarea', { id: 'labVoiceDescription', rows: 3, maxLength: 1000,
-      value: draft.labDescription ?? (compose(draft) || suggestion?.description || ''), 'aria-label': 'Voice Lab description',
-      oninput: event => { draft.labDescription = event.target.value; } });
-    const recorded = h('details', {}, h('summary', {}, 'Use a recording'), (() => {
+    const recording = draft.labRecording ||= { open: !!(v.reference?.file && !v.lab_voice && v.mode !== 'design'),
+      file: null, transcript: '', origin: '', allowedUse: '', consent: false, model: 'qwen3-tts-1.7b-base' };
+    const recorded = h('details', { open: recording.open, ontoggle: event => { recording.open = event.target.open; } },
+      h('summary', {}, 'Use a recording'), (() => {
       const hasSaved = !!(v.reference?.file && v.reference?.text);
-      const file = h('input', { type: 'file', accept: 'audio/*', 'aria-label': 'Recording to send to Voice Lab' });
-      const transcript = h('textarea', { rows: 2, maxLength: 600, 'aria-label': 'Exact words of the new recording' });
-      const origin = h('input', { type: 'text', 'aria-label': 'Recording origin' });
-      const allowedUse = h('input', { type: 'text', 'aria-label': 'Recording permission terms' });
-      const consent = h('input', { type: 'checkbox' });
-      const cloner = h('select', { 'aria-label': 'Model for the recording' },
-        h('option', { value: 'qwen3-tts-1.7b-base' }, 'Qwen3-TTS 1.7B Base'),
-        h('option', { value: 'turbo' }, 'Chatterbox Turbo'), h('option', { value: 'voxcpm2' }, 'VoxCPM2'));
+      const file = h('input', { class: 'voice-lab-picker', type: 'file', accept: 'audio/*', 'aria-label': 'Recording to send to Voice Lab',
+        onchange: event => { recording.file = event.target.files[0] || null; paint(); } });
+      const field = key => ({ value: recording[key], oninput: event => { recording[key] = event.target.value; } });
+      const transcript = h('textarea', { ...field('transcript'), rows: 2, maxLength: 600, 'aria-label': 'Exact words of the new recording' });
+      const origin = h('input', { ...field('origin'), type: 'text', 'aria-label': 'Recording origin' });
+      const allowedUse = h('input', { ...field('allowedUse'), type: 'text', 'aria-label': 'Recording permission terms' });
+      const consent = h('input', { type: 'checkbox', checked: recording.consent,
+        onchange: event => { recording.consent = event.target.checked; } });
+      const models = [['qwen3-tts-1.7b-base', 'Qwen3-TTS 1.7B Base', 'qwen'],
+        ['turbo', 'Chatterbox Turbo', 'chatterbox'], ['voxcpm2', 'VoxCPM2', 'voxcpm2']];
+      const clonerNote = h('div', {});
+      const showLicence = () => {
+        const model = models.find(([id]) => id === recording.model);
+        const note = model && licenceNote('voice:' + model[2]);
+        clonerNote.replaceChildren(...(note ? [note] : []));
+      };
+      const cloner = h('select', { 'aria-label': 'Model for the recording',
+        onchange: event => { recording.model = event.target.value; showLicence(); } },
+        models.map(([id, label, selector]) => h('option', { value: id }, label + optionTag('voice:' + selector))));
+      cloner.value = recording.model;
+      showLicence();
       return h('div', { class: 'stack' }, h('label', {}, 'Choose an audio file', file),
-        hasSaved ? h('p', { class: 'hint' }, 'Leave the file blank to use the saved recording and its transcript.') : null,
+        recording.file ? h('div', { class: 'row wrap' }, h('span', {}, recording.file.name),
+          btn('Clear recording', '', () => { recording.file = null; paint(); }, { cls: 'small' }))
+          : hasSaved ? h('p', { class: 'hint' }, 'Leave the file blank to use the saved recording and its transcript.') : null,
         h('label', {}, 'Exact words of the new recording', transcript), h('label', {}, 'Who made the recording?', origin),
         h('label', {}, 'How may the recording be used?', allowedUse), h('label', {}, 'Voice Lab model', cloner),
+        clonerNote,
         h('label', { class: 'check' }, consent, 'I have permission to use this recording in Voice Lab.'),
         btn('Make the voice from this recording', 'zap', act(async () => {
-          if (!consent.checked) throw new Error('Confirm that you may use the recording in Voice Lab.');
-          const upload = file.files[0];
+          if (!recording.consent) throw new Error('Confirm that you may use the recording in Voice Lab.');
+          const upload = recording.file;
           if (!upload && !hasSaved) throw new Error('Choose a recording first.');
-          const request = { source: 'recording', origin: origin.value, allowed_use: allowedUse.value, consent: true, engine: cloner.value };
+          const request = { source: 'recording', origin: recording.origin, allowed_use: recording.allowedUse, consent: true, engine: recording.model };
           if (upload) {
             request.audio = await toWavDataUrl(upload);
-            request.transcript = transcript.value;
+            request.transcript = recording.transcript;
           }
           await makeLabVoice(request);
         }), { cls: 'small', disabled: locked }));
@@ -146,8 +144,8 @@ export function createVoiceDesigner({ afterSubmit, renderGallery, saveDraft, sta
         applyNpc(await api('PUT', `/api/npcs/${n.id}/voice/lab`, { name: choices.value }));
         toast('Voice Lab voice assigned');
       }), { cls: 'small', disabled: locked }), refresh),
-      h('label', {}, 'Describe a voice to make in Voice Lab', description),
-      btn('Make this voice in Voice Lab', 'zap', act(() => makeLabVoice({ source: 'description', description: description.value })),
+      describeTab(),
+      btn('Make this voice in Voice Lab', 'zap', act(() => makeLabVoice({ source: 'description', description: compose(draft), language: draft.language, text: draft.script })),
         { cls: 'small', disabled: locked }), recorded);
   }
 
@@ -213,10 +211,10 @@ export function createVoiceDesigner({ afterSubmit, renderGallery, saveDraft, sta
           }), { cls: 'small', disabled: !!busy.voice_lab_create }),
         assigned(v) && ENG?.effects_schema ? btn('Voice effects', '', safe(() => openVoiceStudio('effects')), { cls: 'small' }) : null,
         assigned(v) && ENG?.alignment_schema ? btn('Lip sync', '', safe(openLipSync), { cls: 'small' }) : null,
-        assigned(v) && lines.length ? btn('Voice the dialogue', 'refresh', safe(() => voiceLines()), { cls: 'small', disabled: !!busy.voice_line,
+        hasVoice() && lines.length ? btn('Voice the dialogue', 'refresh', safe(() => voiceLines()), { cls: 'small', disabled: !!busy.voice_line,
           title: 'Speak every dialogue line in this voice (the Dialogue pack card plays them)' }) : null,
         assigned(v) || v.takes?.length ? btn('', 'trash', safe(removeVoice), { cls: 'small icon ghost danger', title: 'Delete the voice, its takes and voiced lines' }) : null),
-      h('p', { class: 'hint' }, 'A voice of their own for every character: suggested from the sheet, then yours to change. Dialogue lines are spoken by cloning the chosen voice, so they always sound like the same person.'));
+      h('p', { class: 'hint' }, 'Voice Lab speaks new dialogue in the voice you assign.'));
   }
 
   function quickTakes(v) {
@@ -232,15 +230,8 @@ export function createVoiceDesigner({ afterSubmit, renderGallery, saveDraft, sta
       inUse ? h('span', { class: 'badge ok' }, v.review === 'pending' ? 'in use (not reviewed)' : 'in use')
         : btn(standalone ? 'Assign to character' : 'Use this voice', '', act(() => selectTake(t.id)), { cls: 'small' }),
       inUse && v.review === 'pending' ? btn(standalone ? 'Confirm this voice' : 'Keep it', '', act(() => selectTake(t.id)), { cls: 'small', title: 'Mark this take as reviewed' }) : null,
-      v.reference?.file ? btn('Compare with reference', '', act(() => checkVoiceMatch(t.id)), { cls: 'small',
-        title: 'Proxy score against the chosen voice reference. A design candidate can differ from it; a rough guide, not a listening test' }) : null,
       compact ? null : btn('', 'trash', act(() => deleteTake(t.id)), { cls: 'small icon ghost danger', title: 'Delete this take',
         disabled: inUse || (v.comparisons || []).some(s => s.candidates.some(c => c.id === t.id)) }));
-  }
-
-  async function checkVoiceMatch(takeId) {
-    const m = await api('GET', `/api/npcs/${npc().id}/voice/takes/${takeId}/match`);
-    toast(m.available ? `Voice match (proxy) ${m.score.toFixed(2)}: ${m.meaning}. ${m.note}` : m.reason);
   }
 
   // ---- actions --------------------------------------------------------------------------------------------------------------
@@ -295,7 +286,6 @@ export function createVoiceDesigner({ afterSubmit, renderGallery, saveDraft, sta
     const fresh = await api('POST', `/api/npcs/${npc().id}/voice/takes/${id}/select`);
     if (draft) {                     // the voice is now that take, model and source included: the designer follows it
       Object.assign(draft, { engine: fresh.voice.engine, mode: fresh.voice.mode, stock_voice: fresh.voice.stock_voice || draft.stock_voice });
-      if (tab === 'design' || tab === 'stock') tab = draft.mode;
     }
     applyNpc(fresh);
     toast('Voice chosen');
@@ -316,7 +306,7 @@ export function createVoiceDesigner({ afterSubmit, renderGallery, saveDraft, sta
   const lineMoods = {};              // line id -> the mood picked before voicing it
   const MOODS = ['neutral', 'happy', 'excited', 'sad', 'angry', 'surprised', 'scared', 'whisper', 'flirty', 'tired'];
 
-  const hasVoice = () => !!(voice().lab_voice || voice().reference) || (voice().mode === 'stock' && !!voice().stock_voice);
+  const hasVoice = () => labCatalog?.connected && !!voice().lab_voice;
 
   /** 'none' | 'ok' | 'stale' (the text changed, or the voice changed, since the line was voiced; npcgen/voice/record.line_is_stale) */
   function lineState(line) {
@@ -341,7 +331,7 @@ export function createVoiceDesigner({ afterSubmit, renderGallery, saveDraft, sta
     if (!n?.id) return null;
     const meta = n.voice_lines?.[line.id], state = lineState(line), busy = lineBusy(line.id);
     const adult = n.profile?.age == null || Number(n.profile.age) >= 18;
-    const moodEnabled=engine(voice().speaker || voice().engine)?.caps.direction===true;
+    const moodEnabled = voice().lab_voice?.takes_direction === true;
     const mood = h('select', { class: 'line-mood', 'aria-label': 'Mood for this line', disabled:!moodEnabled,
       title:moodEnabled?'':'This voice model does not apply text mood direction.', onchange: e => { lineMoods[line.id] = e.target.value; } },
       MOODS.filter(m => m !== 'flirty' || adult).map(m => h('option', { value: m }, m)));
@@ -369,7 +359,7 @@ export function createVoiceDesigner({ afterSubmit, renderGallery, saveDraft, sta
       meta?.lip_sync_stale ? h('span', { class: 'badge warn' }, 'Lip-sync settings changed') : null,
       meta?.lip_sync?.status === 'aligned' ? h('span', { class: 'badge' }, 'Word / phoneme timing') : null,
       btn(meta ? 'Redo' : 'Voice', '', act(() => voiceLines([line.id], { [line.id]: mood.value })), { cls: 'small',
-        disabled: !hasVoice() || !!busy, title: hasVoice() ? 'Speak this line in the character\'s voice' : 'Give the character a voice first (Voice card)' }));
+        disabled: !hasVoice() || !!busy, title: hasVoice() ? 'Speak this line in the character\'s voice' : 'Choose an available voice in the Voice Lab card' }));
   }
 
   /** The Dialogue pack card's voice buttons: voice every line that is missing or out of date, and the Voice pack download. */
@@ -382,7 +372,7 @@ export function createVoiceDesigner({ afterSubmit, renderGallery, saveDraft, sta
     return h('div', { class: 'row wrap' },
       btn(!todo.length ? 'All lines voiced' : todo.length === lines.length ? 'Voice all lines' : `Voice ${todo.length} missing or outdated`, 'zap',
         safe(() => voiceLines(todo.map(l => l.id), Object.fromEntries(todo.filter(l => lineMoods[l.id]).map(l => [l.id, lineMoods[l.id]])))),
-        { cls: 'small', disabled: !hasVoice() || !todo.length, title: hasVoice() ? '' : 'Give the character a voice first (Voice card)' }),
+        { cls: 'small', disabled: !hasVoice() || !todo.length, title: hasVoice() ? '' : 'Choose an available voice in the Voice Lab card' }),
       assigned(voice()) ? h('a', { class: 'btn small ghost', href: `/api/npcs/${n.id}/voice-pack.zip`, download: '',
         title: 'The voice and every up-to-date voiced line as WAV files, with lines.json (text, mood, lip-sync track) and the dialogue files' },
         `Voice pack (${voiced} line${voiced === 1 ? '' : 's'})`) : null);
@@ -422,15 +412,6 @@ export function createVoiceDesigner({ afterSubmit, renderGallery, saveDraft, sta
     return 'data:audio/wav;base64,' + btoa(binary);
   }
 
-  async function sendUpload() {
-    if (!upload.file) throw new Error('Choose a recording first.');
-    await ensureSaved();
-    const audio = await toWavDataUrl(upload.file);
-    applyNpc(await api('POST', `/api/npcs/${npc().id}/voice/upload`, { audio, text: upload.text, consent: upload.consent, speaker: upload.speaker || null }));
-    if (standalone) adoptAssignedVoice();
-    toast('The recording is now this character\'s voice');
-  }
-
   async function copyFrom(id) {
     await ensureSaved();
     applyNpc(await api('POST', `/api/npcs/${npc().id}/voice/copy`, { from: id }));
@@ -449,7 +430,6 @@ export function createVoiceDesigner({ afterSubmit, renderGallery, saveDraft, sta
       settings: { temperature: 0.9, cfg: 4, speed: 1, ...(v.settings || {}) }, script: v.script || '', edited: !!v.edited,
       auto_description: v.auto_description || '', count: 3 };
     await suggest(!draft.description);
-    tab = draft.mode;
     const greeting = npc().dialogue?.lines?.greeting?.[0]?.text;
     tryText = tryText || greeting || '';
     let dlg = $('#voiceDesigner');
@@ -468,7 +448,7 @@ export function createVoiceDesigner({ afterSubmit, renderGallery, saveDraft, sta
   function onDraftChanged() { if ($('#voiceDesigner')?.open) paint(); }
 
   function rememberSession() {
-    if (selectedNpc && draft) sessions.set(selectedNpc.id, { draft, suggestion, upload, tryText, tryMood, tab, savedSettings });
+    if (selectedNpc && draft) sessions.set(selectedNpc.id, { draft, suggestion, tryText, tryMood, savedSettings });
   }
 
   function adoptAssignedVoice() {
@@ -500,9 +480,8 @@ export function createVoiceDesigner({ afterSubmit, renderGallery, saveDraft, sta
         profile: fresh.profile, setting: fresh.setting, style: fresh.style, morphology: fresh.morphology } });
       if (version !== selectionVersion) return;
       selectedNpc = fresh; draft = nextDraft; suggestion = nextSuggestion;
-      upload = cached?.upload || { file: null, text: '', consent: false, speaker: '' };
       tryText = cached?.tryText ?? fresh.dialogue?.lines?.greeting?.[0]?.text ?? '';
-      tryMood = cached?.tryMood || 'neutral'; tab = cached?.tab || draft.mode;
+      tryMood = cached?.tryMood || 'neutral';
       savedSettings = cached?.savedSettings || JSON.stringify(settingsBody());
       if (!cached && draft.mode === 'design' && !draft.description) {
         draft.description = suggestion.description; draft.auto_description = suggestion.description; draft.edited = false;
@@ -554,7 +533,6 @@ export function createVoiceDesigner({ afterSubmit, renderGallery, saveDraft, sta
       h('header', { class: 'voice-page-head' }, h('div', {}, h('h1', {}, 'Voice Designer'),
         h('p', { class: 'hint' }, 'Find a voice, audition it, and give your character someone to sound like.')),
         h('div', { class: 'row wrap' }, btn('Voice library', '', act(() => openVoiceLibrary()), { cls: 'small', disabled: !ENG?.library_schema }),
-          btn('Drama studio','',safe(openDramaStudio),{cls:'small',disabled:!ENG?.drama_studio_schema}),
           btn('Refresh characters', 'refresh', safe(async () => { await refreshLibrary(); paintRoster(); }), { cls: 'small' }),
           h('button', { type: 'button', class: 'btn small', id: 'voiceReviewButton', onclick: safe(openReview),
             disabled: !S.library.some(n => n.voice === 'review') }, 'Review voices'))),
@@ -599,30 +577,27 @@ export function createVoiceDesigner({ afterSubmit, renderGallery, saveDraft, sta
       editor.replaceChildren(h('section', { class: 'card empty' }, h('h2', {}, loading ? 'Loading character…' : 'Choose a character'),
         h('p', {}, 'Select an NPC from the list to describe, clone, or audition their voice.'))); return;
     }
-    const n = selectedNpc, v = voice(), busy = busyVoice(), e = engine(draft.engine);
+    const n = selectedNpc, v = voice(), busy = busyVoice();
     const focused = editor.ownerDocument?.activeElement;
     const restoreFocus = focused?.id && editor.contains(focused) ? {
       id: focused.id, start: focused.selectionStart, end: focused.selectionEnd } : null;
-    const allowed = { design: e.caps.design, stock: e.caps.stock, upload: true, copy: true };
-    const sources = h('div', { class: 'seg voice-sources', role: 'group', 'aria-label': 'Voice source' }, SOURCES.map(([id, label]) =>
-      h('button', { type: 'button', 'aria-pressed': String(tab === id), disabled: !allowed[id], title: allowed[id] ? '' : `${e.label} cannot do this`,
-        onclick: () => { tab = id; if (id === 'design' || id === 'stock') draft.mode = id; paint(); } }, label)));
-    const body = { design: describeTab, stock: stockTab, upload: uploadTab, copy: copyTab }[tab]();
     const lines = Object.values(n.dialogue?.lines || {}).flat();
     const changed = JSON.stringify(settingsBody()) !== savedSettings;
     const current = h('section', { class: 'card stack' }, h('h3', {}, 'Assigned voice'),
       v.lab_voice ? h('p', {}, `${v.lab_voice.name} · Voice Lab`) : v.reference ? player(v.reference, `${fullName(n)}'s assigned voice`) : presetVoice(v)
-        ? h('p', {}, `${v.stock_voice} · reference-free preset identity`) : h('p', { class: 'hint' }, 'No voice assigned yet. Generate candidates and choose a take.'),
+        ? h('p', {}, `${v.stock_voice} · reference-free preset identity`) : h('p', { class: 'hint' }, 'Choose or make a voice in Voice Lab.'),
       assigned(v) ? h('span', { class: 'badge ' + (v.review === 'pending' ? 'warn' : 'ok') }, v.review === 'pending' ? 'First take in use · awaiting review' : 'Assigned to character') : null,
-      v.commercial_ok === false ? h('span', { class: 'badge warn' }, 'Non-commercial') : null,
+      v.lab_voice?.licence?.rating
+        ? h('div', { class: 'licence-note' }, statusBadge(v.lab_voice.licence.rating), h('span', {}, v.lab_voice.licence.reason))
+        : v.commercial_ok === false ? h('span', { class: 'badge warn' }, 'Non-commercial') : null,
       v.library_binding ? h('span', { class: 'badge' }, `Library version ${v.library_binding.number} · pinned`) : null,
-      assigned(v) ? btn('Save voice to library', 'save', act(() => openVoiceLibrary(true)),
+      v.reference || presetVoice(v) ? btn('Save voice to library', 'save', act(() => openVoiceLibrary(true)),
         { cls: 'small', disabled: !ENG.library_schema, title: ENG.library_schema ? '' : 'Restart Forge to enable voice library APIs' }) : null,
       btn('Browse reusable voices', '', act(() => openVoiceLibrary()), { cls: 'small', disabled: !ENG.library_schema }),
       ENG.studio_schema ? btn('Pronunciation & performances', '', act(openVoiceStudio), { cls: 'small' }) : null,
       ENG.effects_schema ? btn('Voice effects', '', act(() => openVoiceStudio('effects')), { cls: 'small' }) : null,
       ENG.alignment_schema ? btn('Lip sync', '', act(openLipSync), { cls: 'small' }) : null,
-      assigned(v) && lines.length ? btn('Voice the dialogue', 'zap', act(() => voiceLines()), { cls: 'small', disabled: !!busy.voice_line }) : null,
+      hasVoice() && lines.length ? btn('Voice the dialogue', 'zap', act(() => voiceLines()), { cls: 'small', disabled: !!busy.voice_line }) : null,
       assigned(v) ? h('a', { class: 'btn small', href: `/api/npcs/${n.id}/voice-pack.zip`, download: '' }, 'Download voice pack') : null,
       v.reference_history?.length ? h('details', { class: 'voice-reference-history' }, h('summary', {}, `Reference history (${v.reference_history.length})`),
         h('div', { class: 'take-list' }, [...v.reference_history].reverse().map((ref, index) => h('div', { class: 'take' },
@@ -639,18 +614,18 @@ export function createVoiceDesigner({ afterSubmit, renderGallery, saveDraft, sta
       loading || working || Object.values(busy).length ? h('div', { class: 'notice', role: 'status' }, h('span', { class: 'spinner small' }),
         loading ? 'Loading character…' : working ? 'Saving request…' : Object.values(busy).join(' · ')) : null,
       h('fieldset', { class: 'voice-columns', disabled: working || loading, 'aria-label': 'Voice design and audition' },
-        h('div', { class: 'voice-design-column stack' }, labControls(n, v, busy), h('section', { class: 'card stack' }, modelSection()),
-          h('section', { class: 'card stack' }, h('h3', {}, 'Design a voice'), sources, body), h('section', { class: 'card stack' }, speakerSection(v))),
+        h('div', { class: 'voice-design-column stack' }, labControls(n, v, busy), labCatalog?.connected ? h('details', { class: 'card' },
+          h('summary', {}, 'Copy a character'), copyTab()) : null),
         h('div', { class: 'voice-audition-column stack' }, current,
           ENG.audition_schema ? auditionSection({ npc: n, jobs: S.jobs, busy: !!busy.voice_test, changed,
-            canRun: assigned(v) && v.language === 'English', player, act, modelLabel: id => engine(id)?.label || id,
+            canRun: hasVoice() && v.language === 'English', player, act, modelLabel: id => engine(id)?.label || id,
             run: async names => {
               const result = await api('POST', `/api/npcs/${n.id}/voice/auditions`, { names });
               applyNpc(result.npc); afterSubmit({ jobs: [result.job] }); toast('Character audition queued');
             },
             review: async (suite, row, body) => applyNpc(await api('PUT', `/api/npcs/${n.id}/voice/auditions/${suite}/cases/${row}`, body)) }) : null,
-          h('section', { class: 'card stack' }, takesSection(v, busy)),
-          v.lab_voice || v.reference || draft.mode === 'design' || (draft.mode === 'stock' && draft.stock_voice)
+          v.takes?.length || (labCatalog?.connected && draft.mode === 'design') ? h('section', { class: 'card stack' }, takesSection(v, busy)) : null,
+          v.lab_voice || Object.keys(v.tests || {}).length
             ? h('section', { class: 'card stack' }, trySection(v, busy)) : null,
           lines.length ? h('section', { class: 'card stack' }, h('h3', {}, 'Dialogue audition'),
             ...lines.map(line => h('div', { class: 'dialogue-line' }, h('p', {}, line.text), lineControls(line)))) : null))].filter(Boolean));
@@ -670,56 +645,9 @@ export function createVoiceDesigner({ afterSubmit, renderGallery, saveDraft, sta
     h('button', { type: 'button', class: 'chip' + (value === id ? ' on' : ''), 'aria-pressed': String(value === id), title: title || '',
       onclick: () => onpick(value === id ? '' : id) }, label)));
 
-  function modelSection() {
-    const e = engine(draft.engine);
-    const caps = e.caps;
-    const languageCount=e.languages.filter(name=>name!=='Auto').length;
-    const can = [caps.design && 'makes voices from a description', caps.clone && 'copies voices', caps.stock && 'stock voices',
-      caps.direction && (caps.direction === 'experimental' ? 'moods (experimental)' : 'moods'), caps.tags?.length && `sounds: ${caps.tags.join(', ')}`, caps.accents && 'accents',
-      `${languageCount} language${languageCount === 1 ? '' : 's'}`].filter(Boolean);
-    const select = h('select', { id: 'voiceEngine', 'aria-label': 'Voice model', onchange: ev => {
-      draft.engine = ev.target.value;
-      const ne = engine(draft.engine);
-      if (draft.mode === 'design' && !ne.caps.design) draft.mode = ne.caps.stock ? 'stock' : 'upload';
-      if (draft.mode === 'stock' && !ne.caps.stock) draft.mode = ne.caps.design ? 'design' : 'upload';
-      if (draft.mode === 'stock' && !(ENG.stock[draft.engine] || []).some(v => v.id === draft.stock_voice)) draft.stock_voice = ENG.stock[draft.engine]?.[0]?.id || '';
-      if (!ne.caps.stock && !(ENG.stock.kokoro || []).some(v => v.id === draft.stock_voice)) draft.stock_voice = '';
-      if (draft.engine === 'qwen_custom') draft.speaker = '';
-      if (!ne.languages.includes(draft.language)) draft.language = 'English';
-      tab = draft.mode; paint();
-    } }, ENG.engines.map(x => h('option', { value: x.id, disabled: !x.installed && x.id !== draft.engine },
-      x.label + (x.installed ? '' : ' (not installed)') + conditionsTag(x) + engineTag(x))));
-    select.value = draft.engine;
-    return h('section', { class: 'adv-group' }, h('h4', { class: 'lbl' }, 'Model'),
-      h('div', { class: 'field' }, select),
-      h('p', { class: 'hint' }, e.note),
-      engineNotice(e),
-      e.id==='drama3' ? btn('Open cast & narration studio','',safe(openDramaStudio),{disabled:!ENG?.drama_studio_schema||!e.installed}) : null,
-      h('div', { class: 'chips' }, can.map(c => h('span', { class: 'badge' }, c))),
-      e.installed ? null : h('p', { class: 'notice' }, `Not installed on this PC. Run: ${e.install_hint}`),
-      licenceNote('voice:' + e.id) || (e.commercial_ok ? null : h('p', { class: 'hint' }, `Licence: ${e.licence}. Fine for personal projects; not for a game you sell (see NOTICE.md).`)));
-  }
-
-  /** Qwen3-TTS ignores accents (measured): say so where the accent is picked, and offer a model that does them. */
-  function accentNote(e) {
-    const accent = draft.chips?.accent;
-    if (accent && accent !== 'american' && e.id === 'dramabox') return h('p', { class: 'hint' }, 'Accent controls have not been verified for DramaBox. Review its actual takes before choosing an accent.');
-    if (!accent || accent === 'american' || e.caps.accents) return null;
-    const doer = ENG.engines.find(x => x.caps.accents && x.caps.design && x.installed);
-    return h('div', { class: 'notice' },
-      h('p', {}, `${e.label} ignores accents: in our tests it always spoke American English, however the accent was written. ` +
-        (doer ? `${doer.label} does them${doer.commercial_ok ? '' : ' (non-commercial licence)'}. Make the takes with it; ` +
-          'lines spoken by cloning that take with Qwen3-TTS keep a lighter accent, with every word clear.' : 'No installed model that does accents was found.')),
-      doer ? btn(`Switch to ${doer.label}`, 'zap', () => {
-        draft.engine = doer.id;
-        if (!doer.languages.includes(draft.language)) draft.language = 'English';
-        paint();
-      }, { cls: 'small' }) : null);
-  }
-
   function describeTab() {
     const p = presets();
-    const e = engine(draft.engine);
+    const e = engine(ENG.default);
     const desc = h('textarea', { id: 'voiceDesc', rows: 4, value: draft.description, 'aria-label': 'Voice description',
       oninput: ev => { draft.description = ev.target.value; draft.edited = draft.description !== draft.auto_description; preview.textContent = compose(draft); } });
     const preview = h('div', { class: 'prompt-box' }, compose(draft));
@@ -731,53 +659,12 @@ export function createVoiceDesigner({ afterSubmit, renderGallery, saveDraft, sta
       chipRow(p.voice_types.map(v => [v.id, v.label, v.text]), draft.voice_type, id => { draft.voice_type = id; paint(); }),
       ...p.chip_groups.map(g => h('div', {}, h('span', { class: 'lbl' }, g.label),
         chipRow(g.chips.map(c => [c.id, c.label, c.text]), draft.chips[g.id] || '', id => { if (id) draft.chips[g.id] = id; else delete draft.chips[g.id]; paint(); }))),
-      accentNote(e),
       h('span', { class: 'lbl' }, 'What the model reads'), preview,
       h('div', { class: 'form-grid' },
         h('div', { class: 'field' }, h('label', { class: 'lbl', htmlFor: 'voiceLang' }, 'Language'),
           (() => { const s = h('select', { id: 'voiceLang', onchange: ev => { draft.language = ev.target.value; } }, e.languages.map(l => h('option', { value: l }, l))); s.value = draft.language; return s; })()),
         h('div', { class: 'field' }, h('label', { class: 'lbl', htmlFor: 'voiceScript' }, 'What a take reads'),
           h('input', { id: 'voiceScript', type: 'text', value: draft.script, placeholder: suggestion?.script || '', oninput: ev => { draft.script = ev.target.value; } }))));
-  }
-
-  function stockTab() {
-    const custom = draft.engine === 'qwen_custom', e = engine(draft.engine);
-    const list = ENG.stock[draft.engine] || [];
-    const order = [...(custom ? [] : suggestion?.stock || []), ...list.map(v => v.id)].filter((id, i, a) => a.indexOf(id) === i);
-    return h('div', { class: 'stack' },
-      h('p', { class: 'hint' }, custom ? 'Choose a model preset and save settings to assign a reference-free identity. Audition takes keep this speaker; each gets a new seed.'
-        : 'Kokoro\'s ready-made voices, best match for the sheet first. Takes read the script in your pick, then the next best matches.'),
-      h('div', { class: 'stock-grid' }, order.map(id => {
-        const v = list.find(x => x.id === id); if (!v) return null;
-        return h('label', { class: 'style-card' + (draft.stock_voice === id ? ' active' : '') },
-          h('input', { type: 'radio', name: 'stockVoice', checked: draft.stock_voice === id, onchange: () => { draft.stock_voice = id; paint(); } }),
-          h('strong', {}, v.label), h('span', { class: 'hint', style: { margin: 0 } }, custom ? 'Pinned model preset' : `${v.gender}, ${v.accent} · quality grade ${v.grade}`));
-      })),
-      custom ? h('div', { class: 'form-grid' },
-        h('label', {}, 'Preset language', (() => { const s = h('select', { 'aria-label': 'Preset language', onchange: ev => { draft.language = ev.target.value; } }, e.languages.map(l => h('option', { value: l }, l))); s.value = draft.language; return s; })()),
-        h('label', {}, 'Audition script', h('input', { type: 'text', 'aria-label': 'Preset audition script', value: draft.script, oninput: ev => { draft.script = ev.target.value; } }))) :
-      h('div', { class: 'field' }, h('label', { class: 'lbl', htmlFor: 'voiceSpeed' }, `Speed ${Number(draft.settings.speed).toFixed(2)}x`),
-        h('input', { id: 'voiceSpeed', type: 'range', min: 0.6, max: 1.6, step: 0.05, value: draft.settings.speed,
-          oninput: ev => { draft.settings.speed = Number(ev.target.value); ev.target.previousSibling.textContent = `Speed ${Number(ev.target.value).toFixed(2)}x`; } })));
-  }
-
-  function uploadTab() {
-    const cloners = ENG.engines.filter(e => e.caps.clone);
-    const sp = h('select', { id: 'uploadSpeaker', onchange: ev => { upload.speaker = ev.target.value; } },
-      cloners.map(e => h('option', { value: e.id, disabled: !e.installed }, e.label + (e.installed ? '' : ' (not installed)') + conditionsTag(e))));
-    sp.value = upload.speaker || (cloners.find(e => e.installed) || cloners[0]).id;
-    upload.speaker = sp.value;
-    return h('div', { class: 'stack' },
-      h('p', { class: 'notice' }, 'Only upload a voice you have the right to use: your own, or someone who agreed to it. Cloning a real person\'s voice without their permission is not okay, and in many places not legal.'),
-      h('div', { class: 'field' }, h('label', { class: 'lbl', htmlFor: 'uploadFile' }, 'Recording (3 to 40 seconds of clear speech, one speaker, no music)'),
-        h('input', { id: 'uploadFile', type: 'file', accept: 'audio/*', onchange: ev => { upload.file = ev.target.files[0] || null; } }),
-        upload.file ? h('p', { class: 'hint' }, `Selected: ${upload.file.name}`) : null),
-      h('div', { class: 'field' }, h('label', { class: 'lbl', htmlFor: 'uploadText' }, 'Exactly what the recording says'),
-        h('textarea', { id: 'uploadText', rows: 3, value: upload.text, oninput: ev => { upload.text = ev.target.value; } })),
-      h('div', { class: 'field' }, h('label', { class: 'lbl', htmlFor: 'uploadSpeaker' }, 'Speaks with'), sp),
-      h('label', { class: 'check' }, h('input', { type: 'checkbox', checked: upload.consent, onchange: ev => { upload.consent = ev.target.checked; } }),
-        h('span', {}, h('span', { class: 'name' }, 'I have the right to use this voice'))),
-      h('div', { class: 'row' }, btn('Use this recording', 'save', act(sendUpload), { cls: 'small primary' })));
   }
 
   function copyTab() {
@@ -791,17 +678,14 @@ export function createVoiceDesigner({ afterSubmit, renderGallery, saveDraft, sta
 
   function takesSection(v, busy) {
     const takes = [...(v.takes || [])].reverse();
-    const canTake = draft.mode === 'design' || draft.mode === 'stock';
+    const canTake = labCatalog?.connected && draft.mode === 'design' && ['qwen', 'breeze', 'voxcpm2', 'drama3'].includes(draft.engine);
     const count = h('select', { 'aria-label': 'How many takes', onchange: ev => { draft.count = Number(ev.target.value); } }, [1, 2, 3, 4].map(n => h('option', { value: n }, `${n} take${n === 1 ? '' : 's'}`)));
     count.value = String(draft.count || 3);
     return h('section', { class: 'adv-group' }, h('h4', { class: 'lbl' }, 'Takes'),
-      canTake ? h('div', { class: 'row' }, count,
-        btn(busy.voice_take ? busy.voice_take : 'Make takes', 'zap', act(makeTakes), { cls: 'small primary', disabled: !!busy.voice_take || !engine(draft.engine).installed }),
-        h('span', { class: 'hint grow' }, draft.mode === 'stock'
-          ? draft.engine === 'qwen_custom' ? 'Each take reads the same script with this preset speaker and a new seed. Play them and choose an audition.'
-            : 'Each take reads the script in your stock voice, then in the next best matches. Play them and use the one you like.'
-          : 'Each take is a different voice from the same description (a new seed). Play them and use the one you like.'))
-        : h('p', { class: 'hint' }, 'An uploaded or copied voice is used as it is; there is nothing to take.'),
+      canTake ? h('div', { class: 'row wrap' }, count,
+        btn(busy.voice_take ? busy.voice_take : 'Preview candidate voices', 'zap', act(makeTakes), { cls: 'small primary', disabled: !!busy.voice_take }),
+        h('span', { class: 'hint grow' }, 'Each candidate reads the same script in a different voice. Use a candidate as a recording to keep its sound.'))
+        : null,
       takes.length ? h('div', { class: 'take-list' }, takes.map(t => takeRow(t, v))) : null,
       ENG.studio_schema ? comparisonSection(v) : null);
   }
@@ -836,7 +720,9 @@ export function createVoiceDesigner({ afterSubmit, renderGallery, saveDraft, sta
   }
 
   function trySection(v, busy) {
-    const e = engine(draft.speaker || draft.engine), speakerCaps = v.lab_voice ? { direction: v.lab_voice.takes_direction } : e?.caps || {};
+    const labels = { turbo: 'chatterbox', orig: 'chatterbox_original', 'drama-3': 'drama3', 'breeze-tts-2': 'breeze' };
+    const e = engine(labels[v.lab_voice?.model] || v.lab_voice?.model);
+    const speakerCaps = { direction: v.lab_voice?.takes_direction, tags: e?.caps.tags };
     if (!speakerCaps.direction) tryMood = 'neutral';
     const text = h('textarea', { id: 'voiceTry', rows: 2, value: tryText, placeholder: suggestion?.script || 'Type a line…', oninput: ev => { tryText = ev.target.value; } });
     const mood = h('select', { 'aria-label': 'Mood', disabled: !speakerCaps.direction, onchange: ev => { tryMood = ev.target.value; } },
@@ -849,39 +735,16 @@ export function createVoiceDesigner({ afterSubmit, renderGallery, saveDraft, sta
       text,
       h('div', { class: 'row wrap' }, mood,
         (speakerCaps.tags || []).map(t => btn(`[${t}]`, '', () => insert(t), { cls: 'small ghost', title: `Insert a ${t} (this model performs it)` })),
-        btn(busy.voice_test ? busy.voice_test : 'Speak', 'zap', act(() => speak(tryText, tryMood)), { cls: 'small primary', disabled: !!busy.voice_test })),
+        btn(busy.voice_test ? busy.voice_test : 'Speak', 'zap', act(() => speak(tryText, tryMood)), { cls: 'small primary', disabled: !hasVoice() || !!busy.voice_test })),
       tests.try ? h('div', { class: 'take' }, player(tests.try, 'Your line'), h('span', { class: 'cap' }, `${tests.try.mood} · ${engine(tests.try.engine)?.label || tests.try.engine}`)) : null,
       h('span', { class: 'lbl' }, 'Moods'),
       h('div', { class: 'row wrap' }, moodKeys.map(m => h('div', { class: 'mood' },
-        btn(m, '', act(() => speak(tryText, m, true)), { cls: 'small', disabled: !!busy.voice_test || !speakerCaps.direction,
-          title: speakerCaps.direction ? `Hear this voice ${m}` : `${e.label} does not support mood direction` }),
+        btn(m, '', act(() => speak(tryText, m, true)), { cls: 'small', disabled: !!busy.voice_test || !speakerCaps.direction || !hasVoice(),
+          title: speakerCaps.direction ? `Hear this voice ${m}` : `${v.lab_voice?.label || "This voice"} does not support mood direction` }),
         tests['mood_' + m] ? player(tests['mood_' + m], m) : null))),
       h('p', { class: 'hint' }, speakerCaps.direction ? (speakerCaps.direction === 'experimental'
         ? 'Moods on a copied voice are experimental with this model; Breeze TTS 2 is trained for them.'
         : 'Moods steer the copied voice.') : 'This model cannot change the mood of a copied voice; sound tags still work where listed.'));
-  }
-
-  function speakerSection(v) {
-    const options = ENG.engines.filter(e => draft.engine === 'qwen_custom' && draft.mode === 'stock' ? e.id === 'qwen_custom'
-      : e.caps.clone || (e.id === 'kokoro' && draft.mode === 'stock'));
-    const s = h('select', { id: 'voiceSpeaker', onchange: ev => { draft.speaker = ev.target.value; paint(); } },
-      h('option', { value: '' }, 'Automatic (the model that made the voice)'),
-      options.map(e => h('option', { value: e.id, disabled: !e.installed }, e.label + (e.installed ? '' : ' (not installed)') + conditionsTag(e) + engineTag(e))));
-    s.value = draft.speaker || '';
-    const temp = h('input', { type: 'range', min: 0.5, max: 1.2, step: 0.05, value: draft.settings.temperature, 'aria-label': 'Variation',
-      oninput: ev => { draft.settings.temperature = Number(ev.target.value); } });
-    const performanceCaps = ENG.performance_caps?.[draft.speaker || draft.engine];
-    const hasTemperature = performanceCaps ? performanceCaps.parameters.includes('temperature') : ['qwen', 'breeze', 'fake'].includes(draft.speaker || draft.engine);
-    return h('section', { class: 'adv-group' }, h('h4', { class: 'lbl' }, 'Speaking'),
-      draft.speaker && draft.speaker !== draft.engine ? engineNotice(engine(draft.speaker)) : null,
-      h('div', { class: 'form-grid' },
-        h('div', { class: 'field' }, h('label', { class: 'lbl', htmlFor: 'voiceSpeaker' }, 'Speaks lines with'), s,
-          h('p', { class: 'hint' }, draft.engine === 'qwen_custom' && draft.mode === 'stock'
-            ? 'Lines are spoken directly by the saved preset speaker. Audition recordings are never used as cloning references.'
-            : draft.mode==='stock' && draft.engine==='kokoro' && (!draft.speaker || draft.speaker==='kokoro')
-              ? 'Lines use the saved Kokoro speaker embedding. The audition recording is kept for playback; automatic Kokoro speech does not clone it.'
-              : 'Lines are spoken by cloning the chosen voice. Qwen3-TTS is fastest; Breeze TTS 2 does moods and sighs; Chatterbox Turbo supports sound tags.')),
-        hasTemperature ? h('div', { class: 'field' }, h('label', { class: 'lbl' }, 'Variation (lower is steadier)'), temp) : null));
   }
 
   function paint() {
@@ -889,12 +752,6 @@ export function createVoiceDesigner({ afterSubmit, renderGallery, saveDraft, sta
     const dlg = $('#voiceDesigner'); if (!dlg || !draft || !ENG) return;
     const keep = dlg.querySelector('.about-body')?.scrollTop || 0;
     const v = voice(), busy = busyVoice(), n = npc();
-    const e = engine(draft.engine);
-    const allowed = { design: e.caps.design, stock: e.caps.stock, upload: true, copy: true };
-    const tabs = h('div', { class: 'seg', role: 'group' }, SOURCES.map(([id, label]) =>
-      h('button', { type: 'button', 'aria-pressed': String(tab === id), disabled: !allowed[id],
-        title: allowed[id] ? '' : `${e.label} cannot do this`, onclick: () => { tab = id; if (id === 'design' || id === 'stock') draft.mode = id; paint(); } }, label)));
-    const body = { design: describeTab, stock: stockTab, upload: uploadTab, copy: copyTab }[tab]();
     dlg.replaceChildren(
       h('div', { class: 'about-body' },
         h('div', { class: 'about-head' },
@@ -902,16 +759,11 @@ export function createVoiceDesigner({ afterSubmit, renderGallery, saveDraft, sta
             h('p', { class: 'hint' }, [n.profile.age, n.profile.gender, n.profile.occupation].filter(Boolean).join(' · '))),
           btn('Close', '', close, { cls: 'small ghost' })),
         v.reference ? h('div', { class: 'voice-now' }, h('span', { class: 'lbl' }, 'Current voice'), player(v.reference, 'Current voice')) : null,
-        modelSection(),
-        h('section', { class: 'adv-group' }, h('h4', { class: 'lbl' }, 'Where the voice comes from'), tabs, body),
-        takesSection(v, busy),
         labControls(n, v, busy),
-        v.lab_voice || v.reference || draft.mode === 'design' || (draft.mode === 'stock' && draft.stock_voice) ? trySection(v, busy) : null,
-        speakerSection(v)),
+        v.takes?.length ? takesSection(v, busy) : null,
+        v.lab_voice || Object.keys(v.tests || {}).length ? trySection(v, busy) : null),
       h('div', { class: 'about-foot adv-foot' },
-        h('span', { class: 'hint grow' }, v.reference ? (v.review === 'pending' ? 'Using take 1 until you pick one.' : 'Voice chosen.') : 'Make takes, then use the one you like.'),
-        btn('Save settings', 'save', safe(() => saveSettings()), { cls: 'small' }),
-        btn('Done', '', safe(async () => { await saveSettings(true); close(); }), { cls: 'small primary' })));
+        btn('Done', '', close, { cls: 'small primary' })));
     const b = dlg.querySelector('.about-body'); if (b) b.scrollTop = keep;
   }
 
@@ -935,40 +787,19 @@ export function createVoiceDesigner({ afterSubmit, renderGallery, saveDraft, sta
   /** "Voice for N selected": the voice each sheet suggests, takes (the first used until you review), optionally the dialogue. */
   async function openBatch(ids) {
     await loadEngines(true);
-    const makers = ENG.engines.filter(e => e.caps.design || e.caps.stock);
-    const opts = { engine: (makers.find(e => e.id === ENG.default && e.installed) || makers.find(e => e.installed) || makers[0]).id,
-      takes: 3, lines: false, redo: false };
-    const estimate = h('p', { class: 'hint' });
-    const update = () => {
-      const e = engine(opts.engine);
-      const perTake = 9 * e.rtf + 1, perLine = 4 * e.rtf + 0.5;           // a take reads about 9 s, a line about 4 s (measured)
-      const minutes = ids.length * (opts.takes * perTake + (opts.lines ? 12 * perLine : 0)) / 60;
-      estimate.textContent = `About ${minutes < 1 ? 'a minute' : Math.round(minutes) + ' minutes'} of GPU time for ${ids.length} character${ids.length === 1 ? '' : 's'}` +
-        ` (measured speeds on a 32 GB Radeon; the first clip also loads the model). Characters whose voice you already picked are skipped unless you ask for new takes.`;
-    };
-    const engineSel = h('select', { onchange: ev => { opts.engine = ev.target.value; update(); } },
-      makers.map(e => h('option', { value: e.id, disabled: !e.installed }, e.label + (e.installed ? '' : ' (not installed)') + conditionsTag(e) + engineTag(e))));
-    engineSel.value = opts.engine;
-    const takesSel = h('select', { onchange: ev => { opts.takes = Number(ev.target.value); update(); } }, [1, 2, 3, 4].map(n => h('option', { value: n }, `${n} take${n === 1 ? '' : 's'}`)));
-    takesSel.value = '3';
-    const check = (label, key, hint) => h('label', { class: 'check' },
-      h('input', { type: 'checkbox', checked: opts[key], onchange: ev => { opts[key] = ev.target.checked; update(); } }),
-      h('span', {}, h('span', { class: 'name' }, label), h('span', { class: 'hint', style: { display: 'block' } }, hint)));
-    update();
-    const dlg = dialog('voiceBatch', `Voice ${ids.length} character${ids.length === 1 ? '' : 's'}`,
-      h('p', { class: 'hint' }, 'Each character gets the voice its character sheet suggests (unless you already set one up in the designer). ' +
-        'The first take is used straight away; pick the one you like best on the Review voices page.'),
-      h('div', { class: 'form-grid' }, h('div', { class: 'field' }, h('span', { class: 'lbl' }, 'Model'), engineSel),
-        h('div', { class: 'field' }, h('span', { class: 'lbl' }, 'Takes each'), takesSel)),
-      check('Voice their dialogue too', 'lines', 'Made from the character sheet first if a character has none.'),
-      check('New takes even where a voice is picked', 'redo', 'Otherwise those characters keep their voice.'),
-      estimate,
+    const lines = h('input', { type: 'checkbox' });
+    const title = ids.length === 1 ? 'Voice one character' : 'Voice ' + ids.length + ' characters';
+    const dlg = dialog('voiceBatch', title,
+      h('p', {}, labCatalog?.connected
+        ? 'Voice Lab designs a voice for each character without an assigned Lab voice.'
+        : 'Start Voice Lab to design and use voices in NPC Forge.'),
+      h('label', { class: 'check' }, lines, 'Voice their dialogue too'),
       h('div', { class: 'row' }, h('span', { class: 'grow' }), btn('Queue', 'zap', safe(async () => {
-        const res = await api('POST', '/api/voice/batch', { npc_ids: ids, ...opts });
+        const res = await api('POST', '/api/voice/batch', { npc_ids: ids, lines: lines.checked });
         afterSubmit({ jobs: res.jobs });
         dlg.close();
         toast(`Queued ${res.jobs.length} character${res.jobs.length === 1 ? '' : 's'}` + (res.skipped ? `; ${res.skipped} already had everything` : ''));
-      }), { cls: 'small primary' })));
+      }), { cls: 'small primary', disabled: !labCatalog?.connected })));
   }
 
   /** Review voices: every character whose first take is standing in. Keys: 1-4 use that take and go to the next character,
@@ -989,7 +820,6 @@ export function createVoiceDesigner({ afterSubmit, renderGallery, saveDraft, sta
       const fresh = await api('POST', `/api/npcs/${row.id}/voice/takes/${t.id}/select`);
       if (standalone && selectedNpc?.id === row.id) {
         Object.assign(draft, { engine: fresh.voice.engine, mode: fresh.voice.mode, stock_voice: fresh.voice.stock_voice || draft.stock_voice });
-        if (tab === 'design' || tab === 'stock') tab = draft.mode;
         applyNpc(fresh);
       }
       rows = rows.filter(r => r !== row); at = Math.min(at, rows.length - 1); playIdx = -1;

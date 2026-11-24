@@ -16,6 +16,7 @@ def link(client, voice, *, recording=None):
         "label": voice.get("model_name") or voice["model"], "identity_id": voice.get("identity_id"),
         "voice_id": voice.get("voice_id"), "lab_id": client.health.get("lab_id"),
         "takes_direction": bool(voice.get("takes_direction")), "cloned_from_person": recording,
+        "licence": voice.get("licence"),
     }
 
 
@@ -65,14 +66,40 @@ def request(npc, data, *, uploaded=None):
     problem = describe.adult_problem(npc, description)
     if problem:
         raise ValueError(problem)
-    language = voice["language"] if voice["language"] != "Auto" else "English"
+    language = data.get("language") or voice["language"]
+    if not isinstance(language, str) or not record.LANG_RE.fullmatch(language) or len(language) > 30:
+        raise ValueError("Choose a language for the voice.")
+    text = str(data.get("text") or voice.get("script") or describe.take_script(npc, language)).strip()
+    if len(text) > 400:
+        raise ValueError("Keep the voice sample under 400 characters.")
     return {"source": "description", "name": name, "existing": existing, "description": description, "language": language,
-            "text": (voice.get("script") or describe.take_script(npc, language))[:400]}
+            "text": text}
 
 
 def create(jobs, job, step, npc):
     request = job.options["voice"]["lab_create"]
-    client = LabClient.discover()
+    selected = request.get("created")
+    if selected is None:
+        selected = create_in_lab(jobs, job, npc, request)
+        request["created"] = selected
+        job.touch()
+
+    def apply(rec):
+        current = record.voice_of(rec).get("lab_voice")
+        if current == selected:
+            return
+        if current != request.get("existing"):
+            raise LabError(f"Voice Lab made {selected['name']}. Select it in the Voice Lab list to replace the current voice.")
+        save(rec, selected)
+
+    saved = jobs.lib.update(npc["id"], apply)
+    frozen = job.options["voice"].setdefault("voice_snapshot", record.render_snapshot(saved["voice"]))
+    frozen["lab_voice"] = selected
+    step["detail"] = f"Using {selected['name']} from Voice Lab"
+
+
+def create_in_lab(jobs, job, npc, request):
+    client = job_client(job)
     if request["source"] == "recording":
         ref = request["reference"]
         recording = jobs.lib.read_asset(npc["id"], ref["file"])
@@ -80,27 +107,52 @@ def create(jobs, job, step, npc):
             raise LabError("The saved recording changed. Restore it or pick a new one and try again.")
         created = client.clone(request["name"], request["engine"], recording, transcript=ref["text"],
                                origin=request["origin"], allowed_use=request["allowed_use"],
-                               consent=request["consent"], cancel=job.cancel)
+                               consent=request["consent"], cancel=job.cancel, checkpoint=request.setdefault("checkpoint", {}),
+                               save_checkpoint=job.touch)
+    elif request["source"] == "preset":
+        name = preset_name(job, client, request["model"], request["voice_id"])
+        created = next(row for row in client.voices() if row["name"] == name)
     else:
         created = client.design(request["name"], request["description"], text=request["text"],
-                                language=request["language"], cancel=job.cancel)
+                                language=request["language"], engine=request.get("engine"), cancel=job.cancel)
         # Design's response has fewer fields than the dedicated voice list.
         created = client.voice(created["identity_id"])
-    selected = link(client, created, recording=request["source"] == "recording")
-
-    def apply(rec):
-        if record.voice_of(rec).get("lab_voice") != request.get("existing"):
-            raise LabError(f"Voice Lab made {selected['name']}. Select it in the Voice Lab list to replace the current voice.")
-        save(rec, selected)
-
-    jobs.lib.update(npc["id"], apply)
-    step["detail"] = f"Using {selected['name']} from Voice Lab"
+    return link(client, created, recording=request["source"] == "recording")
 
 
 def speak(job, command):
+    client = job_client(job)
+    if command["cmd"] == "design":
+        return client.preview_design(command["instruct"], command["text"], engine=command["model"],
+                                     language=command["language"], seed=command["seed"], cancel=job.cancel)
+    if command["cmd"] == "stock":
+        name = preset_name(job, client, command["model"], command["voice"])
+        return client.speak(name, command["text"], direction=command.get("direction"), speed=command.get("speed"),
+                            cancel=job.cancel)
+    return speak_linked(job, client, command)
+
+
+def job_client(job):
     client = job.cache.get("voice_lab")
     if client is None:
         client = job.cache["voice_lab"] = LabClient.discover()
+    return client
+
+
+def preset_name(job, client, model, voice_id):
+    key = ("lab_preset", model, voice_id)
+    if key not in job.cache:
+        preset = next((row for row in client.voices()
+                       if row["model"] == model and (row.get("voice_id") or "").casefold() == voice_id.casefold()
+                       and row["kind"] == "preset"), None)
+        if not preset or not preset["ready"]:
+            reason = preset.get("why_not") if preset else None
+            raise LabError(reason or "Choose an available preset in Voice Lab and try again.", code="voice_not_ready")
+        job.cache[key] = preset["name"]
+    return job.cache[key]
+
+
+def speak_linked(job, client, command):
     selected = command["voice"]
     identity = selected.get("identity_id")
     name = selected["name"]
@@ -112,12 +164,5 @@ def speak(job, command):
             job.cache[key] = client.voice(identity)
         name = job.cache[key]["name"]
     elif selected.get("voice_id"):
-        key = ("lab_preset", selected["model"], selected["voice_id"])
-        if key not in job.cache:
-            preset = next((row for row in client.voices() if row["model"] == key[1] and row.get("voice_id") == key[2]), None)
-            if not preset or not preset["ready"]:
-                reason = preset.get("why_not") if preset else None
-                raise LabError(reason or "Choose an available preset in Voice Lab and try again.", code="voice_not_ready")
-            job.cache[key] = preset["name"]
-        name = job.cache[key]
+        name = preset_name(job, client, selected["model"], selected["voice_id"])
     return client.speak(name, command["text"], direction=command.get("direction"), speed=command.get("speed"), cancel=job.cancel)

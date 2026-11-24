@@ -22,12 +22,10 @@ const h = (tag, props, ...children) => new Element(tag, props, children.flat(Inf
 const btn = (text, icon, onclick, opts = {}) => h('button', { onclick, disabled: opts.disabled, class: 'btn ' + (opts.cls || '') }, text);
 const source = readFileSync(new URL('../web/voice-designer.js', import.meta.url), 'utf8')
   .replace(/^import .*?;\r?\n/gm, '').replace('export function createVoiceDesigner', 'function createVoiceDesigner');
-const noticeSource = readFileSync(new URL('../web/voice-engine-notices.js', import.meta.url), 'utf8')
-  .replace(/^import .*?;\r?\n/gm, '').replaceAll('export ', '');
 const auditionSource = readFileSync(new URL('../web/voice-audition-view.js', import.meta.url), 'utf8')
   .replace(/^import .*?;\r?\n/gm, '').replaceAll('export ', '');
 
-function fixture() {
+function fixture(connected = true) {
   const records = Object.fromEntries(['a', 'b'].map(id => [id, { id, profile: { first_name: id.toUpperCase(), last_name: 'Actor', age: 30 },
     setting: 'fantasy', style: 'render3d', assets: {}, voice: { engine: 'qwen', mode: 'design', description: 'Saved ' + id,
       language: 'English', takes: [], settings: {} }, dialogue: { lines: {} } }]));
@@ -37,13 +35,16 @@ function fixture() {
   const $ = selector => root.querySelector(selector);
   const requests = [], errors = [], submitted = [];
   let beforeSave = null, beforeCopy = null;
-  const catalog = { default: 'qwen', stock: { kokoro: [] }, presets: { voice_types: [], chip_groups: [], moods: ['neutral'], setting_accents: [] },
+  const linked = { name: 'Harbor', kind: 'cast', model: 'turbo', label: 'Chatterbox Turbo', takes_direction: true, ready: true };
+  const catalog = { lab_api: 1, default: 'qwen', stock: { kokoro: [] }, presets: { voice_types: [], chip_groups: [], moods: ['neutral'], setting_accents: [] },
     engines: [{ id: 'qwen', label: 'Qwen', installed: true, commercial_ok: true, languages: ['English'], caps: { design: true, clone: true, direction: 'experimental', tags: [] } }] };
   const refreshLibrary = async () => { S.library = Object.values(records).map(n => ({ id: n.id, name: n.profile.first_name + ' Actor',
     setting: n.setting, voice: n.voice.reference ? 'picked' : 'none' })); };
   const api = async (method, path, body) => {
     requests.push({ method, path, body: body && structuredClone(body) });
     if (path === '/api/voice/engines') return structuredClone(catalog);
+    if (path === '/api/voice/lab') return connected ? { connected, voices: [linked] }
+      : { connected, message: 'Start Voice Lab to design and use voices in NPC Forge.' };
     const [, id, suffix = ''] = path.match(/^\/api\/npcs\/([^/]+)(.*)$/) || [];
     const record = records[id]; assert.ok(record, path);
     if (method === 'GET') return structuredClone(record);
@@ -54,6 +55,9 @@ function fixture() {
       record.voice = { ...structuredClone(records[body.from].voice), mode: 'copy', speaker: 'qwen', review: 'picked' };
       return structuredClone(record);
     }
+    if (suffix === '/voice/lab' && method === 'POST') {
+      return { job: { id: 'design', npc_id: id, status: 'queued', steps: [], total: 1 } };
+    }
     if (suffix === '/voice/takes') {
       Object.assign(record.voice, body.settings);
       return { job: { id: 'job', npc_id: id, status: 'queued', steps: [], total: body.count } };
@@ -62,11 +66,11 @@ function fixture() {
     throw new Error('Unexpected API request: ' + method + ' ' + path);
   };
   const safe = fn => async (...args) => { try { return await fn(...args); } catch (error) { errors.push(error); throw error; } };
-  const notices = new Function('h', 'S', noticeSource + '\nreturn {conditionsTag,engineNotice};')(h,S);
   const factory = new Function('$', 'S', 'api', 'btn', 'fullName', 'h', 'isActive', 'safe', 'toast',
-    'conditionsTag','engineNotice','licenceNote','optionTag','auditionSection',source + '\nreturn createVoiceDesigner;')
+    'auditionSection', 'licenceNote', 'optionTag', 'ratingTag', 'statusBadge', source + '\nreturn createVoiceDesigner;')
     ($, S, api, btn, n => n.profile.first_name + ' Actor', h, j => ['queued', 'running'].includes(j.status), safe, () => {},
-     notices.conditionsTag,notices.engineNotice,()=>null,()=> '',new Function('h','btn',auditionSource+'\nreturn auditionSection;')(h,btn));
+     new Function('h','btn',auditionSource+'\nreturn auditionSection;')(h,btn),
+     () => null, () => '', () => '', () => null);
   let workspace;
   workspace = factory({ standalone: true, afterSubmit: result => submitted.push(result), renderGallery() {},
     saveDraft() { throw new Error('Create draft must never be saved here'); }, render: () => workspace.renderWorkspace(), refreshLibrary, openNpc() {} });
@@ -75,7 +79,7 @@ function fixture() {
     assert.ok(node, 'Missing button: ' + text); assert.ok(!node.disabled, 'Disabled button: ' + text); return node.onclick();
   };
   const edit = value => { const node = $('#voiceDesc'); node.value = value; node.oninput({ target: node }); };
-  return { S, workspace, records, catalog, requests, errors, submitted, $, root, click, edit,
+  return { S, workspace, records, catalog, linked, requests, errors, submitted, $, root, click, edit,
     blockSave: fn => { beforeSave = fn; }, blockCopy: fn => { beforeCopy = fn; } };
 }
 
@@ -91,7 +95,7 @@ test('opening Voice Designer keeps unfinished Create and dialogue edits intact',
 
 test('character audition submits saved assigned voice and guards unsaved settings', async () => {
   const f=fixture(); f.catalog.audition_schema=1;
-  f.records.a.voice.reference={id:'reference',file:'voice/reference.wav'};
+  f.records.a.voice.lab_voice = f.linked;
   await f.workspace.openTab('a');
   assert.match(f.root.textContent,/Character audition suite/);
   const names=f.root.all().find(node=>node['aria-label']==='Audition names to test');
@@ -124,21 +128,19 @@ test('audition cards keep automatic evidence separate from human judgment', asyn
   assert.equal(f.records.a.voice.auditions[0].cases[0].notes,'Listen again.');
 });
 
-test('DramaBox picker shows conditions and does not offer a temperature slider', async () => {
-  const f=fixture();
-  f.catalog.engines.push({id:'dramabox',label:'DramaBox',installed:true,commercial_ok:true,
-    licence_conditions:'LTX-2 and Gemma terms apply.',languages:['English'],
-    caps:{design:true,clone:true,stock:false,direction:true,tags:[]}});
-  f.records.a.voice.engine='dramabox';
+test('offline Voice Lab leaves saved audio and voice pack available', async () => {
+  const f = fixture(false);
+  f.records.a.voice.reference = { id: 'reference', file: 'voice/reference.wav' };
   await f.workspace.openTab('a');
-  assert.match(f.root.textContent,/Commercial use has conditions/);
-  assert.match(f.root.textContent,/LTX-2 and Gemma terms apply/);
-  assert.ok(!f.root.all().some(n=>n['aria-label']==='Variation'));
-  assert.equal(f.requests.filter(r=>r.method==='PUT').length,0);
+  assert.match(f.root.textContent, /Start Voice Lab to design and use voices in NPC Forge/);
+  assert.ok(f.root.all().some(node => node.tag === 'audio'));
+  assert.ok(f.root.all().some(node => node.tag === 'a' && node.textContent === 'Download voice pack'));
+  assert.ok(!f.root.all().some(node => node.textContent === 'Make this voice in Voice Lab'));
 });
 
 test('voice edits and audition text survive switching characters and tabs', async () => {
-  const f = fixture(); await f.workspace.openTab('a'); f.edit('Gravelly captain');
+  const f = fixture(); f.records.a.voice.lab_voice = f.linked;
+  await f.workspace.openTab('a'); f.edit('Gravelly captain');
   const line = f.$('#voiceTry'); line.oninput({ target: { value: 'Hold the line!' } });
   await f.click('BB ActorfantasyNo voice');
   assert.equal(f.$('#voiceDesc').value, 'Saved b');
@@ -178,14 +180,14 @@ test('a pending save cannot be redirected by character switching or leaving the 
 test('copied voice identity persists when settings are saved afterwards', async () => {
   const f = fixture(); f.records.b.voice.reference = { id: 'ref', file: 'voice/reference.wav' };
   f.records.b.voice.description = 'A copied narrator'; f.records.b.voice.settings = { temperature: 0.6 };
-  await f.workspace.openTab('a'); await f.click('Copy a character'); await f.click('Copy this voice');
+  await f.workspace.openTab('a'); await f.click('Copy this voice');
   await f.click('Save settings');
   assert.equal(f.records.a.voice.mode, 'copy'); assert.equal(f.records.a.voice.reference.id, 'ref');
   assert.equal(f.records.a.voice.description, 'A copied narrator'); assert.equal(f.records.a.voice.settings.temperature, 0.6);
 });
 
 test('candidate generation submits the selected character to the existing job queue', async () => {
-  const f = fixture(); await f.workspace.openTab('b'); await f.click('Make takes');
+  const f = fixture(); await f.workspace.openTab('b'); await f.click('Preview candidate voices');
   const request = f.requests.find(r => r.path === '/api/npcs/b/voice/takes'); assert.equal(request.body.count, 3);
   assert.equal(f.submitted[0].jobs[0].npc_id, 'b'); assert.equal(f.S.draft.id, 'unfinished');
   assert.equal(f.$('#voiceSettingsStatus').textContent, 'Voice settings saved');
@@ -205,4 +207,12 @@ test('failed save restores the character picker and leaves the draft available t
   assert.equal(f.$('#voiceDesc').value, 'Keep this draft');
   f.blockSave(null); await f.click('Save settings'); assert.equal(f.records.a.voice.description, 'Keep this draft');
   await f.click('BB ActorfantasyNo voice'); assert.equal(f.$('#voiceDesc').value, 'Saved b');
+});
+
+test('Voice Designer submits the edited description to Voice Lab', async () => {
+  const f = fixture(); await f.workspace.openTab('a'); f.edit('A warm, steady narrator');
+  await f.click('Make this voice in Voice Lab');
+  const request = f.requests.find(r => r.method === 'POST' && r.path === '/api/npcs/a/voice/lab');
+  assert.equal(request.body.description, 'A warm, steady narrator');
+  assert.equal(f.submitted[0].jobs[0].npc_id, 'a');
 });

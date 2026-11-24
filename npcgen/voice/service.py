@@ -104,8 +104,8 @@ def lines_request(npc, raw):
         if problem:
             raise ValueError(problem)
     v = record.voice_of(npc)
-    if not v.get("lab_voice") and not v.get("reference") and not (v["mode"] == "stock" and v.get("stock_voice")):
-        raise ValueError("Pick a voice for this character first (make takes and choose one).")
+    if not v.get("lab_voice") and not (v["mode"] == "stock" and v.get("stock_voice")):
+        raise ValueError("Choose or make a voice in the Voice Lab card first.")
     inputs = {}
     for category, rows in (pack.get("lines") or {}).items():
         for row in rows:
@@ -161,6 +161,9 @@ def apply_upload(lib, npc, body):
 def apply_copy(lib, npc, source):
     """Give the character another character's voice (the same reference clip and speaking engine)."""
     sv = record.voice_of(source)
+    if sv.get("lab_voice"):
+        from . import lab_voice
+        return lib.update(npc["id"], lambda rec: lab_voice.save(rec, copy.deepcopy(sv["lab_voice"])))
     if record.is_preset(sv):
         snapshot = record.render_snapshot(sv)
         def apply_preset(rec):

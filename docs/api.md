@@ -23,12 +23,14 @@ same identity and timing fields, or `null`.
 
 ## Changes
 
+- **API 47.** Voice Lab provides new speech through `GET /api/voice/lab` and the character's `/voice/lab` routes.
+  Forge's local speech workers, model discovery and Drama studio routes are retired. Old voice records and packs remain readable.
 - **API 46.** Optional body build controls are served by their local extension. Existing characters keep their saved settings.
 - **API 45.** `GET /api/health` adds a `fels` object with `contract`, `app`, `version` and `api`. Use
   `GET /api/health?identity=1` to read just that object without waiting for the ComfyUI and tool checks.
 
 
-168 routes.
+163 routes.
 
 
 ## Server, settings and the queue
@@ -41,6 +43,7 @@ same identity and timing fields, or `null`.
 | `POST` | `/api/manner` | Suggest how a character talks and comes across, from their traits: {setting, traits: [...]} -> {speech, demeanor}. |
 | `GET` | `/api/jobs` | The queue: every job with its steps, status and `code`. |
 | `GET` | `/api/gpu` | Picture-job readiness and the suite GPU lock. |
+| `POST` | `/api/gpu/free-voice-lab` | Ask the current Voice Lab GPU holder to unload after the user requests it in the picture queue. |
 | `POST` | `/api/jobs/cancel-all` | Stop every queued and running job. |
 | `POST` | `/api/jobs/{job}/cancel` | Stop one job. |
 | `POST` | `/api/jobs/{job}/retry` | Run a failed or stopped job again from its first unfinished step. |
@@ -76,7 +79,6 @@ same identity and timing fields, or `null`.
 | `POST` | `/api/npcs/{npc}/dialogue/generate` | Generate dialogue. |
 | `PUT` | `/api/npcs/{npc}/dialogue` | Save dialogue. |
 | `GET` | `/api/npcs/{npc}/dialogue/export/{json|ink|yarn}` | Export dialogue. |
-| `GET` | `/api/npcs/{npc}/voice/takes/{take}/match` | Proxy voice match of one take against its voice's reference (Voice Lab's calibrated encoder). |
 | `GET` | `/api/npcs/{npc}/voice/references` | Voice reference history. |
 | `POST` | `/api/npcs/{npc}/voice/references/{reference}/select` | Voice reference restore. |
 | `POST` | `/api/npcs/{npc}/voice/suggest` | The voice the character sheet suggests: a description, the best stock voices, and what a take reads. |
@@ -185,12 +187,7 @@ same identity and timing fields, or `null`.
 
 | Method | Path | What it does |
 |---|---|---|
-| `GET` | `/api/voice/drama3/info` | Drama info. |
-| `POST` | `/api/voice/drama3/jobs` | Drama start. |
-| `GET` | `/api/voice/drama3/jobs/{job}` | Drama job. |
-| `POST` | `/api/voice/drama3/jobs/{job}/cancel` | Drama cancel. |
-| `GET` | `/api/voice/drama3/jobs/{job}/{audio|metadata|package}` | Drama artifact. |
-| `GET` | `/api/voice/engines` | Every voice model (what it can do, whether it is installed here), the stock voices, presets, moods and tags. |
+| `GET` | `/api/voice/engines` | Voice authoring options and compatibility metadata for saved records. |
 | `GET` | `/api/voice/library` | Voice library list. |
 | `POST` | `/api/voice/library` | Voice library save. |
 | `GET` | `/api/voice/library/{voice}` | Voice library get. |

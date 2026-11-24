@@ -50,6 +50,8 @@ export function createQueueController({ openNpc, openScene, onSceneJobChange, op
         h('span', { class: 'steps' }, job.steps.map(step => h('i', { class: step.status,
           title: `${step.label}: ${step.status}${step.seconds ? ` (${step.seconds}s)` : ''}` })))),
       job.steps.find(step => step.note) ? h('div', { class: 'hint' }, job.steps.find(step => step.note).note) : null,
+      current?.detail?.includes('Ask Voice Lab to free the GPU') ? btn('Ask Voice Lab to free the GPU', '',
+        safe(async () => toast((await api('POST', '/api/gpu/free-voice-lab')).message)), { cls: 'small' }) : null,
       job.error ? h('div', { class: 'err' }, job.error) : null));
   }
 

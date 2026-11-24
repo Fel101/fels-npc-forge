@@ -12,7 +12,7 @@ import pytest
 from npcgen.library import Library
 from npcgen.scenes import Scenes, compile_timeline
 from npcgen import scene_voice
-from npcgen.voice import audio, authoring, batch, engines, pack, record, service, steps
+from npcgen.voice import audio, authoring, engines, lab_voice, pack, record, service, steps
 from npcgen.voice.voicelibrary import VoiceLibrary
 
 
@@ -20,7 +20,7 @@ from npcgen.voice.voicelibrary import VoiceLibrary
 def actors(tmp_path, monkeypatch):
     original = engines.stock_voices
     monkeypatch.setattr(engines, "stock_voices", lambda engine_id, cfg=None:
-        [{"id": "Ryan"}, {"id": "Aiden"}] if engine_id == "qwen_custom" else original(engine_id, cfg))
+        [{"id": "Ryan"}, {"id": "Aiden"}] if engine_id == "qwen_custom" else original(engine_id))
     lib = Library(tmp_path / "library")
     ids = [lib.create({"profile": {"first_name": name, "last_name": "QA", "age": 30}, "setting": "fantasy", "assets": {}})["id"]
            for name in ("One", "Two")]
@@ -40,7 +40,7 @@ def test_preset_identity_requires_no_reference_and_rejects_cloner_or_unknown_spe
     effective, text, meta = authoring.prepare(frozen, "Hello", override={"direction": "Calm and firm", "parameters": {"top_k": 30}})
     engine, submitted = steps.speak_request(npc, effective, text, "neutral", 123)
     assert engine == "qwen_custom" and submitted["cmd"] == "stock" and submitted["voice"] == "Ryan"
-    assert not {"ref", "ref_text"}.intersection(submitted) and submitted["params"]["direction"] == "Calm and firm"
+    assert not {"ref", "ref_text"}.intersection(submitted) and submitted["direction"] == "Calm and firm"
     with pytest.raises(ValueError, match="Unknown stock"):
         record.clean_settings({"stock_voice": "invented"}, npc)
     with pytest.raises(ValueError, match="renders directly"):
@@ -97,16 +97,6 @@ def test_recording_can_replace_preset_without_leaving_an_invalid_stock_speaker(a
     assert not restored["voice"].get("reference")
 
 
-def test_batch_switches_between_preset_and_cloning_models_without_stale_speaker(actors):
-    lib, store, ids = actors
-    npc = batch.prepare(lib, lib.get(ids[0]), "qwen", redo=True)
-    assert not record.is_preset(npc["voice"]) and npc["voice"]["stock_voice"] is None
-    lib.update(ids[0], lambda rec: rec["voice"].update(speaker="qwen"))
-    npc = batch.prepare(lib, lib.get(ids[0]), "qwen_custom", redo=True)
-    assert record.speaker_for(npc["voice"]) == "qwen_custom" and npc["voice"]["speaker"] is None
-    assert service.takes_request(npc, {"count": 3})["stock_order"] == ["Ryan"] * 3
-
-
 def test_preset_audition_is_optional_media_and_never_conditioning(actors):
     lib, store, ids = actors
     npc = lib.get(ids[0])
@@ -130,14 +120,14 @@ def test_preset_audition_is_optional_media_and_never_conditioning(actors):
     assert entry["versions"][0]["reference"]["kind"] == "audition"
 
 
-def test_preset_dialogue_and_scene_generation_keep_direct_identity_after_change(actors):
+def test_preset_dialogue_and_scene_generation_keep_direct_identity_after_change(actors, monkeypatch):
     lib, store, ids = actors
     scenes, seen = Scenes(lib), []
-    def run(engine, request, path, cancel=None):
+    def run(job, request):
         seen.append(request)
-        path.write_bytes(audio.write_wav(.2 * np.sin(2 * np.pi * 220 * np.arange(32000) / 16000), 16000))
-        return {"model_identity": {"checkpoint_revision": engines.CUSTOM_REVISION, "reference_required": False}}
-    jobs = SimpleNamespace(lib=lib, scenes=scenes, voice=SimpleNamespace(run=run))
+        return audio.write_wav(.2 * np.sin(2 * np.pi * 220 * np.arange(32000) / 16000), 16000)
+    monkeypatch.setattr(lab_voice, "speak", run)
+    jobs = SimpleNamespace(lib=lib, scenes=scenes)
     npc = lib.get(ids[0]); request = service.lines_request(npc, {})
     steps.line(jobs, SimpleNamespace(options={"voice": request}, cancel=None), {"key": "hello"}, npc)
     assert not record.line_is_stale(lib.get(ids[0]), "hello")

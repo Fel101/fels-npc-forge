@@ -338,10 +338,12 @@ class Comfy:
         return [n for n in names if isinstance(n, str)] if isinstance(names, list) else []
 
     # ---- running graphs --------------------------------------------------
+    def prepare_picture(self, graph, cancel=None):
+        from .gpu import GATE
+        GATE.claim_picture(self, graph, cancel)
+
     def submit(self, graph):
-        # One model on the GPU at a time (npcgen/gpu.py): different weights from the last graph's are unloaded first.
-        from . import gpu
-        gpu.claim(("comfy", gpu.graph_models(graph)), comfy=self, cancel=getattr(self._claiming, "cancel", None))
+        self.prepare_picture(graph, getattr(self._claiming, "cancel", None))
         body = json.dumps({"prompt": graph, "client_id": self.client_id}).encode()
         raw = self._request("POST", "/prompt", data=body, headers={"Content-Type": "application/json"})
         return json.loads(raw)["prompt_id"]
@@ -411,6 +413,7 @@ class Comfy:
         with self.operation_lock.hold(cancel):
             self._claiming.cancel = cancel
             if unload_models:
+                self.prepare_picture(graph, cancel)
                 try:
                     self.free_memory()
                 except ComfyError:
@@ -420,10 +423,13 @@ class Comfy:
             finally:
                 self._claiming.cancel = None
                 if unload_models:
+                    from . import gpu
                     try:
                         self.free_memory()
                     except ComfyError:
                         pass
+                    else:
+                        gpu.release_comfy(self)
 
     def run(self, graph, cancel=None, timeout=900):
         """Submit a graph, wait, and return the first output image as PNG bytes."""

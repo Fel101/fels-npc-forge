@@ -244,144 +244,30 @@ change anywhere followed the dress instead.
 A new portrait marks the living portrait outdated. `POST /api/generate` with `"assets": {"living": true}` makes or updates it;
 `DELETE /api/npcs/<id>/assets/living` removes the frames (the expressions stay).
 
-## Voices: a voice of their own for every character
+## Voices
 
-**Voice Designer → Voice library** saves reusable named voices with tags, notes, favorites,
-approved reference versions, and explicit assignment to multiple characters. The reference editor
-shows a waveform, trim bounds, playback, transcripts, recording upload/microphone controls, and
-quality diagnostics. Edits create new draft versions; originals and existing character assignments
-are preserved. **Reference history** restores older character voices. Queued dialogue uses a frozen
-reference/settings snapshot, and exports carry version IDs and SHA-256. Details and the remaining
-voice/lip-sync goal are in [docs/voice-studio-goal.md](docs/voice-studio-goal.md).
-
-**Pronunciation & performances** in Voice Designer saves written-term/spoken-spelling
-rules and named delivery presets. Dialogue and subtitles retain the authored words;
-only synthesis uses replacements. Effective parameter, language, reference or matched
-pronunciation changes mark audio outdated. Dialogue lines and scene beats choose saved
-performances; scene voice-version pins preserve the reference and authoring settings.
-**Same-script comparisons** retain candidate takes, human star ratings, favorites and
-listening notes, with explicit candidate assignment. See [the studio workflow](docs/voice-authoring.md).
-
-The native model selector also offers **VoxCPM2 (Voice Lab)** when the existing pinned
-runtime is discovered. It uses saved CFG/inference-step performances and produces 48 kHz
-speech through Forge's GPU gate and the Lab's shared residency lock. See
-[Voice Lab engine integration](docs/voice-lab-engines.md) for setup, evidence and remaining scope.
-
-The same selector offers **Qwen CustomVoice** preset identities that render without a
-reference recording, plus **Chatterbox Original** cloning with its native numeric
-controls. Preset versions can be approved, shared across characters and pinned to
-scenes. See [native identities and Original](docs/voice-native-identities.md).
-
-**Voice effects** adds reversible Creature/Robot presets, pitch/formant modes,
-filtering, distortion and layering. Preview original/processed speech, save defaults
-or per-performance overrides, and export both delivered clips and dry masters.
-See [the effects workflow](docs/voice-effects.md). Aligned lip sync remains in progress.
-
-**Lip sync** now checks final-audio word/English phoneme timing on the CPU and previews
-configurable viseme groups. Failed checks remain an explicit amplitude fallback.
-See [the alignment workflow](docs/voice-lip-sync.md) and verified
-[Godot/Unreal playback exports](docs/voice-game-exports.md). Browser/CPU scenes now use
-[mapped character mouth frames](docs/voice-character-mouths.md) and
-[existing 3D morph/jaw targets](docs/voice-mesh-mouths.md). Jaw-only rigs vary opening;
-distinct facial poses require artist-created morphs.
-
-The **Voice Designer** tab beside Items and Scenes gives each character a voice. Select a saved NPC in the searchable
-character list, describe or clone their voice, compare candidate takes, and **Assign to character**. The character's
-**Voice** card opens this workspace with that NPC selected. The designer keeps unsaved voice edits for each character
-while you switch between them or other tabs; use **Save settings** to keep them across page reloads. Create's unfinished
-character and dialogue edits remain separate. Assigned voices feed Dialogue packs and Scenes, and voice packs can be
-downloaded from the audition column. NPC Forge suggests a voice from the
-character sheet (real age, gender, job, traits, how they talk and come across, and cues from the setting, race and art style:
-a western drawl, a wolf's faint growl, a chibi's small bright voice) and everything stays yours to change: the description,
-voice-type presets (Valley Girl, anime heroine, cartoon, chibi, fashion model, noir femme fatale, pirate...), pitch, pace,
-texture, energy and accent chips, the language and the script a take reads.
-
-A model dropdown picks the text-to-speech model when the voice is made. Measured on a Radeon AI PRO R9700 (32 GB), Windows:
-
-| Model | What it does best | Speed (time to make / length) | GPU memory | Licence |
-|---|---|---|---|---|
-| **Qwen3-TTS 1.7B** (default) | a voice from a description, cloning, 10 languages, the most reliable words (3% wrong even for cartoon voices) | 0.45 designed, 0.6 cloned | about 8 GB | Apache-2.0 |
-| **Breeze TTS 2** | the most natural, follows a description closely, `(laugh)` `(sigh)` sounds, steers a copied voice's mood | about 1.5 | about 14 GB | **non-commercial** |
-| **Kokoro** | 28 ready-made English voices, the fastest | 0.1-0.3 | 1.4 GB | Apache-2.0 |
-| **Chatterbox Turbo** | speaks a copied voice, `[laugh]` `[chuckle]` | about 0.9 | 3.3 GB | MIT (inaudible watermark) |
-
-Where a voice comes from: **Describe** (Qwen or Breeze make it from the words), **Stock voice** (Kokoro, best match for the
-sheet first), **Upload a recording** (3-40 s, the words it says, and your confirmation that you may use that voice; the page
-converts any clip to 16 kHz mono) or **Copy a character** (twins, a family, one actor in several parts).
-
-- **Takes**: 1-4 candidate voices at a time, each with its seed. Play them and use the one you like; it becomes the character's
-  voice (`voice/reference.wav`), and every line is spoken by copying it, so the character sounds the same in every line.
-- **Try a line** with a mood (happy, sad, angry, whisper, flirty...) and sound tags, and hear the four mood previews. Breeze is
-  trained to steer a copied voice's mood; for Qwen it is marked experimental; Chatterbox does sounds but not moods.
-- **Speaks with**: the model that speaks the lines can differ from the one that made the voice (design with Breeze, speak with
-  Qwen for speed). A non-commercial model anywhere in a voice puts a *non-commercial* badge on it and in its exports.
-- **Voiced dialogue**: the Dialogue pack card gets a player, a mood and Voice / Redo on every line, "Voice all lines", and a
-  line or voice that changed is marked outdated. Write `[laugh]`, `[sigh]`, `[chuckle]`, `[gasp]` or `[cough]` in a line
-  where the voice should make the sound; each model gets its own syntax, and one that cannot make it simply leaves it out.
-- **Lip sync**: every clip carries a mouth-opening track (25 values a second). "Say a line" on the Living portrait plays a
-  voiced line with the talking frame following it.
-- **Voice pack** (`GET /api/npcs/<id>/voice-pack.zip`): `voice.wav`, `lines/<id>.wav`, `lines.json` (text, mood, length,
-  mouth track, Yarn line id), the dialogue as JSON and Yarn (`#line:<id>` tags) and a README with the licences. WAV, which
-  Godot and Unreal import directly. The dialogue exports and the library ZIP include the voiced lines too.
-- **Many at once**: tick *Voice* (and *Voice the dialogue*) under What to make, or select characters in the Library and press
-  *Voice N*. Each gets the voice its sheet suggests and 3 takes; the first is used straight away and *Review voices* lets you
-  play and pick (keys 1-4, P plays, R makes new takes). From a terminal: `python -m npcgen voice all --takes 3 --lines`.
-  Measured: about 46 s a character for 3 takes and a 12-line dialogue pack (see *Status* below).
-
-Every clip is trimmed and loudness-matched. An adult's voice is always described as an adult's (a chibi or anime adult's
-small, cute voice says so outright), a description that would make an adult sound like a child is refused, and the flirty mood
-is only for characters 18 or older.
-
-### Installing the voice models
-
-Each model runs in its own Python environment as a worker process NPC Forge starts and stops (npcgen/voice/worker.py), so NPC
-Forge itself still needs only Pillow, numpy and xatlas, and no model can break ComfyUI's environment.
-
-```bash
-python scripts/install_voice.py qwen                    # start with this one
-python scripts/install_voice.py kokoro chatterbox --torch rocm --gpu-arch gfx1201 --hip-device 1
-python scripts/install_voice.py qwen --use-existing C:/path/to/python.exe     # a Python you set up yourself
-```
-
-`--torch` is auto (CUDA when `nvidia-smi` works, else CPU), `cuda`, `rocm` or `cpu`. On Windows with an AMD card, `rocm` uses
-AMD's multi-arch wheels; `--hip-device` picks the big GPU when the PC also has integrated graphics (it crashes otherwise).
-Environments go to `voice-envs/`, models to `voice-models/`, and the paths to `config.json` ("voice" -> "engines").
-
-**Breeze TTS 2** needs its inference code, which came from the Apache-2.0 ComfyUI node Saganaki22/ComfyUI-Breeze-TTS-2.
-That repository was taken down in September 2026 and the ComfyUI registry flags its last version, so the installer does not
-download it: pass `--breeze-code <folder with loader.py>` pointing at a copy you have and have read. Its weights
-(`drbaph/Breeze-TTS-2-comfyui` on Hugging Face) are under BreezeBlue's non-commercial licence.
-
-**Sharing the GPU**: see *One model on the GPU at a time* below. An idle voice model is stopped after 3 minutes
-(`"voice": {"idle_minutes": 3}`) rather than straight away, so trying line after line in the designer does not reload it each
-time; anything else that needs the GPU stops it first. Voice designer jobs use a quick lane: they run between picture jobs,
-never inside one.
+Open **Voice Designer** from the Preview tab or a saved character. Choose an available
+Voice Lab voice, describe a new Cast voice, or use a recording you have permission to share.
+Use **Voice the dialogue** to make WAVs and **Download voice pack** for game playback files.
+See [Voices](docs/voices.md) for setup, older recordings, pronunciation and effects.
 
 ### One model on the GPU at a time
 
-By default nothing shares the GPU (`npcgen/gpu.py`; the default `"gpu": {"one_model_at_a_time": true}` is in `npcgen/config.py` and `config.json` can change it). Every ComfyUI
-graph and every voice clip claims the card first, naming the models it uses. When they differ from what is loaded (Mage-Flow
-to Mage-Flow-Edit, a picture to a voice, Qwen3-TTS's VoiceDesign model to its Base model, one voice engine to another), the
-old one is unloaded first: ComfyUI is told to unload everything, a voice worker's process is stopped, and the new model starts
-only when the card reads empty again. Empty means ComfyUI holds at most `idle_vram_mb` (2048) and, on Windows, no other
-process holds more than `other_process_mb` (1536) of GPU memory, read from Windows' own per-process counters, the ones Task
-Manager shows. ComfyUI's own reading is not enough on an AMD card under Windows: it could not see a voice worker holding
-6.8 GB, and after an unload it reads empty within a second while its process keeps 4.8 GB for another 12-22 s, so each
-model switch waits about 15-25 s for the memory to really come back. If the card does not empty within `wait_seconds` (90),
-the step fails and names what is holding the GPU (LM Studio,
-another NPC Forge, a model loaded in ComfyUI by hand) instead of loading on top of it. The same model drawing picture after
-picture, or the same voice speaking line after line, stays loaded. ComfyUI is also unloaded once the job queue has been empty
-for `unload_idle_seconds` (120): a job you start before then with the same model finds it still loaded (0 unloads at once).
-The status line shows "one model at a time"; hover it to see what is on the GPU and how long the last switch took.
+With `gpu.one_model_at_a_time` on, Forge asks other local suite apps and local chat
+servers to unload before a picture. Forge then takes the suite GPU lock and checks
+ComfyUI and Windows per-process memory before loading the model. The queue shows
+what is holding the GPU while you wait, and you can cancel. The header GPU light
+shows who holds the lock.
 
-It is slower: a job that goes portrait, sprite, then voice reloads a model at each change. `"one_model_at_a_time": false`
-brings back the older, faster sharing (big picture engines still unload around themselves, and voice models still wait for
-enough free memory). NPC Forge only controls its own models: other apps (LM Studio, a companion app, ComfyUI used directly) can still load
-alongside a model NPC Forge already has loaded, and it only notices them the next time it switches models.
+Set `gpu.one_model_at_a_time` to `false` in `config.json` to share the GPU.
+If a picture needs more memory while Voice Lab is using it, the queue offers
+**Ask Voice Lab to free the GPU**. Forge frees its ComfyUI models after the queue
+has been idle for `gpu.unload_idle_seconds` (120 by default) or before it sends
+speech to Voice Lab.
 
 ## Scene maker
 
-The **Scenes** tab makes a short exchange between two saved NPCs. Start from the Scenes tab, a cast pack, or a saved character. Add spoken lines, silent reactions, and pauses; choose each speaker, shot, mood, and expression. The preview uses existing portraits, sprites, and living portrait frames, with a still portrait fallback. A saved dialogue line can reuse its up-to-date WAV and mouth track. **Voice line** or **Voice missing lines** makes scene-owned speech in each character's selected voice through the normal voice job queue. Scene clips never alter character dialogue. Voice generation needs the corresponding installed voice model and may use the GPU; editing and video rendering do not.
+The **Scenes** tab makes a short exchange between two saved NPCs. Start from the Scenes tab, a cast pack, or a saved character. Add spoken lines, silent reactions, and pauses; choose each speaker, shot, mood, and expression. The preview uses existing portraits, sprites, and living portrait frames, with a still portrait fallback. A saved dialogue line can reuse its up-to-date WAV and mouth track. **Voice line** or **Voice missing lines** makes scene-owned speech in each character's selected voice through the normal voice job queue. Scene clips never alter character dialogue. Voice Lab speaks new scene lines in the assigned voices. Stored clips play without Voice Lab.
 
 Scenes are saved under `library/.npcforge-scenes/` and stay editable. With FFmpeg installed, **Render MP4 on CPU** exports a 720p, 25 fps video in widescreen or vertical format, up to 60 seconds. Rendering runs in its own CPU worker and can be cancelled without affecting character generation. Existing exports remain available after edits, with an outdated label when the script, audio, or source art changes. **Download scene package** includes the MP4, scene script, source details, voice licence notes, and `NOTICE.md`.
 

@@ -232,8 +232,8 @@ def test_every_place_that_offers_a_model_shows_its_licence():
     assert "optionTag('voice:'" in app and "licenceNote('voice:'" in app
     assert "commercialBadge(npc)" in app and "openLicences()" in app and "Licences of every model" in app
     voices = (WEB / "voice-designer.js").read_text("utf-8")
-    assert "from './licences-view.js'" in voices and voices.count("engineTag(") == 3 and "licenceNote('voice:' + e.id)" in voices
-    assert voices.count("' · non-commercial'") == 1                     # (only inside engineTag, the fallback for an older server)
+    assert "from './licences-view.js'" in voices and "ratingTag(row.licence?.rating)" in voices
+    assert "optionTag('voice:' + selector)" in voices and "licenceNote('voice:' + model[2])" in voices
     library = (WEB / "library-view.js").read_text("utf-8")
     assert "commercialDot(npc)" in library and "key: 'commercial'" in library
     assert 'id="aboutLicences"' in (WEB / "index.html").read_text("utf-8")

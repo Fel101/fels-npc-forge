@@ -79,55 +79,6 @@ def test_retry_keeps_successful_steps_and_runs_only_unfinished_steps(tmp_path, m
         jobs.close()
 
 
-def _binding(engine, files):
-    from npcgen.voice.binding import signature
-    value = {"schema": 1, "engine": engine, "source": "queue", "python": "python.exe", "env": {}, "parts": {},
-             "runtime_files": files, "runtime_sha256": signature(files)}
-    value["id"] = signature(value)
-    return value
-
-
-def test_a_voice_jobs_frozen_files_are_saved_once_beside_the_job_file_and_come_back_whole(tmp_path, monkeypatch):
-    """The binding of a voice engine is thousands of files; it used to be copied into every job record (5 MB for 32 jobs)."""
-    big = _binding("drama3", {f"C:/lab/file{n}.py": "0" * 64 for n in range(2000)})
-    old = _record("done", [_step("line", "done")], job_id="job-old")
-    old["options"]["voice_runtime"] = {"drama3": big, "kokoro": {"unavailable": "not installed"}}
-    state_path = tmp_path / "jobs.json"
-    state_path.write_text(json.dumps([old]), encoding="utf-8")         # an older file: the whole binding inside the record
-    monkeypatch.setattr(Jobs, "_worker", lambda self: None)
-
-    jobs = Jobs({}, DummyComfy(), Library(tmp_path / "library"), state_path=state_path)
-    assert jobs.jobs["job-old"].options["voice_runtime"]["drama3"] == big
-    jobs._persist()
-    saved = json.loads(state_path.read_text("utf-8"))[0]["options"]["voice_runtime"]
-    assert saved == {"drama3": {"stored": big["id"]}, "kokoro": {"unavailable": "not installed"}}
-    assert json.loads((jobs.bindings_dir / f"{big['id']}.json").read_text("utf-8")) == big
-    assert state_path.stat().st_size < 5000
-    jobs.close()
-
-    again = Jobs({}, DummyComfy(), Library(tmp_path / "library"), state_path=state_path)
-    assert again.jobs["job-old"].options["voice_runtime"]["drama3"] == big     # read back whole, so its checksum still verifies
-    again.close()
-
-
-def test_a_missing_binding_file_makes_the_voice_engine_unavailable_and_unused_files_are_removed(tmp_path, monkeypatch):
-    big = _binding("qwen", {"C:/lab/a.py": "1" * 64})
-    row = _record("done", [_step("line", "done")], job_id="job-gone")
-    row["options"]["voice_runtime"] = {"qwen": {"stored": big["id"]}}
-    state_path = tmp_path / "jobs.json"
-    state_path.write_text(json.dumps([row]), encoding="utf-8")
-    monkeypatch.setattr(Jobs, "_worker", lambda self: None)
-    stray = tmp_path / ".npcforge-voice-bindings" / ("f" * 64 + ".json")
-    stray.parent.mkdir()
-    stray.write_text("{}", encoding="utf-8")
-
-    jobs = Jobs({}, DummyComfy(), Library(tmp_path / "library"), state_path=state_path)
-    assert "unavailable" in jobs.jobs["job-gone"].options["voice_runtime"]["qwen"]
-    jobs._persist()
-    assert not stray.exists()
-    jobs.close()
-
-
 def _wait_for(check, seconds=5):
     deadline = time.monotonic() + seconds
     while not check() and time.monotonic() < deadline:

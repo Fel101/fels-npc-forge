@@ -8,7 +8,7 @@ import pytest
 from npcgen.library import Library
 from npcgen.scenes import Scenes, compile_timeline
 from npcgen import scene_voice
-from npcgen.voice import audio, authoring, record, service, steps
+from npcgen.voice import audio, authoring, lab_voice, record, service, steps
 
 
 def studio(**updates):
@@ -92,22 +92,25 @@ def test_legacy_audio_invalidates_for_pronunciation_and_frozen_checksum_does_not
 
 
 @pytest.fixture
-def local(tmp_path):
+def local(tmp_path, monkeypatch):
     lib = Library(tmp_path / "library")
     npc = lib.create({"profile": {"first_name": "Actor", "last_name": "Test", "age": 30}, "setting": "fantasy", "assets": {}})
     other = lib.create({"profile": {"first_name": "Other", "last_name": "Test", "age": 30}, "setting": "fantasy", "assets": {}})
     samples = .2 * np.sin(2 * np.pi * 220 * np.arange(96000) / 16000)
     wav = audio.write_wav(samples, 16000)
     def apply(rec):
-        v = voice(reference=None)
+        v = voice(reference=None, studio=studio(presets=[{"id": "calm", "name": "Calm", "parameters": {"speed": 1.15}}]),
+                  lab_voice={"identity_id": "a" * 12, "model": "qwen3-tts-1.7b-base", "name": "Actor Test",
+                             "kind": "cast", "takes_direction": False})
         record.install_reference(lib, rec, v, wav, {"id": "a" * 12, "text": "A reference voice", "language": "English"})
         rec.update(voice=v, dialogue={"lines": {"greeting": [{"id": "hello", "text": "Vael is here."}]}})
     lib.update(npc["id"], apply)
     seen = []
-    def run(engine, req, path, cancel=None):
-        seen.append(copy.deepcopy(req)); path.write_bytes(wav)
-        return {}
-    jobs = SimpleNamespace(lib=lib, voice=SimpleNamespace(run=run), scenes=Scenes(lib))
+    def run(job, req):
+        seen.append(copy.deepcopy(req))
+        return wav
+    monkeypatch.setattr(lab_voice, "speak", run)
+    jobs = SimpleNamespace(lib=lib, scenes=Scenes(lib))
     return lib, jobs, npc["id"], other["id"], seen
 
 
@@ -121,7 +124,7 @@ def test_queued_dialogue_keeps_authored_text_dictionary_and_per_line_performance
     lib.update(npc_id, change)
     steps.line(jobs, SimpleNamespace(options={"voice": request}, cancel=None), {"key": "hello"}, lib.get(npc_id))
     saved = lib.get(npc_id)
-    assert seen[0]["text"] == "Vay ell is here." and seen[0]["params"] == {"temperature": .65}
+    assert seen[0]["text"] == "Vay ell is here." and seen[0]["speed"] == 1.15
     assert saved["voice_lines"]["hello"]["text"] == "Vael is here."
     assert saved["dialogue"]["lines"]["greeting"][0]["text"] == "The gate is closed."
     assert record.line_is_stale(saved, "hello")
@@ -139,7 +142,7 @@ def test_scene_pin_preserves_settings_and_pronunciation_after_character_changes(
     lib.update(npc_id, change)
     scene_voice.run(jobs, SimpleNamespace(scene_id=scene["id"], options={"scene_voice": {"beats": request}}, cancel=None), {"key": "beat-one"})
     saved = jobs.scenes.get(scene["id"])
-    assert seen[0]["text"] == "Vay ell is here." and seen[0]["params"]["temperature"] == .65
+    assert seen[0]["text"] == "Vay ell is here." and seen[0]["speed"] == 1.15
     assert compile_timeline(saved, lib, jobs.scenes)["beats"][0]["voice"]["source"] == "scene"
     forged = copy.deepcopy(saved)
     forged["voice_bindings"][npc_id]["snapshot"]["settings"]["temperature"] = .3

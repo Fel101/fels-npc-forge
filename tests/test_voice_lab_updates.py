@@ -13,7 +13,7 @@ import pytest
 
 from npcgen import roll
 from npcgen.library import Library
-from npcgen.voice import alignment, audio, reference_clean, service, transcript_draft, voice_match
+from npcgen.voice import alignment, audio, reference_clean, service, transcript_draft
 from npcgen.voice.voicelibrary import VoiceLibrary
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -112,33 +112,3 @@ def test_denoise_refuses_out_of_range_noise_floor_before_writing_a_version(studi
 
 
 # ---- proxy voice match ---------------------------------------------------------------------------------------------
-
-def test_voice_match_is_unavailable_when_voice_lab_is_not_configured(tmp_path):
-    status = voice_match.capabilities({'voice': {'lab_path': str(tmp_path)}})
-    assert status['available'] is False
-    assert 'voice.lab_path' in status['reason'] or 'missing' in status['reason']
-
-
-def test_stock_voice_takes_report_no_reference_instead_of_a_score():
-    voice = {'takes': [{'id': 'abc123', 'file': 'voice/takes/abc123.wav'}]}
-    result = voice_match.for_take(None, 'npc-1', voice, 'abc123', cfg=None)
-    assert result['available'] is False
-    assert 'no reference' in result['reason']
-
-
-def test_unknown_take_is_a_key_error():
-    with pytest.raises(KeyError):
-        voice_match.for_take(None, 'npc-1', {'takes': []}, 'missing', cfg=None)
-
-
-@pytest.mark.skipif(not (LAB / 'speaker_similarity.py').is_file() or not REAL_CLIP.is_file(),
-                    reason='needs Voice Lab and the private reference clip')
-def test_voice_match_scores_a_real_clip_against_itself_as_the_same_voice():
-    cfg = {'voice': {'lab_path': str(LAB)}}
-    if not voice_match.capabilities(cfg)['available']:
-        pytest.skip('Voice Lab speaker encoder or calibration is not installed')
-    result = voice_match.score(cfg, REAL_CLIP.read_bytes(), REAL_CLIP.read_bytes())
-    assert result['available'] is True
-    assert result['score'] > 0.95
-    assert result['band'] == 'likely_same'
-    assert result['proxy'] is True

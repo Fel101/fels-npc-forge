@@ -35,7 +35,7 @@ froze (twice). So a big engine runs the careful way:
     when the "engine_fallback" option is on; with it off (the default) the picture fails and says why;
   - when the job queue has stayed empty for gpu "unload_idle_seconds" (2 minutes), ComfyUI is told to unload (Jobs calls
     release());
-  - a voice worker (npcgen/voice, 1.5-14 GB) is stopped before a big picture starts (add_before_big).
+  - local graphs acquire the suite GPU lock before checking the card and loading weights.
 """
 import contextlib
 import io
@@ -64,28 +64,6 @@ _LOADERS = {"UNETLoader": ("diffusion_models", "unet_name"), "CLIPLoader": ("tex
 _sleep, _clock = time.sleep, time.monotonic      # tests replace these
 _LOADED = {}                                      # ComfyUI endpoint -> the weights it holds ("mage", an engine's weights, or None)
 _FILES = {}                                       # (endpoint, folder) -> (time, [file names])
-_BEFORE_BIG = []                                  # called before a big engine loads: other GPU users (voice workers) step aside
-
-
-def add_before_big(fn):
-    """Register fn() to run before a big engine picture: it must free whatever it holds on the GPU. Never lets fn raise."""
-    if fn not in _BEFORE_BIG:
-        _BEFORE_BIG.append(fn)
-
-
-def remove_before_big(fn):
-    if fn in _BEFORE_BIG:
-        _BEFORE_BIG.remove(fn)
-
-
-def _clear_gpu_for_big():
-    for fn in list(_BEFORE_BIG):
-        try:
-            fn()
-        except Exception:
-            pass
-
-
 class EngineError(ComfyError):
     """This engine cannot make the picture now (files missing, not enough memory, stalled). The message is safe to show.
     `transient`: it may work a little later (memory not free yet, the GPU not empty yet), so a job tries the step again.
@@ -422,7 +400,9 @@ def _run_big(comfy, spec, graph, cancel):
 def _run_big_locked(comfy, spec, graph, cancel):
     need_ram, need_vram = spec["min_free_ram_mb"], spec["min_free_vram_mb"]
     here = _endpoint(comfy)
-    _clear_gpu_for_big()                                  # a voice model (8-14 GB) would leave the big engine no room
+    prepare = getattr(comfy, "prepare_picture", None)
+    if prepare is not None:
+        prepare(graph, cancel)
     if _LOADED.get(here) == spec["weights"]:
         try:
             free_ram = _stats(comfy)[2]
@@ -444,7 +424,11 @@ def _run_big_locked(comfy, spec, graph, cancel):
                 free_ram = free_vram = 0
             if (free_ram >= need_ram and free_vram >= need_vram) or _clock() > deadline:
                 break
-            beat(cancel, "waiting for free memory")                 # (said only when it really waits: the check usually passes at once)
+            from . import suite_gpu
+            note = ("Waiting for free GPU memory. Ask Voice Lab to free the GPU."
+                    if free_vram < need_vram and not gpu.GATE.strict and suite_gpu.can_ask_voice_lab()
+                    else "Waiting for free memory")
+            beat(cancel, note)
             _sleep(2)
         beat(cancel, None)
         if free_ram < need_ram or free_vram < need_vram:

@@ -14,7 +14,7 @@ import { commercialBadge, licenceNote, openLicences, optionTag } from './licence
 // disagree. The server reports its api_version; if it is older than this page needs, features that depend on the
 // newer server are switched off and a banner says how to fix it (instead of crashing on a missing field).
 // Keep in sync with API_VERSION in server.py (a test checks this).
-const REQUIRED_API = 46;
+const REQUIRED_API = 47;
 
 // ---------- small components ---------------------------------------------------------------------------------
 const card = (title, ...kids) => h('section', { class: 'card' }, h('h3', {}, title), ...kids);
@@ -220,7 +220,7 @@ function renderSidebar() {
       !S.outdated && r.anim.on && animOptions(),
       !S.outdated && check('Model sheet', r.sheet.on, v => { r.sheet.on = v; saveRecipe(); renderSidebar(); }, 'Portrait, front, both sides and back on white: a turnaround for 3D modelling.'),
       !S.outdated && r.sheet.on && sheetOptions(),
-      !S.outdated && check('Voice', r.voice.on, v => { r.voice.on = v; saveRecipe(); renderSidebar(); }, 'The voice the character sheet suggests, made in a few takes: the first is used until you pick one on the Review voices page.'),
+      !S.outdated && check('Voice', r.voice.on, v => { r.voice.on = v; saveRecipe(); renderSidebar(); }, 'Voice Lab assigns voices for the characters in this batch.'),
       !S.outdated && r.voice.on && voiceOptions(),
       h('p', { class: 'hint' }, 'The data sheet (name, traits, bio, appearance) is always created, since it drives the prompts.'),
       h('p', { class: 'hint' }, 'Models, quality, seed and backgrounds are under ', h('button', { type: 'button', class: 'linkish', onclick: openSettings }, 'Models & options'), '.'))),
@@ -1842,11 +1842,11 @@ function currentAssets() {
   return { portrait: a.portrait, sprite: a.sprite, model_3d: a.model_3d, expressions: [...a.expressions],
     ...(n.on && !S.outdated ? { animations: { clips: n.clips, dirs: n.dirs, frames: n.frames, candidates: n.candidates, mirror_left: n.mirror_left } } : {}),
     ...(m.on && !S.outdated ? { sheet: { views: m.views, pose: m.pose } } : {}),
-    ...(v.on && !S.outdated ? { voice: { engine: v.engine, takes: v.takes, lines: v.lines } } : {}) };
+    ...(v.on && !S.outdated ? { voice: { engine: v.engine, lines: v.lines } } : {}) };
 }
 const hasAssets = a => !!(a.portrait || a.sprite || a.model_3d || a.import_3d || a.body_3d || a.rig_3d || a.refine_3d || a.sharp_face || a.smooth_eyes || a.match_hair || a.clean_hands || a.attach_head || a.head_3d || a.check_3d || a.best_3d || (a.expressions || []).length || a.animations || a.sheet || a.living || a.voice);
 
-/** The Voice options under "What to make": which model makes the voices, how many takes, and whether to voice the dialogue. */
+/** The Voice Lab options under "What to make". */
 function voiceOptions() {
   const v = S.recipe.voice;
   const makers = [['qwen', 'Qwen3-TTS (describe)'], ['breeze', 'Breeze TTS 2 (describe)'], ['kokoro', 'Kokoro (stock voices)']]
@@ -1854,7 +1854,6 @@ function voiceOptions() {
   return h('div', { class: 'stack sub' },
     field('Model', sel(makers, v.engine, x => { v.engine = x; saveRecipe(); renderSidebar(); })),
     licenceNote('voice:' + v.engine),
-    field('Takes', sel([1, 2, 3, 4].map(n => [String(n), `${n} take${n === 1 ? '' : 's'}`]), String(v.takes), x => { v.takes = Number(x); saveRecipe(); })),
     check('Voice the dialogue', v.lines, x => { v.lines = x; saveRecipe(); }, 'Makes the dialogue pack first if needed, then speaks every line in the voice.'));
 }
 

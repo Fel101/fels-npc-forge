@@ -21,8 +21,6 @@ from PIL import Image
 from . import best3d, bodymaker, check3d, cleanup3d, creatures, creaturemaker, engines, eyes, eyesoft, glassesoff, gpu, hairmask, hands3d, head3d, headdetail, headgraft, import3d, itemmaker, items, living, morphology, posekeys, prompts, rig3d, roll, scene_background, scene_voice, three_d
 from .anim import Animator, generated_directions
 from .voice import steps as voice_steps
-from .voice import binding as voice_binding
-from .voice.runtime import VoiceRuntime
 from .comfy import Cancelled, ComfyError
 from .keying import grey_png, remove_background
 from .library import now
@@ -361,7 +359,6 @@ class Jobs:
         self.animator = Animator(comfy, library, cfg)
         self.sheeter = Sheeter(comfy, library, cfg)
         self.headmaker = head3d.Headmaker(comfy, library, cfg)
-        self.voice = VoiceRuntime(cfg, library.root / ".voice-logs", comfy)    # starts nothing until a voice step runs
         self.queue = JobQueue()
         self.jobs = collections.OrderedDict()
         self.lock = threading.RLock()
@@ -395,7 +392,6 @@ class Jobs:
         recovered = False
         for record in records:
             try:
-                self._expand_bindings(record)
                 job = Job.from_record(record)
                 if job.status not in ("queued", "running", "done", "error", "cancelled"):
                     continue
@@ -425,61 +421,6 @@ class Jobs:
         if recovered:
             self._persist()
 
-    # A voice job freezes the files its engine runs from (npcgen/voice/binding.capture): thousands of paths and checksums, the same
-    # for every job of that engine. Saved inside each job record they made the job file megabytes long, rewritten on every step, so
-    # each binding is kept once, in a file named by its own checksum beside the job file, and the record holds {"stored": <checksum>}.
-    @property
-    def bindings_dir(self):
-        return self.state_path.parent / ".npcforge-voice-bindings"
-
-    def _shrink_bindings(self, row):
-        """`row` (a to_record copy) with each frozen voice binding written to bindings_dir once and replaced by a reference."""
-        runtime = (row.get("options") or {}).get("voice_runtime")
-        if not isinstance(runtime, dict):
-            return row
-        slim = {}
-        for engine, value in runtime.items():
-            key = value.get("id") if isinstance(value, dict) else None
-            if isinstance(key, str) and re.fullmatch(r"[0-9a-f]{64}", key):
-                path = self.bindings_dir / f"{key}.json"
-                if not path.exists():
-                    path.parent.mkdir(parents=True, exist_ok=True)
-                    tmp = path.with_suffix(".tmp")
-                    tmp.write_text(json.dumps(value, ensure_ascii=False), "utf-8")
-                    os.replace(tmp, path)
-                slim[engine] = {"stored": key}
-            else:
-                slim[engine] = value                       # {"unavailable": reason} and anything unknown stay as they are
-        row["options"]["voice_runtime"] = slim
-        return row
-
-    def _expand_bindings(self, record):
-        """Put each stored binding back into a saved record (older records that carry the whole binding are left alone). A binding
-        whose file is gone becomes unavailable, so its voice step fails with a reason instead of running unchecked."""
-        runtime = (record.get("options") or {}).get("voice_runtime") if isinstance(record, dict) else None
-        if not isinstance(runtime, dict):
-            return record
-        for engine, value in list(runtime.items()):
-            key = value.get("stored") if isinstance(value, dict) else None
-            if not isinstance(key, str) or not re.fullmatch(r"[0-9a-f]{64}", key):
-                continue
-            try:
-                runtime[engine] = json.loads((self.bindings_dir / f"{key}.json").read_text("utf-8"))
-            except (OSError, ValueError):
-                runtime[engine] = {"unavailable": "The saved record of this voice engine's files is missing; submit the job again."}
-        return record
-
-    def _sweep_bindings(self, rows):
-        """Remove binding files no saved job refers to any more (jobs past the last 30 finished ones are dropped)."""
-        wanted = {value["stored"] for row in rows for value in ((row.get("options") or {}).get("voice_runtime") or {}).values()
-                  if isinstance(value, dict) and isinstance(value.get("stored"), str)}
-        try:
-            for path in self.bindings_dir.glob("*.json"):
-                if path.stem not in wanted:
-                    path.unlink(missing_ok=True)
-        except OSError:
-            pass
-
     def _persist(self):
         with self.persist_lock:
             with self.lock:
@@ -487,10 +428,8 @@ class Jobs:
             tmp = self.state_path.with_suffix(self.state_path.suffix + ".tmp")
             try:
                 self.state_path.parent.mkdir(parents=True, exist_ok=True)
-                rows = [self._shrink_bindings(row) for row in rows]
                 tmp.write_text(json.dumps(rows, indent=2, ensure_ascii=False), "utf-8")
                 os.replace(tmp, self.state_path)
-                self._sweep_bindings(rows)
             except (OSError, TypeError, ValueError):
                 traceback.print_exc()
 
@@ -521,7 +460,6 @@ class Jobs:
         with self.lock:
             worker = self.thread                            # (the watchdog may have put a new one in the place of a stuck worker)
         worker.join(timeout)
-        self.voice.close()
         self._persist()
 
     # ---- public API --------------------------------------------------------------------------------------------
@@ -537,8 +475,6 @@ class Jobs:
         for extra in ("animations", "sheet", "voice", "import_3d", "body_3d"):
             if assets.get(extra):
                 options = {**options, extra: assets[extra]}
-        if any(step['kind'].startswith('voice_') for step in steps):
-            options={**options,'voice_runtime':voice_binding.for_npc_job(self.cfg,npc,options,steps)}
         job = Job(npc["id"], f'{p["first_name"]} {p["last_name"]}'.strip(), steps, options)
         job.on_change = self._persist
         job.lock = self.lock
@@ -560,8 +496,7 @@ class Jobs:
         beats = scene_voice.requests(scene, self.scenes, raw)
         steps = [{"kind": "scene_voice", "key": beat_id, "label": f"Voice scene line: {beat_id}",
                   "status": "pending", "error": None} for beat_id in beats]
-        job = Job(None, scene["title"], steps, {"scene_voice": {"beats": beats, "quick": len(beats) == 1},
-                  "voice_runtime":voice_binding.for_scene_job(self.cfg,self.lib,beats)},
+        job = Job(None, scene["title"], steps, {"scene_voice": {"beats": beats, "quick": len(beats) == 1}},
                   target_type="scene", scene_id=scene_id)
         job.on_change = self._persist
         job.lock = self.lock
@@ -1153,6 +1088,7 @@ class Jobs:
     def _run_step(self, job, step):
         cfg, comfy, lib, opt = self.cfg, self.comfy, self.lib, job.options
         if step["kind"] == "scene_voice":
+            self._unload_idle()
             scene_voice.run(self, job, step)
             return
         if step["kind"] == "scene_background":
@@ -1166,6 +1102,7 @@ class Jobs:
             return
         npc = lib.get(job.npc_id)
         if step["kind"] in voice_steps.RUNNERS:
+            self._unload_idle()
             voice_steps.run(self, job, step, npc)
             return
         if step["kind"] in bodymaker.RUNNERS:

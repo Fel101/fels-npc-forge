@@ -88,7 +88,9 @@ def instruction(v):
 def commercial_ok(v):
     """False if a non-commercial model made or speaks this voice."""
     if v.get("lab_voice"):
-        return (engines.spec(speaker_for(v)) or {}).get("commercial_ok", True)
+        licence = v["lab_voice"].get("licence") or {}
+        return licence.get("rating") not in ("no", "unclear") and (
+            engines.spec(speaker_for(v)) or {}).get("commercial_ok", True)
     used = {v.get("engine"), speaker_for(v), (v.get("reference") or {}).get("engine")}
     return all((engines.spec(e) or {}).get("commercial_ok", True) for e in used if e)
 

@@ -25,8 +25,10 @@ export function statusBadge(status, text) {
 /** What goes after a model's name in a drop-down, so the choice is visible without opening anything: " · non-commercial". */
 export function optionTag(selector) {
   const model = modelFor(selector);
-  return model ? ` · ${TAG[model.effective] || ''}` : '';
+  return ratingTag(model?.effective);
 }
+
+export const ratingTag = rating => TAG[rating] ? ` · ${TAG[rating]}` : '';
 
 /** Under a picker: the badge, the licence in a few words, and a button that opens the full list at that model. */
 export function licenceNote(selector) {

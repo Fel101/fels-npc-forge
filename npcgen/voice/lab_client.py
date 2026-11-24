@@ -135,6 +135,7 @@ class LabClient:
                     pass
             if cancel.is_set():
                 raise Cancelled()
+            beat(cancel)
             if isinstance(result, Exception):
                 raise result
             actual, payload = result
@@ -184,6 +185,11 @@ class LabClient:
         body["wait_seconds"] = WAIT_SECONDS
         return _wav(self._request("POST", path, body=body, timeout=WAIT_SECONDS + 120, cancel=cancel))
 
+    def preview_design(self, description, text, *, engine, language, seed, cancel=None):
+        body = {"mode": "design", "voice_description": description, "text": text, "engine": engine,
+                "language": language, "seed": seed, "wait_seconds": WAIT_SECONDS}
+        return _wav(self._request("POST", "/api/speak", body=body, timeout=WAIT_SECONDS + 120, cancel=cancel))
+
     def design(self, name, description, *, text=None, engine=None, clone_engine=None, language=None, seed=None, cancel=None):
         body = {"name": name, "voice_description": description, "wait_seconds": WAIT_SECONDS}
         for key, value in (("text", text), ("engine", engine), ("clone_engine", clone_engine), ("language", language), ("seed", seed)):
@@ -193,21 +199,45 @@ class LabClient:
                             timeout=WAIT_SECONDS + 120, cancel=cancel)
         return result["voice"]
 
-    def clone(self, name, engine, recording, *, transcript, origin, allowed_use, consent=False, cancel=None):
+    def clone(self, name, engine, recording, *, transcript, origin, allowed_use, consent=False, cancel=None,
+              checkpoint=None, save_checkpoint=None):
         if consent is not True:
             raise LabError("Confirm you have permission to use this recording before sending it to Voice Lab.", code="consent_required")
         if not all(isinstance(value, str) and value.strip() for value in (transcript, origin, allowed_use)):
             raise LabError("Enter the exact words, who made the recording, and how you may use it.", code="reference_details")
         recording = _wav(recording)
-        character = self._json("POST", "/api/characters", body={"name": name}, status=201, cancel=cancel)["character"]
-        identity = self._json("POST", f"/api/characters/{_path(character['id'])}/identities",
-                              body={"engine_id": engine, "label": "Recorded"}, status=201, cancel=cancel)["identity"]["id"]
+        state = {} if checkpoint is None else checkpoint
+        lab_id = (self.health or {}).get("lab_id")
+        if state and state.get("lab_id") != lab_id:
+            raise LabError("Reopen the Voice Lab library where this recording was sent before retrying.", code="lab_changed")
+
+        def saved(key, value):
+            state.update(lab_id=lab_id)
+            state[key] = value
+            if save_checkpoint is not None:
+                save_checkpoint()
+            return value
+
+        character = state.get("character")
+        if character is None:
+            character = saved("character", self._json("POST", "/api/characters", body={"name": name}, status=201,
+                                                     cancel=cancel)["character"]["id"])
+        identity = state.get("identity")
+        if identity is None:
+            identity = saved("identity", self._json("POST", f"/api/characters/{_path(character)}/identities",
+                                                   body={"engine_id": engine, "label": "Recorded"}, status=201,
+                                                   cancel=cancel)["identity"]["id"])
         path = f"/api/identities/{_path(identity)}"
-        fields = {"filename": "recording.wav", "transcript": transcript, "origin": origin, "allowed_use": allowed_use}
-        metadata = base64.urlsafe_b64encode(json.dumps(fields, ensure_ascii=False).encode("utf-8")).decode("ascii").rstrip("=")
-        reference = self._json("POST", f"{path}/references", data=recording, status=201, timeout=120, cancel=cancel,
-                               headers={"Content-Type": "application/octet-stream", "X-Reference-Metadata": metadata})["reference"]
-        self._json("POST", f"{path}/update", body={"status": "approved", "reference_version_id": reference["id"]}, cancel=cancel)
+        reference = state.get("reference")
+        if reference is None:
+            fields = {"filename": "recording.wav", "transcript": transcript, "origin": origin, "allowed_use": allowed_use}
+            metadata = base64.urlsafe_b64encode(json.dumps(fields, ensure_ascii=False).encode("utf-8")).decode("ascii").rstrip("=")
+            reply = self._json("POST", f"{path}/references", data=recording, status=201, timeout=120, cancel=cancel,
+                               headers={"Content-Type": "application/octet-stream", "X-Reference-Metadata": metadata})
+            reference = saved("reference", reply["reference"]["id"])
+        if not state.get("approved"):
+            self._json("POST", f"{path}/update", body={"status": "approved", "reference_version_id": reference}, cancel=cancel)
+            saved("approved", True)
         return self.voice(identity)
 
     def voice_file(self, identity, audition, *, permission=False, cancel=None):

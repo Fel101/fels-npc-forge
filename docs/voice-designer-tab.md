@@ -34,10 +34,10 @@ is needed. Jobs use Forge's existing queue and ownership gate.
 Reusable approved library versions, native preset identities, pronunciation and
 performances, candidate comparisons, reversible effects, final-audio alignment,
 character audition reviews and game delivery workflows are implemented. Current
-guides: [studio overview](voice-studio-goal.md), [identities](voice-native-identities.md),
+guides: [studio overview](voice-studio-goal.md), [identities](voices.md),
 [authoring](voice-authoring.md), [effects](voice-effects.md), [auditions](voice-auditions.md),
-[alignment](voice-lip-sync.md), [runtime bindings](voice-runtime-bindings.md),
-[DramaBox](voice-dramabox.md) and [Drama 3](voice-drama3.md).
+[alignment](voice-lip-sync.md), [runtime bindings](voices.md),
+[DramaBox](voices.md) and [Drama 3](voices.md).
 
 Drama's shared cast/narration studio supports streaming auditions and retained
 mixed-audio packages; studio/cloning inference stays on CPU. Previous-take VQ

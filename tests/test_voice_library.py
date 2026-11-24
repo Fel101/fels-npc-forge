@@ -135,28 +135,30 @@ def test_reference_history_restores_prior_identity_without_modifying_prior_audio
     assert len(restored["voice"]["reference_history"]) == 2
 
 
-def test_queued_dialogue_uses_frozen_reference_after_character_voice_changes(studio):
+def test_queued_dialogue_uses_frozen_lab_voice_after_assignment_changes(studio, monkeypatch):
     lib, store, a, b = studio
     lib.update(a, lambda n: n.update(dialogue={"lines": {"greeting": [{"id": "hello", "text": "Hello there."}]}}))
-    npc = lib.get(a)
+    selected = {"name": "Captain", "identity_id": "a" * 32, "model": "qwen3-tts-1.7b-base",
+                "kind": "cast", "takes_direction": False}
+    npc = lib.update(a, lambda rec: rec["voice"].update(lab_voice=selected))
     request = service.lines_request(npc, {"ids": ["hello"]})
     request["voice_snapshot"] = record.freeze_voice(lib, a, request["voice_snapshot"])
-    old_ref = request["voice_snapshot"]["reference"]
-    upload(lib, a, 440)
+    replacement = {**selected, "identity_id": "b" * 32}
+    lib.update(a, lambda rec: rec["voice"].update(lab_voice=replacement))
     seen = []
-    def run(engine, req, path, cancel=None):
+    def run(job, req):
         seen.append(req)
-        path.write_bytes(wav(seconds=1))
-        return {}
-    jobs = SimpleNamespace(lib=lib, voice=SimpleNamespace(run=run))
+        return wav(seconds=1)
+    monkeypatch.setattr("npcgen.voice.lab_voice.speak", run)
+    jobs = SimpleNamespace(lib=lib)
     job = SimpleNamespace(options={"voice": request}, cancel=None)
     steps.line(jobs, job, {"key": "hello"}, lib.get(a))
-    assert seen[0]["ref"] == str(lib.resolve(a, old_ref["file"]))
+    assert seen[0]["voice"] == selected
     latest = lib.get(a)
-    assert latest["voice_lines"]["hello"]["reference"] == old_ref["id"]
+    assert latest["voice_lines"]["hello"]["reference"] == selected["identity_id"]
     assert record.line_is_stale(latest, "hello")
-    record.restore_reference(lib, a, old_ref["id"])
-    assert not record.line_is_stale(lib.get(a), "hello")
+    restored = lib.update(a, lambda rec: rec["voice"].update(lab_voice=selected))
+    assert not record.line_is_stale(restored, "hello")
 
 
 def test_reference_length_quality_blocks_short_cloning_assignment(studio):

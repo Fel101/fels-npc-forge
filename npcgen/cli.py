@@ -185,13 +185,12 @@ def build_parser(data):
     ra.add_argument("id", help="library id, or a unique part of the name")
     ra.add_argument("--clip", default="walk")
 
-    vo = sub.add_parser("voice", help="give characters a voice (and voice their dialogue): the voice their sheet suggests, "
-                                      "takes, the first used until you pick one on the Review page")
+    vo = sub.add_parser("voice", help="make Cast voices in Voice Lab and optionally speak the characters' dialogue")
     vo.add_argument("who", nargs="+", help="character ids or names, or 'all'")
     vo.add_argument("--engine", default="qwen", help="qwen, breeze or kokoro (default qwen)")
-    vo.add_argument("--takes", type=int, default=3, help="takes per character, 1-4 (default 3)")
+    vo.add_argument("--takes", type=int, default=3, help=argparse.SUPPRESS)  # Older scripts can still pass this option.
     vo.add_argument("--lines", action="store_true", help="also voice the dialogue pack (made first if missing)")
-    vo.add_argument("--redo", action="store_true", help="new takes even for characters whose voice you already picked")
+    vo.add_argument("--redo", action="store_true", help="request a new voice for characters with an assigned Voice Lab voice")
     it = sub.add_parser("item", help="make things a character holds or wears: weapons, armour, helmets and hats, shoes, bags, props, garments, glasses, fitted clothes")
     isub = it.add_subparsers(dest="item_cmd", required=True)
     isub.add_parser("list", help="list the items")
@@ -539,7 +538,7 @@ def cmd_voice(a, data, app):
         return 0
     results = wait_for(app, submitted)
     failed = [j for j in results if j["status"] != "done"]
-    print(f"Done: {len(results) - len(failed)} voiced, {len(failed)} with errors. Pick takes on the Library's Review voices page.")
+    print(f"Done: {len(results) - len(failed)} voiced, {len(failed)} with errors.")
     return 1 if failed else 0
 
 

@@ -10,6 +10,7 @@ export function createVoiceStudio({ selectedNpc, onSaved, engineInfo }) {
   const invalidateEffectPreview = () => { effectPreview = null; $('#voiceEffectPreview')?.remove(); };
   const caps = () => {
     const voice = owner.voice || {}, id = voice.speaker || voice.engine;
+    if (voice.lab_voice) return { direction: voice.lab_voice.takes_direction, parameters: ['speed'], limits: { speed: [0.5, 2, 1] } };
     return engineInfo().performance_caps?.[id] || { direction: false, parameters: [], limits: {} };
   };
   const action = fn => safe(async () => {

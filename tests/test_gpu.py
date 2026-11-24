@@ -1,14 +1,14 @@
 """One model on the GPU at a time (npcgen/gpu.py): what counts as a different model, the unload before it, the wait for an
 empty card, and the voice runtime and ComfyUI client both going through it."""
 import json
+import threading
 import os
 
 import pytest
 
 from npcgen import comfy as comfy_mod
-from npcgen import gpu
+from npcgen import fels_suite, gpu, suite_gpu
 from npcgen.comfy import Comfy, edit_graph, t2i_graph
-from npcgen.voice import runtime
 
 GB = 2 ** 30
 
@@ -184,7 +184,7 @@ def test_a_holder_that_unloads_itself_is_forgotten_and_comfyui_is_freed_between_
 
 def test_every_comfyui_graph_claims_the_gpu_on_submit(monkeypatch):
     claims = []
-    monkeypatch.setattr(gpu, "claim", lambda key, release=None, comfy=None, cancel=None: claims.append((key, comfy)))
+    monkeypatch.setattr(gpu.GATE, "claim_picture", lambda comfy, graph, cancel: claims.append((("comfy", gpu.graph_models(graph)), comfy)))
     client = Comfy("http://127.0.0.1:9")
     monkeypatch.setattr(client, "_request", lambda *a, **k: json.dumps({"prompt_id": "p1"}).encode())
     graph = t2i_graph(client.models, "x", "", 64, 64, 1)
@@ -192,52 +192,76 @@ def test_every_comfyui_graph_claims_the_gpu_on_submit(monkeypatch):
     assert claims == [(("comfy", gpu.graph_models(graph)), client)]
 
 
-@pytest.fixture
-def voice_gate(monkeypatch):
-    """A fresh module gate, and a registered voice engine "fake" (npcgen/voice/adapters/fake.py) whose design and stock
-    parts count as separate models, like Qwen3-TTS's VoiceDesign and Base."""
-    fresh = gpu.Gate()
-    monkeypatch.setattr(gpu, "GATE", fresh)
-    for name in ("configure", "claim", "drop", "release_comfy", "status"):
-        monkeypatch.setattr(gpu, name, getattr(fresh, name))
-    spec = {**runtime.engines.ENGINES["qwen"], "label": "Fake engine", "adapter": "fake", "min_free_vram_mb": 0,
-            "min_free_ram_mb": 0, "rtf": 0.1, "separate_parts": True,
-            "caps": {"design": True, "clone": True, "stock": True, "direction": True, "tags": []}}
-    monkeypatch.setitem(runtime.engines.ENGINES, "fake", spec)
-    return fresh
-
-
-class _Lock:
-    def __init__(self):
-        self.holds = 0
-
-    def hold(self, cancel=None):
-        import contextlib
-        self.holds += 1
-        return contextlib.nullcontext()
-
-
-def test_a_voice_clip_claims_the_gpu_under_comfyuis_lock_and_a_picture_stops_the_worker(tmp_path, voice_gate):
+@pytest.mark.parametrize("exclusive", [False, True])
+def test_picture_residency_shares_or_waits_for_voice_lab(tmp_path, monkeypatch, gate, exclusive):
+    monkeypatch.setenv("FELS_SUITE_DIR", str(tmp_path))
+    gate.configure({"gpu": {"one_model_at_a_time": exclusive, "wait_seconds": 4}})
+    comfy = Comfy("http://127.0.0.1:9")
     card = FakeCard()
-    card.operation_lock, card.models = _Lock(), {}
-    rt = runtime.VoiceRuntime({}, tmp_path / "logs", card)
+    monkeypatch.setattr(comfy, "get_json", card.get_json)
+    monkeypatch.setattr(comfy, "free_memory", card.free_memory)
+    lab = fels_suite.GpuLock("voice-lab")
+    assert lab.acquire("Kokoro 82M", timeout=0)
+    contacts = []
+    outside = []
+    messages = []
+    cancel = threading.Event()
+    cancel.beat = messages.append
+
+    def unload(holder):
+        assert fels_suite.gpu_status()["alone"]["app"] == "npc-forge"
+        assert holder["app"] == "voice-lab"
+        contacts.append(holder)
+        if len(contacts) == 1:
+            return 409, {"code": "busy", "doing": "speaking a scene"}
+        lab.release()
+        return 200, {}
+
+    monkeypatch.setattr(suite_gpu, "unload_holder", unload)
+    monkeypatch.setattr(fels_suite, "unload_outside", lambda **kwargs: outside.append(kwargs))
     try:
-        rt.run("fake", {"cmd": "design", "text": "Hello there.", "instruct": "x", "seed": 1}, tmp_path / "a.wav")
-        assert card.operation_lock.holds == 1 and voice_gate.holder() == ("voice", "fake") and rt.status() == {"fake": True}
-        gpu.claim(("comfy", ("mage.safetensors",)), comfy=card)          # the next picture
-        assert rt.status() == {} and voice_gate.holder() == ("comfy", ("mage.safetensors",))
+        with comfy.operation_lock:
+            gate.claim_picture(comfy, {}, cancel)
+            holders = {row["app"]: row["alone"] for row in fels_suite.gpu_holders()}
+            if exclusive:
+                assert holders == {"npc-forge": True}
+                assert len(contacts) == 2 and len(outside) == 1
+                assert any("Voice Lab is speaking a scene" in (message or "") for message in messages)
+            else:
+                assert holders == {"npc-forge": False, "voice-lab": False}
+                assert not contacts and not outside
+        gate.release_comfy(comfy)
+        assert not any(row["app"] == "npc-forge" for row in fels_suite.gpu_holders())
+        assert not fels_suite.gpu_status()["alone"]
+        assert card.frees
     finally:
-        rt.close()
+        gate.reset()
+        lab.release()
 
 
-def test_two_models_inside_one_voice_engine_are_not_loaded_together(tmp_path, voice_gate):
-    rt = runtime.VoiceRuntime({}, tmp_path / "logs")
+def test_cancel_during_busy_unload_clears_forge_intent(tmp_path, monkeypatch):
+    monkeypatch.setenv("FELS_SUITE_DIR", str(tmp_path))
+    cancel = threading.Event()
+    lab = fels_suite.GpuLock("voice-lab")
+    forge = fels_suite.GpuLock("npc-forge")
+    assert lab.acquire("Kokoro 82M", timeout=0)
+
+    def busy(holder):
+        cancel.set()
+        return 409, {"code": "busy", "doing": "speaking"}
+
+    monkeypatch.setattr(suite_gpu, "unload_holder", busy)
     try:
-        rt.run("fake", {"cmd": "design", "text": "Hello there.", "instruct": "x", "seed": 1}, tmp_path / "a.wav")
-        rt.run("fake", {"cmd": "stock", "text": "Again.", "voice": "fake_a"}, tmp_path / "b.wav")
-        assert rt.worker.loaded == {"stock"}                              # design was unloaded before stock loaded
-        voice_gate.configure({"gpu": {"one_model_at_a_time": False}})
-        rt.run("fake", {"cmd": "design", "text": "Hello.", "instruct": "x", "seed": 1}, tmp_path / "c.wav")
-        assert rt.worker.loaded == {"stock", "design"}                    # the rule off: both stay, as before
+        with pytest.raises(comfy_mod.Cancelled):
+            suite_gpu.acquire_pictures(forge, True, 5, cancel)
+        assert not forge.held and fels_suite.gpu_status()["alone"] is None
+        assert lab.held
     finally:
-        rt.close()
+        lab.release()
+
+
+def test_unload_only_contacts_the_holder_with_a_matching_address(tmp_path, monkeypatch):
+    monkeypatch.setenv("FELS_SUITE_DIR", str(tmp_path))
+    holder = {"app": "voice-lab", "pid": 43210}
+    monkeypatch.setattr(fels_suite, "read_address", lambda app: {"url": "http://127.0.0.1:9", "pid": 43211})
+    assert suite_gpu.unload_holder(holder) == (None, {})
