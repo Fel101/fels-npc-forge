@@ -7,7 +7,7 @@ import types
 import pytest
 from PIL import Image
 
-from npcgen import config, jobs as jobsmod
+from npcgen import config, jobs as jobsmod, media
 from npcgen.comfy import DEFAULT_MODELS
 from npcgen.jobs import DEFAULT_OPTIONS, Jobs, PortraitFallback
 from npcgen.library import Library
@@ -57,7 +57,7 @@ def world(tmp_path):
 def test_without_an_engine_the_built_in_one_draws_the_portrait(world):
     comfy, draw = world
     step, meta, data = draw()
-    assert len(comfy.graphs) == 1 and data == BUILT_IN and "engine" not in meta and "note" not in step
+    assert len(comfy.graphs) == 1 and data == media.label(BUILT_IN, ["Mage-Flow"]) and "engine" not in meta and "note" not in step
 
 
 def test_an_engine_that_takes_the_portrait_replaces_the_built_in_one(world):
@@ -69,7 +69,7 @@ def test_an_engine_that_takes_the_portrait_replaces_the_built_in_one(world):
         return {"png": EXTENSION, "engine": "Test engine"}
     jobsmod.add_portrait_engine(engine)
     step, meta, data = draw()
-    assert comfy.graphs == [] and data == EXTENSION and meta["engine"] == "Test engine"
+    assert comfy.graphs == [] and data == media.label(EXTENSION, ["Test engine"]) and meta["engine"] == "Test engine"
     assert set(seen) == {"npc", "setting", "prompt", "size", "seed", "comfy", "cancel"}
     assert seen["npc"]["profile"]["first_name"] == "Mara" and seen["seed"] == 11
     assert seen["size"] == tuple(config.DEFAULTS["quality"]["standard"]["portrait"])
@@ -81,10 +81,10 @@ def test_an_engine_that_is_not_for_this_character_leaves_it_to_the_next_one_or_t
     jobsmod.add_portrait_engine(lambda **ctx: None)
     jobsmod.add_portrait_engine(lambda **ctx: {"png": EXTENSION})
     step, meta, data = draw()
-    assert data == EXTENSION and meta["engine"] == "extension"
+    assert data == media.label(EXTENSION, ["extension"]) and meta["engine"] == "extension"
     jobsmod.PORTRAIT_ENGINES.clear()
     jobsmod.add_portrait_engine(lambda **ctx: None)
-    assert draw()[2] == BUILT_IN
+    assert draw()[2] == media.label(BUILT_IN, ["Mage-Flow"])
 
 
 def test_an_engine_that_cannot_run_falls_back_and_the_reason_is_kept_and_shown(world, capsys):
@@ -94,7 +94,7 @@ def test_an_engine_that_cannot_run_falls_back_and_the_reason_is_kept_and_shown(w
         raise PortraitFallback("it needs files ComfyUI does not have")
     jobsmod.add_portrait_engine(engine)
     step, meta, data = draw()
-    assert data == BUILT_IN and len(comfy.graphs) == 1
+    assert data == media.label(BUILT_IN, ["Mage-Flow"]) and len(comfy.graphs) == 1
     assert meta["engine_note"] == "it needs files ComfyUI does not have" and "engine" not in meta
     assert step["note"] == "Drawn with the built-in engine instead: it needs files ComfyUI does not have"
     assert "using the built-in one" in capsys.readouterr().err

@@ -26,7 +26,7 @@ import time
 import numpy as np
 from PIL import Image
 
-from . import cleanup3d, engines, eyesoft, hairmask, headdetail, headpaint, prompts, sheet, three_d
+from . import cleanup3d, engines, eyesoft, hairmask, headdetail, headpaint, licences, media, prompts, sheet, three_d
 from .comfy import ComfyError
 from .library import now
 
@@ -318,7 +318,7 @@ class Headmaker:
                                  negative=pr["negative"], cancel=job.cancel)
         if used.get("engine_note"):
             job.cache["engine_note"] = used["engine_note"]
-        self.lib.write_asset(job.npc_id, f"{ASSET_DIR}/{view}.png", png)
+        self.lib.write_asset(job.npc_id, f"{ASSET_DIR}/{view}.png", media.label(png, [licences.picture_engine(used, edit=True)]))
         meta = {"file": f"{ASSET_DIR}/{view}.png", "seed": sheet.view_seed(seed, view), "prompt": pr["positive"],
                 "negative": pr["negative"], "created": now(), "size": list(PANEL), "from": reference, "expression": expression,
                 **({"glasses_off": True} if glasses_off else {}),
@@ -365,7 +365,7 @@ class Headmaker:
         framed = {view: png_bytes(pics[view]) for view in VIEWS}
         names = {}
         for view in VIEWS:
-            self.lib.write_asset(job.npc_id, f"{ASSET_DIR}/framed/{view}.png", framed[view])
+            self.lib.write_asset(job.npc_id, f"{ASSET_DIR}/framed/{view}.png", media.label(framed[view], [licences.picture_engine(views[view], edit=True)]))
             names[view] = self.comfy.upload_image(framed[view], f"{job.npc_id}_head_framed_{view}.png")
         graph = three_d.pixal3d_head_graph(names, job.npc_id, getattr(job, "id", "head"), seed, quality=quality)
         started = time.monotonic()
@@ -390,9 +390,11 @@ class Headmaker:
             model = headpaint.paint(model, pics, cuts, painted, find=find)
         except ValueError as exc:
             notes.append(f"painted with Pixal3D's own colours, not from the pictures: {exc}")
-        self.lib.write_asset(job.npc_id, ORIGINAL_FILE, original)
+        generator = [licences.model_name("three_d:pixal3d")]
+        model = media.label(model, [*generator, *(licences.picture_engine(views[v], edit=True) for v in VIEWS)])
+        self.lib.write_asset(job.npc_id, ORIGINAL_FILE, media.label(original, generator))
         self.lib.write_asset(job.npc_id, MODEL_FILE, model)
-        self.lib.write_asset(job.npc_id, PREVIEW_FILE, preview)
+        self.lib.write_asset(job.npc_id, PREVIEW_FILE, media.label(preview, generator))
         settings = three_d.HEAD_QUALITIES[quality]
         expressions = {(views[v] or {}).get("expression") for v in VIEWS} - {None}
         expression = expressions.pop() if len(expressions) == 1 else "mixed"

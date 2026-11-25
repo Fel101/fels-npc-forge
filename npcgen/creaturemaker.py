@@ -16,7 +16,7 @@ from pathlib import Path
 
 from PIL import Image
 
-from . import creature_projects, creatures, engines, three_d, up_check
+from . import creature_projects, creatures, engines, licences, media, three_d, up_check
 from .comfy import Cancelled, ComfyError
 from .library import now
 
@@ -116,9 +116,12 @@ def run_concept(worker, job, step, creature):
     png, meta = engines.image(worker.comfy, CONCEPT_ENGINE, prompt, negative,
                               CONCEPT_SIZE, CONCEPT_SIZE, seed, 4, 1.0, cancel=job.cancel)
     store = worker.creatures
+    model = licences.picture_engine(meta)
+    png = media.label(png, [model])
+    actual = "mage" if model == "Mage-Flow" else CONCEPT_ENGINE
     store.write_file(creature["id"], "concept.png", png)
     store.write_file(creature["id"], "concept.json", json.dumps({
-        "prompt": prompt, "negative": negative, "seed": seed, "engine": CONCEPT_ENGINE,
+        "prompt": prompt, "negative": negative, "seed": seed, "engine": actual,
         "engine_meta": meta, "size": CONCEPT_SIZE, "made": now(), "sha256": hashlib.sha256(png).hexdigest()}, indent=2))
     def drawn(c):
         c.setdefault("made", {}).update(concept=now())
@@ -140,9 +143,11 @@ def _draw_grid(worker, job, creature, seeds):
         _note(job, f"Drawing picture {n} of {len(seeds)} (seed {seed})")
         png, meta = engines.image(worker.comfy, CONCEPT_ENGINE, prompt, negative,
                                   CONCEPT_SIZE, CONCEPT_SIZE, seed, 4, 1.0, cancel=job.cancel)
-        store.write_file(creature["id"], f"{creatures.CANDIDATES}/{seed}.png", png)
+        model = licences.picture_engine(meta)
+        actual = "mage" if model == "Mage-Flow" else CONCEPT_ENGINE
+        store.write_file(creature["id"], f"{creatures.CANDIDATES}/{seed}.png", media.label(png, [model]))
         store.write_file(creature["id"], f"{creatures.CANDIDATES}/{seed}.json", json.dumps({
-            "prompt": prompt, "negative": negative, "seed": seed, "engine": CONCEPT_ENGINE,
+            "prompt": prompt, "negative": negative, "seed": seed, "engine": actual,
             "engine_meta": meta, "size": CONCEPT_SIZE, "made": now()}, indent=2))
 
 
@@ -161,6 +166,7 @@ def run_3d(worker, job, step, creature):
     entry = comfy.run_entry(graph, cancel=job.cancel, timeout=SHAPE_TIMEOUT, unload_models=True)
     saved = three_d.saved_file(entry, "3d", "GLB model", node=SAVE_NODE)
     glb = comfy.fetch_file(saved["filename"], saved.get("subfolder", ""), saved.get("type", "output"))
+    glb = media.label(glb, [TRELLIS_MODEL])
     store.write_file(creature["id"], "raw/model.glb", glb)
     store.write_file(creature["id"], "raw/run.json", json.dumps({
         "engine": THREE_D_ENGINE, "model": TRELLIS_MODEL, "quality": "medium", "seed": int(creature["seed"]), "comfy_file": saved["filename"],
@@ -210,7 +216,6 @@ def run_prep(worker, job, step, creature):
     raw = store.resolve(creature["id"], "raw/model.glb")
     if not raw.is_file():
         raise ComfyError("Make the 3D model first")
-    out = store.resolve(creature["id"], "model.glb")
     # Blender writes here and it becomes model.glb only when it succeeds. The name must end in .glb: Blender's exporter adds .glb to
     # a name that lacks it (model.glb.part would have become model.glb.part.glb).
     part = store.resolve(creature["id"], "model.part.glb")
@@ -247,10 +252,13 @@ def run_prep(worker, job, step, creature):
     fields = json.loads(report)
     if plan == "static":                                 # the up direction, checked against the picture (npcgen/up_check.py)
         fields["up_check"] = up_check_for(worker, creature, part, job.cancel)
-    os.replace(part, out)
+    raw_bytes = raw.read_bytes()
+    names = media.source_models(raw_bytes) or [TRELLIS_MODEL]
+    store.write_file(creature["id"], "model.glb", media.label(part.read_bytes(), names))
+    part.unlink()
     store.write_file(creature["id"], "prep.json", json.dumps({
         **fields, "minutes": round((time.time() - started) / 60.0, 1), "made": now(),
-        "raw_sha256": hashlib.sha256(raw.read_bytes()).hexdigest(), "settings": creatures.prep_settings(creature)}, indent=2))
+        "raw_sha256": hashlib.sha256(raw_bytes).hexdigest(), "settings": creatures.prep_settings(creature)}, indent=2))
     store.update(creature["id"], lambda c: c.setdefault("made", {}).update({"prep": now()}))
 
 

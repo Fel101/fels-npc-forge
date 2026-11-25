@@ -14,7 +14,7 @@ import zipfile
 
 from PIL import Image
 
-from . import licences
+from . import licences, media
 
 ID_RE = re.compile(r"^[a-z0-9][a-z0-9\-]{1,80}$")
 TRASH = ".trash"          # where a deleted character waits, inside the library folder (not an NPC folder: it has no npc.json)
@@ -52,6 +52,31 @@ def picture_meta(assets, slot):
     if group == "expressions":
         return (assets.get("expressions") or {}).get(name)
     return ((assets.get("sheet") or {}).get("views") or {}).get(name)
+
+
+def _export_pictures(assets):
+    """Model labels for legacy pictures in a character ZIP."""
+    files = {}
+    for kind in ("portrait", "sprite"):
+        if meta := assets.get(kind):
+            files[meta["file"]] = [licences.picture_engine(meta)]
+    for family in (assets.get("expressions", {}), (assets.get("head_3d") or {}).get("views", {})):
+        for meta in family.values():
+            if meta.get("file"):
+                files[meta["file"]] = [licences.picture_engine(meta, edit=True)]
+    sheet = assets.get("sheet") or {}
+    sheet_models = []
+    for meta in sheet.get("views", {}).values():
+        engine = licences.picture_engine(meta, edit=True)
+        files[meta["file"]] = [engine]
+        sheet_models.append(engine)
+    if sheet.get("file"):
+        files[sheet["file"]] = [] if sheet.get("stale") else sheet_models
+    for clip in assets.get("animations", {}).values():
+        for direction, frames in clip.get("files", {}).items():
+            for rel in frames:
+                files[rel] = licences.animation_engines(clip, direction)
+    return files
 
 
 def set_picture_meta(assets, slot, meta):
@@ -452,15 +477,13 @@ class Library:
 
     # ---- earlier versions of a picture ---------------------------------------------------------------------------------
     @staticmethod
-    def _thumbnail(data):
+    def _thumbnail(data, models=None):
         """The small picture the page lists an earlier version by (PNG bytes), or None when the image cannot be read."""
         try:
             with Image.open(io.BytesIO(data)) as im:
                 im = im.convert("RGBA")
                 im.thumbnail((HISTORY_THUMB, HISTORY_THUMB), Image.LANCZOS)
-                out = io.BytesIO()
-                im.save(out, "PNG", optimize=True)
-                return out.getvalue()
+                return media.png(im, models=models, optimize=True)
         except (OSError, ValueError):
             return None
 
@@ -500,7 +523,8 @@ class Library:
         entry_id, folder = uuid.uuid4().hex[:12], history_folder(slot)
         entry = {k: v for k, v in current.items() if k not in ("stale", "candidate_id", "id", "raw", "thumb", "replaced")}
         entry.update(id=entry_id, file=f"{folder}/{entry_id}.png", replaced=now())
-        self.write_asset(npc_id, entry["file"], data)
+        models = [licences.picture_engine(current, edit=slot not in ("portrait", "sprite"))]
+        self.write_asset(npc_id, entry["file"], media.label(data, models))
         if current.get("raw"):
             try:
                 raw = self.read_asset(npc_id, current["raw"])
@@ -508,8 +532,8 @@ class Library:
                 raw = None
             if raw is not None:
                 entry["raw"] = f"{folder}/{entry_id}_raw.png"
-                self.write_asset(npc_id, entry["raw"], raw)
-        small = self._thumbnail(data)
+                self.write_asset(npc_id, entry["raw"], media.label(raw, models))
+        small = self._thumbnail(data, models)
         if small:
             entry["thumb"] = f"{folder}/{entry_id}_t.png"
             self.write_asset(npc_id, entry["thumb"], small)
@@ -552,12 +576,13 @@ class Library:
                 self._archive(npc, npc_id, kind, auto=False)       # (a picture that is itself a copy of a listed version is already kept)
 
             file, raw = (current or {}).get("file") or slot_files(kind)[0], slot_files(kind)[1]
-            self.write_asset(npc_id, file, self.read_asset(npc_id, candidate["file"]))
+            models = [licences.picture_engine(candidate, edit=kind not in ("portrait", "sprite"))]
+            self.write_asset(npc_id, file, media.label(self.read_asset(npc_id, candidate["file"]), models))
             selected = {k: v for k, v in candidate.items() if k not in ("id", "thumb", "replaced")}
             selected.update(candidate_id=candidate_id, file=file)
             if candidate.get("raw"):
                 raw = (current or {}).get("raw") or raw
-                self.write_asset(npc_id, raw, self.read_asset(npc_id, candidate["raw"]))
+                self.write_asset(npc_id, raw, media.label(self.read_asset(npc_id, candidate["raw"]), models))
                 selected["raw"] = raw
             else:
                 selected.pop("raw", None)
@@ -771,15 +796,17 @@ class Library:
         """256px preview for the library grid: the portrait if there is one, else the sprite."""
         with self.lock:
             npc = self.get(npc_id)
-            src = next((npc["assets"][k]["file"] for k in ("portrait", "sprite") if k in npc["assets"]), None)
+            slot = next((k for k in ("portrait", "sprite") if k in npc["assets"]), None)
             thumb = self.resolve(npc_id, "thumb.png")
-            if not src:
+            if not slot:
                 thumb.unlink(missing_ok=True)
             else:
-                with Image.open(self.resolve(npc_id, src)) as im:
+                meta = npc["assets"][slot]
+                models = [licences.picture_engine(meta)]
+                with Image.open(self.resolve(npc_id, meta["file"])) as im:
                     im = im.convert("RGBA")
                     im.thumbnail((256, 256), Image.LANCZOS)
-                    im.save(thumb, "PNG", optimize=True)
+                    media.png(im, thumb, models=models, optimize=True)
             self._index_npc(npc)
 
     # ---- export --------------------------------------------------------------------------------------------------
@@ -793,7 +820,6 @@ class Library:
                     npc = self.get(npc_id)
                 except KeyError:
                     continue
-                files = ["npc.json"]
                 a = npc.get("assets", {})
                 # Candidate history belongs to the local curation workflow. Game exports contain the
                 # selected images only, with no dangling references to hidden candidate files.
@@ -801,16 +827,13 @@ class Library:
                 for kind in ("portrait", "sprite"):
                     if kind in a:
                         a[kind].pop("candidate_id", None)
-                files += [a[k]["file"] for k in ("portrait", "sprite") if k in a]
-                files += [a[k]["file"] for k in ("model_3d", "rig_3d", "head_3d") if a.get(k, {}).get("file")]
+                pictures = _export_pictures(a)
+                model = a.get("model_3d") or {}
+                shapes = {a[k]["file"]: (model if k == "rig_3d" else a[k], k == "head_3d")
+                          for k in ("model_3d", "rig_3d", "head_3d") if a.get(k, {}).get("file")}
+                files = [*pictures, *shapes]
                 if self.resolve(npc_id, "body_design.json").is_file():   # what the Body tab saved for it, byte for byte: without it a restored archive has no settings to open the Body tab with
                     files.append("body_design.json")
-                files += [v["file"] for v in a.get("head_3d", {}).get("views", {}).values() if v.get("file")]
-                files += [e["file"] for e in a.get("expressions", {}).values()]
-                for clip in a.get("animations", {}).values():
-                    files += [rel for frames in clip.get("files", {}).values() for rel in frames]
-                sheet = a.get("sheet", {})
-                files += [v["file"] for v in sheet.get("views", {}).values()] + ([sheet["file"]] if sheet.get("file") else [])
                 voice = npc.get("voice")
                 if voice:                                  # the chosen voice and the voiced lines; takes and tests stay local
                     voice.pop("takes", None)
@@ -828,12 +851,27 @@ class Library:
                 for rel in files:
                     path = self.resolve(npc_id, rel)
                     if path.exists():
-                        if rel == "npc.json":
-                            z.writestr(f"{npc_id}/{rel}", json.dumps(npc, indent=2, ensure_ascii=False))
+                        if rel in pictures:
+                            data = path.read_bytes()
+                            z.writestr(f"{npc_id}/{rel}", media.label(data, media.source_models(data) or pictures[rel]))
+                        elif rel in shapes:
+                            meta, is_head = shapes[rel]
+                            data = path.read_bytes()
+                            models = licences.shape_models(meta, data)
+                            if is_head and not models:
+                                models = [licences.model_name("three_d:pixal3d")]
+                            generated = media.read_label(data).get("ai-generated", bool(is_head or licences.known_shape_ai(meta)))
+                            labelled = media.label(data, models, ai_generated=generated)
+                            if labelled != data:
+                                for shape in (a[k] for k in ("model_3d", "rig_3d", "head_3d") if k in a):
+                                    if shape.get("file") == rel and "size" in shape:
+                                        shape["size"] = len(labelled)
+                            z.writestr(f"{npc_id}/{rel}", labelled)
                         else:
                             z.write(path, f"{npc_id}/{rel}")
+                z.writestr(f"{npc_id}/npc.json", json.dumps(npc, indent=2, ensure_ascii=False))
                 p = npc["profile"]
                 index.append({"id": npc_id, "name": f'{p["first_name"]} {p["last_name"]}'.strip(), "age": p["age"],
-                              "occupation": p["occupation"], "style": npc.get("style"), "files": files})
+                              "occupation": p["occupation"], "style": npc.get("style"), "files": ["npc.json", *files]})
             z.writestr("index.json", json.dumps(index, indent=2))
         return buf.getvalue()

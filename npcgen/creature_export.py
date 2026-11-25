@@ -12,7 +12,7 @@ not report two scripts with one class_name; the name quietly goes to one of them
 import pathlib
 import re
 
-from . import creature_projects
+from . import creature_projects, media
 
 TEMPLATES = pathlib.Path(__file__).resolve().parent / "creature_templates"
 LOADER_DIR = "loader"
@@ -114,5 +114,5 @@ def install(files, pack_dir, folder):
     for name, path, state in planned:
         if state != "unchanged":
             path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_bytes(files[name])
+            path.write_bytes(media.label(files[name]))
     return [(name, state) for name, _, state in planned]

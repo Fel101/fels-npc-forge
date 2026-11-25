@@ -13,6 +13,8 @@ import struct
 
 import numpy as np
 
+from . import media
+
 
 def _unit(rows):
     rows = np.asarray(rows, float)
@@ -422,8 +424,9 @@ class Gltf:
         text = json.dumps(doc, separators=(",", ":")).encode()
         text += b" " * (-len(text) % 4)
         total = 12 + 8 + len(text) + 8 + len(blob)
-        return (struct.pack("<III", 0x46546C67, 2, total) + struct.pack("<II", len(text), 0x4E4F534A) + text
+        data = (struct.pack("<III", 0x46546C67, 2, total) + struct.pack("<II", len(text), 0x4E4F534A) + text
                 + struct.pack("<II", len(blob), 0x004E4942) + blob)
+        return media.label(data, ai_generated=False)
 
 
 def yaw_quaternion(degrees):

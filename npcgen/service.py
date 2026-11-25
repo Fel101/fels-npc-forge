@@ -13,6 +13,7 @@ from . import engines
 from . import head3d
 from . import import3d
 from . import living
+from . import media
 from . import prompts
 from . import rig3d
 from . import sheet as sheet_module
@@ -207,9 +208,7 @@ def clean_photo(raw):
     image = image.convert("RGB")
     if max(image.size) > MAX_PHOTO_DIMENSION:
         image.thumbnail((MAX_PHOTO_DIMENSION, MAX_PHOTO_DIMENSION), Image.LANCZOS)
-    out = io.BytesIO()
-    image.save(out, "PNG")
-    return out.getvalue(), list(image.size)
+    return media.png(image, ai_generated=False), list(image.size)
 
 
 def default_options(cfg):

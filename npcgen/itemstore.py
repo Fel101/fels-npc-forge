@@ -19,6 +19,7 @@ import zipfile
 from PIL import Image
 
 from . import equip, facefit, facescan, glbmerge, itemposter, items
+from . import licences, media
 from .library import ID_RE, now
 
 PROMPT_FIELDS = ("family", "kind", "description", "setting", "look")      # what the pictures are drawn from
@@ -245,6 +246,7 @@ class ItemStore:
                 def fail(n):
                     n["assets"]["model_3d"]["fit_error"] = message
                 return self.update(item_id, fail)
+            fitted = licences.label_shape(fitted, model)
             self.write_asset(item_id, model["file"], fitted)
 
             def apply(n):
@@ -285,12 +287,14 @@ class ItemStore:
     def worn(self, item_id, npc_id, scan, nudge=None):
         """The character's model with this pair on it, under its head joint so it follows every clip: (GLB bytes, {"placement", "attach", "bone", "model"}).
         Raises KeyError for an unknown character and ValueError for what cannot be fitted."""
-        found = facescan.target(self.lib.get(npc_id))
+        npc = self.lib.get(npc_id)
+        found = facescan.target(npc)
         if found is None:
             raise ValueError("This character has no 3D model")
         _item, glb = self._pair(item_id)
+        body = licences.label_shape(self.lib.read_asset(npc_id, found[1]), npc["assets"].get("model_3d") or {})
         placement = self.fit(item_id, npc_id, scan, nudge)
-        merged, where = glbmerge.merge_bytes(self.lib.read_asset(npc_id, found[1]), glb, facescan.HEAD_BONE, facefit.world_matrix(placement),
+        merged, where = glbmerge.merge_bytes(body, media.label(glb, ai_generated=False), facescan.HEAD_BONE, facefit.world_matrix(placement),
                                              tag={"npcforge": "glasses"})
         return merged, {"placement": placement, "attach": where["attach"], "bone": where["parent"], "model": found[0]}
 
@@ -347,7 +351,8 @@ class ItemStore:
         if not model.get("file"):
             raise ValueError(f"{item.get('name') or 'This item'} has no 3D model yet: make it first")
         kept = self.saved_equip(item, npc_id)
-        return {"glb": self.read_asset(item_id, model["file"]), "kind": item["kind"], "spec": items.kind_spec(item), "item": item_id, "name": item.get("name"),
+        return {"glb": self.read_asset(item_id, model["file"]), "model": model,
+                "kind": item["kind"], "spec": items.kind_spec(item), "item": item_id, "name": item.get("name"),
                 "slot": slot or kept["slot"], "nudge": kept["nudge"] if nudge is None else nudge,
                 "_key": (item_id, model.get("file"), model.get("build") or model.get("created"), model.get("size"))}
 
@@ -389,7 +394,11 @@ class ItemStore:
         kept for this character, else the kind's usual slot and the neutral nudge. Raises KeyError for an unknown character or item and ValueError for what cannot be put on."""
         model, path, rest = self._character(npc_id)
         entries = [self._equip_entry(part["item"], npc_id, part.get("slot"), part.get("nudge")) for part in parts]
-        merged, report = equip.equip(path.read_bytes(), entries, rest)
+        for entry in entries:
+            entry["glb"] = licences.label_shape(entry["glb"], entry["model"])
+        assets = self.lib.get(npc_id).get("assets") or {}
+        body = licences.label_shape(path.read_bytes(), assets.get("model_3d") or {})
+        merged, report = equip.equip(body, entries, rest)
         return merged, {**report, "model": model}
 
     def save_equip(self, item_id, npc_id, slot, nudge):
@@ -461,15 +470,19 @@ class ItemStore:
         with self.lock:
             item = self.get(item_id)
             assets = item.get("assets") or {}
-            src = (assets.get("hero") or {}).get("file") or (assets.get("model_3d") or {}).get("preview")
+            hero, model = assets.get("hero") or {}, assets.get("model_3d") or {}
+            src = hero.get("file") or model.get("preview")
             thumb = self.resolve(item_id, "thumb.png")
             if not src or not self.resolve(item_id, src).exists():
                 thumb.unlink(missing_ok=True)
             else:
-                with Image.open(self.resolve(item_id, src)) as im:
+                data = self.read_asset(item_id, src)
+                names = [licences.picture_engine(hero)] if hero.get("file") else licences.shape_models(model, data)
+                generated = media.read_label(data).get("ai-generated", bool(hero.get("file") or licences.known_shape_ai(model)))
+                with Image.open(io.BytesIO(data)) as im:
                     im = im.convert("RGB")
                     im.thumbnail((256, 256), Image.LANCZOS)
-                    im.save(thumb, "PNG", optimize=True)
+                    media.png(im, thumb, models=names, ai_generated=generated, optimize=True)
             self._index[item_id] = self.summary(item)
 
     # ---- export ----------------------------------------------------------------------------------------------------------------------------
@@ -477,17 +490,27 @@ class ItemStore:
         """A ZIP of one item: item.json, the main picture, the views and the 3D model (the game version, scaled to its size)."""
         item = self.get(item_id)
         assets = item.get("assets") or {}
-        hero = (assets.get("hero") or {}).get("file")
-        files = ["item.json"] + ([hero] if hero else [])
-        files += [v["file"] for v in (*(assets.get("views") or {}).values(), *(assets.get("high") or {}).values()) if v.get("file")]
+        pictures = {}
+        if hero := assets.get("hero"):
+            pictures[hero["file"]] = licences.picture_engine(hero)
+        for view in (*(assets.get("views") or {}).values(), *(assets.get("high") or {}).values()):
+            if view.get("file"):
+                pictures[view["file"]] = licences.picture_engine(view, edit=True)
         model = assets.get("model_3d") or {}
-        files += [model[k] for k in ("file", "preview") if model.get(k)]
+        files = [*pictures, *(model[k] for k in ("file", "preview") if model.get(k))]
         buf = io.BytesIO()
         with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
             for rel in files:
                 path = self.resolve(item_id, rel)
-                if rel == "item.json":
-                    z.writestr(f"{item_id}/{rel}", json.dumps(item, indent=2, ensure_ascii=False))
-                elif path.exists():
-                    z.write(path, f"{item_id}/{rel}")
+                if not path.exists():
+                    continue
+                data = path.read_bytes()
+                if rel in pictures:
+                    data = media.label(data, [pictures[rel]])
+                else:
+                    data = licences.label_shape(data, model)
+                    if rel == model.get("file") and "size" in model:
+                        model["size"] = len(data)
+                z.writestr(f"{item_id}/{rel}", data)
+            z.writestr(f"{item_id}/item.json", json.dumps(item, indent=2, ensure_ascii=False))
         return buf.getvalue()

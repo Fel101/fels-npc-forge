@@ -11,7 +11,7 @@ import numpy as np
 import pytest
 from PIL import Image, ImageDraw
 
-from npcgen import anim, config, pose, roll, service
+from npcgen import anim, config, engines, media, pose, roll, service
 from npcgen.comfy import DEFAULT_MODELS
 from npcgen.library import Library
 
@@ -284,14 +284,24 @@ def test_the_puppet_gets_the_characters_hair_colour_from_the_data(world, data):
     assert (np.abs(puppet - np.array(pose.hair_colour("black long hair"))).sum(axis=2) < 15).any()      # it is in the drawing
 
 
-def test_a_seed_that_fails_on_the_first_probe_is_dropped_for_the_whole_clip(world, data):
+def test_a_seed_that_fails_on_the_first_probe_is_dropped_for_the_whole_clip(world, data, monkeypatch):
     lib, npc_id, make = world
     fake, animator, job = make(["zoomed", "good"])                                # the first seed's stride comes out zoomed in
+    edit = animator._edit
+    qwen = engines.EDIT_ENGINES["qwen2511"]["label"]
+
+    def recorded(job, refs, prompt, seed, steps, size):
+        png, fallback = edit(job, refs, prompt, seed, steps, size)
+        return png, fallback if seed == 100 else qwen
+
+    monkeypatch.setattr(animator, "_edit", recorded)
     animator.make_direction(job, {}, lib.get(npc_id), data, "walk", "right", 100)
     seeds = [g["5"]["inputs"]["seed"] for g in fake.graphs]
     assert seeds == [100] + [100 + 7919] * 4                                       # one draw wasted, then every frame with the second seed
     meta = lib.get(npc_id)["assets"]["animations"]["walk"]["directions"]["right"]
     assert meta["seed"] == 100 + 7919 and all(s["ok"] for s in meta["scores"])
+    assert meta["engines"] == [qwen] and meta["frame_engines"] == [qwen] * 4
+    assert all(media.source_models(lib.read_asset(npc_id, path)) == [qwen] for path in meta["raw"])
 
 
 def test_both_probe_frames_must_pass_before_a_seed_is_kept(world, data):

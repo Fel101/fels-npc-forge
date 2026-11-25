@@ -3,6 +3,7 @@ import io
 import json
 import zipfile
 
+from . import media
 from .scenes import compile_timeline, scene_voice_of
 from .voice import alignment as voice_alignment, character_rig, effects as voice_effects, engines as voice_engines, game_exports, record as voice_record
 from .voice import mesh_rig
@@ -125,7 +126,8 @@ def make_zip(scene, scenes, notice):
         if background_file:
             background = scenes.resolve(scene["id"], background_file)
             if background.is_file():
-                archive.write(background, background_file)
+                engine = scene["background"].get("engine")
+                archive.writestr(background_file, media.label(background.read_bytes(), [engine] if engine else None))
         archive.writestr("scene.json", json.dumps(scene, indent=2, ensure_ascii=False))
         archive.writestr("sources.json", json.dumps(manifest, indent=2, ensure_ascii=False))
         archive.writestr("NOTICE.md", notice)

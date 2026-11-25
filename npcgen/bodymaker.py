@@ -30,6 +30,7 @@ from pathlib import Path
 from typing import Callable
 
 from . import bodymatch, check3d, cleanup3d, config as cfgmod, itemposter, marks, morphology, outfit, rig3d, roll, underwear
+from . import media
 from .comfy import Cancelled, ComfyError, beat
 from .library import now
 
@@ -1160,6 +1161,8 @@ def store(lib, npc_id, plain, animated, clips, request, reports, picture=None):
     clothes = dressed.get("worn") or []
     triangles = (build_report.get("triangles") or 0) + wears.get("triangles", 0) + sum(c.get("triangles", 0) for c in clothes)
     old = {}
+    plain = media.label(plain, ai_generated=False)
+    animated = media.label(animated, ai_generated=False)
 
     def apply(npc):
         assets = npc.setdefault("assets", {})
@@ -1171,7 +1174,7 @@ def store(lib, npc_id, plain, animated, clips, request, reports, picture=None):
         lib.write_asset(npc_id, MODEL_FILE, plain)                # (inside the update: the check above, the files and the records are one step)
         lib.write_asset(npc_id, RIG_FILE, animated)
         if picture:
-            lib.write_asset(npc_id, PREVIEW_FILE, picture)
+            lib.write_asset(npc_id, PREVIEW_FILE, media.label(picture, ai_generated=False))
         height = (build_report.get("size_m") or [0, 0, 0])[1]
         model = {"file": MODEL_FILE, "created": made, "size": len(plain), "format": "glb", "textured": True,
                  "engine": "Body Designer: " + request["base_label"], "engine_id": "bodydesigner", "faces": triangles,
@@ -1243,6 +1246,7 @@ def recolour(cfg, lib, npc_id, colours):
     for kind, colour in changed.items():
         recipe = {"kind": kind, "colour": colour, "texture": worn[kind].get("texture") or entries[kind]["recipe"]["texture"]}
         blobs = {rel: clothing.recolour(blob, recipe) for rel, blob in blobs.items()}
+    blobs = {rel: media.label(blob, ai_generated=False) for rel, blob in blobs.items()}
     picture = preview(cfg, blobs[model["file"]]) if cfg is not None else None
     made, stamp = now(), model.get("created")
 
@@ -1253,7 +1257,7 @@ def recolour(cfg, lib, npc_id, colours):
         for rel, blob in blobs.items():
             lib.write_asset(npc_id, rel, blob)
         if picture:
-            lib.write_asset(npc_id, PREVIEW_FILE, picture)
+            lib.write_asset(npc_id, PREVIEW_FILE, media.label(picture, ai_generated=False))
         made_model = mine["model_3d"]
         made_model.update({"created": made, "size": len(blobs[model["file"]])})
         made_model["designed"]["clothes"] = [{**c, **({"colour": changed[c["kind"]]} if c["kind"] in changed else {})} for c in made_model["designed"].get("clothes") or []]

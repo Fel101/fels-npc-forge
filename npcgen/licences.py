@@ -87,7 +87,50 @@ def _engine_selectors():
     from . import engines
     table = {spec["label"]: f"image:{key}" for key, spec in engines.IMAGE_ENGINES.items()}
     table.update({spec["label"]: f"edit:{key}" for key, spec in engines.EDIT_ENGINES.items()})
+    table.update({"Mage-Flow": "image:mage", "Mage-Flow-Edit": "edit:mage"})
     return table
+
+
+def picture_engine(meta, *, edit=False):
+    """The recorded label, or the built-in engine used before still images recorded one."""
+    meta = meta or {}
+    edit = edit or meta.get("mode") == "match" or meta.get("source") == "photo"
+    return meta.get("engine") or ("Mage-Flow-Edit" if edit else "Mage-Flow")
+
+
+def animation_engines(clip, direction):
+    """Engine labels for the assembled frames, including mirrored and procedural directions."""
+    assembled = clip.get("engines")
+    source = (clip.get("mirrored") or {}).get(direction, direction)
+    if isinstance(assembled, dict):
+        return assembled.get(direction, assembled.get(source)) or []
+    if isinstance(assembled, list):
+        return assembled
+    if clip.get("kind") == "procedural":
+        return []  # The inputs to older procedural clips were never recorded.
+    return ((clip.get("directions") or {}).get(source) or {}).get("engines") or []
+
+
+def picture_report(groups, what):
+    """Rate groups of recorded picture engines. An empty group is an unknown source."""
+    labels = _engine_selectors()
+    made, unknown = {}, []
+    for group in groups:
+        if not group:
+            unknown.append(f"The engine that drew some {what} was not recorded.")
+        for label in group:
+            if label in labels:
+                made[labels[label]] = [what]
+            else:
+                unknown.append(f"The {what} were drawn by '{label}', which this list does not know.")
+    return _rate(made, unknown)
+
+
+def model_name(selector):
+    """The model name recorded by the licence registry for a generator or helper."""
+    data = load()
+    model = data["by_id"].get(data["by_selector"].get(selector))
+    return model["name"] if model else None
 
 
 def _three_d_selector(model):
@@ -103,6 +146,34 @@ def _three_d_selector(model):
         if row["label"] == model.get("engine"):
             return f"three_d:{row['id']}"
     return None
+
+
+def shape_models(meta, *sources):
+    """The labels on a shape, or its recorded generator for an older model."""
+    from . import media
+    names = media.source_models(*sources)
+    model_id = _three_d_selector(meta)
+    if not names and model_id not in (None, "three_d:import", "feature:designed_body"):
+        name = model_name(model_id)
+        if name:
+            names.append(name)
+    return names
+
+
+def known_shape_ai(meta):
+    """Whether the recorded workflow used AI, or None when its origin is unknown."""
+    if meta.get("designed") or meta.get("engine_id") in ("bodydesigner", "glasses", "garment"):
+        return False
+    if meta.get("imported") or meta.get("engine_id") == "import":
+        return None
+    return True
+
+
+def label_shape(data, meta):
+    """Label delivery copies of older models or renders from their recorded generator."""
+    from . import media
+    generated = media.read_label(data).get("ai-generated", bool(known_shape_ai(meta)))
+    return media.label(data, shape_models(meta, data), ai_generated=generated)
 
 
 def used(npc):
@@ -126,7 +197,7 @@ def used(npc):
             unknown.append(f"The {what} was drawn by '{label}', which this list does not know.")
 
     if a.get("portrait"):
-        picture(a["portrait"], "portrait", "image:mage")
+        picture(a["portrait"], "portrait", "edit:mage" if a["portrait"].get("source") == "photo" else "image:mage")
     if a.get("sprite"):
         picture(a["sprite"], "full-body sprite", "edit:mage" if a["sprite"].get("mode") == "match" else "image:mage")
     expressions = a.get("expressions") or {}
@@ -139,10 +210,13 @@ def used(npc):
     for meta in (a.get("animation_views") or {}).values():
         drawn.append(meta.get("engines"))
     for clip in (a.get("animations") or {}).values():
-        if clip.get("kind") == "procedural":
+        if clip.get("files"):
+            drawn.extend(animation_engines(clip, direction) for direction in clip["files"])
+        elif clip.get("kind") == "procedural":
             continue
-        drawn.extend(d.get("engines") for d in (clip.get("directions") or {}).values())
-        if not clip.get("directions"):
+        elif clip.get("directions"):
+            drawn.extend(d.get("engines") for d in clip["directions"].values())
+        else:
             drawn.append(None)
     if any(not engines_ for engines_ in drawn):
         unknown.append("The engine that drew the animation frames was not recorded (animations made before NPC Forge kept it).")

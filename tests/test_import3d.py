@@ -1,13 +1,15 @@
 """Importing a 3D model made elsewhere: reading the GLB's description, the ComfyUI graph, the request, the plan and the job step."""
 import copy
+import io
 import json
 import struct
 import threading
 import types
 
 import pytest
+from PIL import Image
 
-from npcgen import config, import3d, roll, service, three_d
+from npcgen import config, import3d, media, roll, service, three_d
 from npcgen.comfy import ComfyError
 from npcgen.jobs import Jobs
 from npcgen.library import Library
@@ -382,7 +384,9 @@ def test_the_request_travels_with_the_job_to_its_step():
 
 # ---- the step ------------------------------------------------------------------------------------------------------------------------
 
-PNG = b"\x89PNG\r\n\x1a\nfake preview"
+_preview = io.BytesIO()
+Image.new("RGB", (2, 2)).save(_preview, "PNG")
+PNG = _preview.getvalue()
 
 
 class FakeComfy:
@@ -438,11 +442,13 @@ def test_the_step_closes_and_simplifies_the_file_and_makes_the_result_the_model(
 
     graph, unload = comfy.graphs[0]
     assert graph == three_d.import_graph("shape.glb [output]", npc_id, "job1", "high") and unload is True
-    assert lib.read_asset(npc_id, "model_3d.glb") == result and lib.read_asset(npc_id, "model_3d_preview.png") == PNG
+    labelled = lib.read_asset(npc_id, "model_3d.glb")
+    assert labelled == media.label(result, ai_generated=False)
+    assert lib.read_asset(npc_id, "model_3d_preview.png") == media.label(PNG, ai_generated=False)
     meta = assets["model_3d"]
     assert (meta["engine"], meta["engine_id"], meta["textured"], meta["preview"]) == ("Imported: shape.glb", "import", False, "model_3d_preview.png")
     assert meta["imported"]["faces_in"] == 7_500_000 and meta["imported"]["faces"] == 694_000 and meta["imported"]["cleaned"] is True
-    assert meta["quality"] == "high" and meta["quality_label"] == "High" and meta["size"] == len(result)
+    assert meta["quality"] == "high" and meta["quality_label"] == "High" and meta["size"] == len(labelled)
     assert "raw" not in meta and "refined" not in meta                    # the old model's clean-up is gone with it
     assert assets["rig_3d"]["stale"] is True                              # and its skeleton no longer fits
     assert not lib.resolve(npc_id, "model_3d_original.glb").exists() and not lib.resolve(npc_id, "model_3d_head").exists()

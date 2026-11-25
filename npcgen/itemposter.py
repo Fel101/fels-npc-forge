@@ -9,7 +9,7 @@ import pathlib
 import tempfile
 import threading
 
-from . import rig3d
+from . import licences, media, rig3d
 from .comfy import ComfyError
 
 SCRIPT = pathlib.Path(__file__).resolve().parent / "blender" / "item_poster.py"
@@ -91,7 +91,8 @@ class Posters:
         if meta.get("preview_of") == stamp and meta.get("preview") and self.store.resolve(item_id, meta["preview"]).exists():
             return
         try:
-            png = self.draw(self.cfg, self.store.read_asset(item_id, meta["file"]))
+            glb = self.store.read_asset(item_id, meta["file"])
+            png = self.draw(self.cfg, glb)
         except ComfyError as exc:
             self._note(item_id, str(exc))
             return
@@ -101,7 +102,8 @@ class Posters:
             model = (n.get("assets") or {}).get("model_3d") or {}     # item's folder is not made again for a late picture)
             if (model.get("build") or model.get("created")) != stamp:      # rebuilt while this was being drawn: it will be asked for again
                 return
-            self.store.write_asset(item_id, PREVIEW_FILE, png)
+            self.store.write_asset(item_id, PREVIEW_FILE, media.label(png, licences.shape_models(meta, glb),
+                                                                    ai_generated=media.read_label(glb).get("ai-generated", False)))
             model.update(preview=PREVIEW_FILE, preview_of=stamp)
             model.pop("preview_error", None)
             fresh["ok"] = True

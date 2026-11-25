@@ -5,6 +5,8 @@ import io
 from types import SimpleNamespace
 
 from PIL import Image
+
+from npcgen import media
 import pytest
 
 from npcgen.jobs import Job, Jobs
@@ -209,11 +211,11 @@ def test_reroll_candidates_leave_the_active_asset_untouched_until_selected(tmp_p
     after_generate = library.get(npc["id"])
     candidate = after_generate["assets"]["candidates"]["portrait"][0]
     assert library.read_asset(npc["id"], "portrait.png") == original
-    assert library.read_asset(npc["id"], candidate["file"]) == candidate_png
+    assert library.read_asset(npc["id"], candidate["file"]) == media.label(candidate_png, ["Mage-Flow"])
     assert after_generate["assets"]["portrait"]["created"] == "original"
 
     selected = library.select_asset_candidate(npc["id"], "portrait", candidate["id"])
-    assert library.read_asset(npc["id"], "portrait.png") == candidate_png
+    assert library.read_asset(npc["id"], "portrait.png") == media.label(candidate_png, ["Mage-Flow"])
     assert selected["assets"]["portrait"]["candidate_id"] == candidate["id"]
     assert selected["style"] == "pixel"
     assert selected["assets"]["sprite"]["stale"] is True
@@ -243,11 +245,11 @@ def test_a_redrawn_picture_keeps_the_one_it_replaces_among_its_earlier_versions(
                        43, "draft", "semi_real") is True
 
     after = library.get(npc_id)["assets"]
-    assert after["portrait"]["seed"] == 42 and library.read_asset(npc_id, "portrait.png") == _png((20, 20, 210, 255))
+    assert after["portrait"]["seed"] == 42 and library.read_asset(npc_id, "portrait.png") == media.label(_png((20, 20, 210, 255)), ["Mage-Flow"])
     (old_portrait,) = after["candidates"]["portrait"]
-    assert (old_portrait["seed"], old_portrait["created"]) == (3, "original") and library.read_asset(npc_id, old_portrait["file"]) == _png((210, 20, 20, 255))
+    assert (old_portrait["seed"], old_portrait["created"]) == (3, "original") and library.read_asset(npc_id, old_portrait["file"]) == media.label(_png((210, 20, 20, 255)), ["Mage-Flow"])
     (old_happy,) = after["candidates"]["expressions/happy"]
-    assert (old_happy["seed"], old_happy["created"]) == (4, "first-happy") and library.read_asset(npc_id, old_happy["file"]) == _png((20, 210, 20, 255))
+    assert (old_happy["seed"], old_happy["created"]) == (4, "first-happy") and library.read_asset(npc_id, old_happy["file"]) == media.label(_png((20, 210, 20, 255)), ["Mage-Flow-Edit"])
     # the first picture of a kind has nothing to keep
     assert jobs._store(job, ("expressions", "sad"), "expressions/sad", _png((1, 2, 3, 255)), False, {}, "blue", False, prompt, 44, "draft", "semi_real") is True
     assert "expressions/sad" not in library.get(npc_id)["assets"]["candidates"]

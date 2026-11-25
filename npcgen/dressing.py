@@ -12,7 +12,7 @@ import tempfile
 import threading
 from pathlib import Path
 
-from . import bodymaker, clothing, items
+from . import bodymaker, clothing, items, media
 from .comfy import Cancelled
 from .library import now
 
@@ -284,5 +284,5 @@ class Dressings:
                   "seconds": round(sum(w.get("seconds") or 0 for w in report["worn"]), 1)}
         with self.store.lock:                                    # (under the store's lock: a deleted item's folder is not made again for a late fit)
             self.store.get(item_id)
-            self.store.write_asset(item_id, self._rel(npc_id, "glb"), glb)
+            self.store.write_asset(item_id, self._rel(npc_id, "glb"), media.label(glb, ai_generated=False))
             self.store.write_asset(item_id, self._rel(npc_id, "json"), json.dumps(record, indent=1).encode("utf-8"))

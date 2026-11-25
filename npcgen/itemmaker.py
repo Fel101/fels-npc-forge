@@ -8,7 +8,7 @@ engines.edit, comfy.run_entry), so the one-model-at-a-time rule (npcgen/gpu.py) 
 import random
 import time
 
-from . import cleanup3d, engines, items, three_d
+from . import cleanup3d, engines, items, licences, media, three_d
 from .comfy import ComfyError
 from .library import now
 
@@ -69,7 +69,7 @@ def _hero(worker, job, step, item):
     png, used = engines.image(comfy, job.options.get("image_model"), prompt["positive"], prompt["negative"], SIZE[0], SIZE[1], seed,
                               quality["steps"], cfg["cfg"], job.cancel)
     _note(step, used)
-    store.write_asset(item["id"], "hero.png", png)
+    store.write_asset(item["id"], "hero.png", media.label(png, [licences.picture_engine(used)]))
     meta = {"file": "hero.png", "created": now(), "seed": seed, "prompt": prompt, **_engine_meta(used)}
 
     def apply(n):
@@ -100,7 +100,7 @@ def _draw(worker, job, step, item, names, folder, offset, what):
         png, used = engines.edit(comfy, job.options.get("edit_model"), reference, prompt["positive"], seed, quality["sheet_steps"],
                                  cfg["sheet_cfg"], megapixels=1.0, size=SIZE, negative=prompt["negative"], like=SIZE, cancel=job.cancel)
         _note(step, used)
-        store.write_asset(item["id"], f"{folder}/{view}.png", png)
+        store.write_asset(item["id"], f"{folder}/{view}.png", media.label(png, [licences.picture_engine(used, edit=True)]))
         made[view] = {"file": f"{folder}/{view}.png", "created": now(), "seed": seed, "source_hero_created": hero_meta.get("created"),
                       "prompt": prompt, **_engine_meta(used)}
     step.pop("detail", None)
@@ -150,9 +150,11 @@ def _shape(worker, job, step, item):
     preview = comfy.fetch_file(preview_file["filename"], preview_file.get("subfolder", ""), preview_file.get("type", "output"))
     seconds = round(time.monotonic() - started)
     fitted, fit = _fit(item, model)
-    store.write_asset(item["id"], RAW_FILE, model)                  # the shape as the generator made it; the finish step paints this one
+    names = [licences.model_name("three_d:trellis2")]
+    fitted = media.label(fitted, names)
+    store.write_asset(item["id"], RAW_FILE, media.label(model, names))                  # the shape as the generator made it; the finish step paints this one
     store.write_asset(item["id"], "model_3d.glb", fitted)           # the same, scaled to the item's size
-    store.write_asset(item["id"], "model_3d_preview.png", preview)
+    store.write_asset(item["id"], "model_3d_preview.png", media.label(preview, names))
     meta = {"file": "model_3d.glb", "raw": RAW_FILE, "preview": "model_3d_preview.png", "created": now(), "seed": seed,
             "engine": three_d.GENERATORS["trellis2"]["label"], "engine_id": "trellis2", "size": len(fitted), "format": "glb",
             "textured": False, "generation_seconds": seconds, "quality": quality,
@@ -178,9 +180,11 @@ def _finish(worker, job, step, item):
     original = store.read_asset(item["id"], meta.get("raw") or meta["file"])      # always from the generator's own shape
     refined, poster, report = cleanup3d.refine(cfg, original, views, faces=item["faces"], cancel=job.cancel)
     fitted, fit = _fit(item, refined)
+    names = [*licences.shape_models(meta, original), *media.source_models(*views.values())]
+    fitted = media.label(fitted, names)
     store.write_asset(item["id"], "model_3d.glb", fitted)
     if poster:
-        store.write_asset(item["id"], "model_3d_preview.png", poster)
+        store.write_asset(item["id"], "model_3d_preview.png", media.label(poster, names))
     game = report.get("game_version", {})
     refined_info = {"created": now(), "faces": game.get("faces_after"), "faces_requested": item["faces"],
                     "faces_generated": report["inner_skin"]["faces_before"], "inner_skin_removed": report["inner_skin"]["faces_removed"],

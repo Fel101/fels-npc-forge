@@ -5,6 +5,7 @@ import zipfile
 import pytest
 from PIL import Image
 
+from npcgen import media
 from npcgen.library import Library, ethnicity, hair_color
 
 
@@ -290,11 +291,15 @@ def with_portrait(lib, colour=(200, 50, 50)):
     return made["id"]
 
 
+def tagged_png(size=(64, 64), colour=(200, 50, 50), *, model="Mage-Flow"):
+    return media.label(png_bytes(size, colour), [model])
+
+
 def test_a_picture_that_is_drawn_again_leaves_the_old_one_among_its_earlier_versions(lib):
     npc_id = with_portrait(lib)
     entry = lib.archive_picture(npc_id, "portrait")
     assert entry["file"] == f'candidates/portrait/{entry["id"]}.png' and entry["raw"] == f'candidates/portrait/{entry["id"]}_raw.png'
-    assert lib.read_asset(npc_id, entry["file"]) == png_bytes() and lib.read_asset(npc_id, entry["raw"]) == png_bytes((70, 70))
+    assert lib.read_asset(npc_id, entry["file"]) == tagged_png() and lib.read_asset(npc_id, entry["raw"]) == tagged_png((70, 70))
     small = Image.open(io.BytesIO(lib.read_asset(npc_id, entry["thumb"])))
     assert small.mode == "RGBA" and max(small.size) <= 192                              # what the list shows it by
     listed = lib.get(npc_id)["assets"]["candidates"]["portrait"]
@@ -340,15 +345,15 @@ def test_bringing_an_earlier_version_back_swaps_it_with_the_picture_in_use_and_l
     first = lib.get(npc_id)["assets"]["candidates"]["portrait"][0]
 
     after = lib.select_asset_candidate(npc_id, "portrait", first["id"])
-    assert lib.read_asset(npc_id, "portrait.png") == png_bytes() and lib.read_asset(npc_id, "portrait_raw.png") == png_bytes((70, 70))
+    assert lib.read_asset(npc_id, "portrait.png") == tagged_png() and lib.read_asset(npc_id, "portrait_raw.png") == tagged_png((70, 70))
     assert (after["assets"]["portrait"]["seed"], after["assets"]["portrait"]["candidate_id"]) == (1, first["id"])
     assert "thumb" not in after["assets"]["portrait"] and "replaced" not in after["assets"]["portrait"] and "id" not in after["assets"]["portrait"]
     kept = after["assets"]["candidates"]["portrait"]
     assert [c["seed"] for c in kept] == [1, 2]                                                   # the blue redraw is kept as an earlier version now
-    assert lib.read_asset(npc_id, kept[1]["file"]) == png_bytes(colour=(50, 50, 200))
+    assert lib.read_asset(npc_id, kept[1]["file"]) == tagged_png(colour=(50, 50, 200))
     # and back again: nothing piles up (the picture in use is a copy of a listed version)
     after = lib.select_asset_candidate(npc_id, "portrait", kept[1]["id"])
-    assert lib.read_asset(npc_id, "portrait.png") == png_bytes(colour=(50, 50, 200)) and after["assets"]["portrait"]["seed"] == 2
+    assert lib.read_asset(npc_id, "portrait.png") == tagged_png(colour=(50, 50, 200)) and after["assets"]["portrait"]["seed"] == 2
     assert [c["seed"] for c in after["assets"]["candidates"]["portrait"]] == [1, 2]
 
 
@@ -368,12 +373,12 @@ def test_an_expression_and_a_sheet_view_keep_and_restore_their_earlier_versions_
     lib.write_asset(npc_id, "sheet/front.png", png_bytes(colour=(250, 10, 250)))
 
     after = lib.select_asset_candidate(npc_id, "expressions/happy", happy["id"])
-    assert lib.read_asset(npc_id, "expressions/happy.png") == png_bytes(colour=(10, 200, 10))
+    assert lib.read_asset(npc_id, "expressions/happy.png") == tagged_png(colour=(10, 200, 10), model="Mage-Flow-Edit")
     assert after["assets"]["expressions"]["happy"]["seed"] == 5 and after["assets"]["living"]["stale"] is True
     assert "stale" not in after["assets"]["model_3d"] and "stale" not in after["assets"].get("sheet", {})
     after = lib.select_asset_candidate(npc_id, "sheet/front", front["id"])
-    assert lib.read_asset(npc_id, "sheet/front.png") == png_bytes(colour=(10, 10, 200))
-    assert lib.read_asset(npc_id, "sheet/raw/front.png") == png_bytes((80, 80), (10, 10, 200))
+    assert lib.read_asset(npc_id, "sheet/front.png") == tagged_png(colour=(10, 10, 200), model="Mage-Flow-Edit")
+    assert lib.read_asset(npc_id, "sheet/raw/front.png") == tagged_png((80, 80), (10, 10, 200), model="Mage-Flow-Edit")
     assert after["assets"]["sheet"]["views"]["front"]["seed"] == 7 and after["assets"]["sheet"]["stale"] is True
     assert after["assets"]["model_3d"]["stale"] is True                                     # a four-view generator reads the front picture
     assert len(after["assets"]["candidates"]["expressions/happy"]) == 2 and len(after["assets"]["candidates"]["sheet/front"]) == 2
@@ -390,7 +395,7 @@ def test_a_picture_that_was_deleted_can_be_brought_back_from_its_earlier_version
     lib.delete_asset(npc_id, "portrait")
     assert "portrait" not in lib.get(npc_id)["assets"] and lib.get(npc_id)["assets"]["candidates"]["portrait"][0]["id"] == entry["id"]
     after = lib.select_asset_candidate(npc_id, "portrait", entry["id"])
-    assert lib.read_asset(npc_id, "portrait.png") == png_bytes() and after["assets"]["portrait"]["seed"] == 1
+    assert lib.read_asset(npc_id, "portrait.png") == tagged_png() and after["assets"]["portrait"]["seed"] == 1
     assert len(after["assets"]["candidates"]["portrait"]) == 1                                # nothing was in use to swap out
 
 
@@ -405,7 +410,7 @@ def test_an_earlier_version_can_be_deleted_for_good_and_the_picture_in_use_stays
     lib.select_asset_candidate(npc_id, "portrait", entry["id"])                                # the red one is in use again (green is kept)
     after = lib.delete_asset_candidate(npc_id, "portrait", entry["id"])
     assert [c["seed"] for c in after["assets"]["candidates"]["portrait"]] == [2, 3]
-    assert "candidate_id" not in after["assets"]["portrait"] and lib.read_asset(npc_id, "portrait.png") == png_bytes()
+    assert "candidate_id" not in after["assets"]["portrait"] and lib.read_asset(npc_id, "portrait.png") == tagged_png()
     for rel in (entry["file"], entry["raw"], entry["thumb"]):
         assert not lib.resolve(npc_id, rel).exists()
     assert lib.resolve(npc_id, other["file"]).exists()

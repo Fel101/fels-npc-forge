@@ -5,7 +5,7 @@ import numpy as np
 import pytest
 from PIL import Image, ImageDraw
 
-from npcgen import export
+from npcgen import engines, export, media
 from npcgen.library import Library
 
 DIRS = ("down", "left", "right", "up")
@@ -74,10 +74,31 @@ def test_atlas_preset_records_provenance_and_a_preview_page(world):
     files = export.build(lib, npc, "walk", "atlas", {"frame": 128})
     assert set(files) == {"maya-okafor_walk.png", "maya-okafor_walk.json", "preview.html"}
     atlas = json.loads(files["maya-okafor_walk.json"])
-    assert atlas["provenance"]["model"].startswith("Mage-Flow-Edit") and atlas["provenance"]["seeds"] == {"down": 11, "right": 22, "up": 33}
+    assert atlas["provenance"]["model"] == "Unknown"
+    assert atlas["provenance"]["verdict"] == "unclear" and atlas["provenance"]["unknown"]
+    assert atlas["provenance"]["seeds"] == {"down": 11, "right": 22, "up": 33}
     assert atlas["animations"]["walk_right"]["rects"][2] == [2 * 128, 2 * 128, 128, 128]
     page = files["preview.html"].decode()
     assert "Maya Okafor" in page and "walk_up" in page and "maya-okafor_walk.png" in page
+
+
+def test_qwen_and_fallback_provenance_follows_only_the_exported_directions(world):
+    lib, npc = world
+    qwen = engines.EDIT_ENGINES["qwen2511"]["label"]
+    clip = npc["assets"]["animations"]["walk"]
+    clip["engines"] = {"down": ["Mage-Flow-Edit"], "left": [qwen], "right": [qwen], "up": [qwen]}
+    clip["directions"]["right"]["engines"] = ["Mage-Flow-Edit"]  # an unassembled rerun
+    selected = export.build(lib, npc, "walk", "godot", {"dirs": ["left"]})
+    provenance = json.loads(selected["maya-okafor_walk.json"])["provenance"]
+    assert provenance["engines"] == [qwen] and provenance["verdict"] == "yes"
+    assert [(row["id"], row["licence"], row["effective"]) for row in provenance["models"]] == [("qwen2511", "Apache-2.0", "yes")]
+    assert media.read_label(selected["maya-okafor_walk.png"])["models"] == [qwen]
+    mixed = export.build(lib, npc, "walk", "godot", {"dirs": ["down", "up"]})
+    provenance = json.loads(mixed["maya-okafor_walk.json"])["provenance"]
+    assert provenance["verdict"] == "unclear" and provenance["models"][0]["id"] == "mage"
+    assert "research" in provenance["models"][0]["licence"]
+    assert media.read_label(mixed["maya-okafor_walk_down.png"])["models"] == ["Mage-Flow-Edit"]
+    assert media.read_label(mixed["maya-okafor_walk_up.png"])["models"] == [qwen]
 
 
 def test_godot_preset_writes_a_godot_4_spriteframes_resource(world):

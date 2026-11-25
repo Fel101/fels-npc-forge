@@ -1,4 +1,4 @@
-"""Animation sets: consistent multi-frame clips made from one character with Mage-Flow-Edit.
+"""Animation sets: consistent multi-frame clips made from one character.
 
 How it works
 ------------
@@ -18,7 +18,7 @@ import types
 import numpy as np
 from PIL import Image, ImageOps
 
-from . import engines, pose, prompts
+from . import engines, licences, media, pose, prompts
 from .comfy import ComfyError
 from .keying import grey_image, remove_background
 from .library import now
@@ -449,11 +449,9 @@ class Animator:
         job.cache["engine_note"] for the step."""
         png, used = engines.edit(self.comfy, job.options.get("edit_model"), refs, pr["positive"], seed, steps, self.cfg["edit_cfg"],
                                  size=size, negative=pr["negative"], cancel=job.cancel)
-        # which engines drew the frames, kept with them (the licence check: an engine that fell back to Mage-Flow counts as Mage-Flow)
-        job.cache.setdefault("edit_engines", set()).add(used.get("engine") or engines.EDIT_ENGINES["mage"]["label"])
         if used.get("engine_note"):
             job.cache["engine_note"] = used["engine_note"]
-        return png
+        return png, licences.picture_engine(used, edit=True)
 
     def _upload(self, job, name, png):
         return self.comfy.upload_image(png, f"{job.npc_id}_{name}.png")
@@ -510,8 +508,8 @@ class Animator:
         style = data["styles"][npc["style"]]
         key = front["key"] or prompts.pick_key(npc, style)
         pr = view_prompt(data["animations"], direction, style, key, npc.get("freeform", False))
-        png = self._edit(job, [front["name"]], pr, seed, steps, size)
-        self.lib.write_asset(job.npc_id, f"animations/views/{direction}.png", png)
+        png, engine = self._edit(job, [front["name"]], pr, seed, steps, size)
+        self.lib.write_asset(job.npc_id, f"animations/views/{direction}.png", media.label(png, [engine]))
         job.cache.setdefault("refs", {}).pop(direction, None)
         job.cache.get("canon", {}).pop(direction, None)
         self._view_reference(job, direction)
@@ -519,7 +517,7 @@ class Animator:
         def apply(n):
             n["assets"].setdefault("animation_views", {})[direction] = {
                 "file": f"animations/views/{direction}.png", "seed": seed, "prompt": pr["positive"], "created": now(), "size": list(size),
-                "engines": sorted(job.cache.get("edit_engines", ()))}
+                "engines": [engine]}
         self.lib.update(job.npc_id, apply)
 
     def _puppet(self, job, npc, direction, index, count, size, hard):
@@ -570,7 +568,7 @@ class Animator:
         bad_draw = (-1.0, {"fits": False, "facing": False, "head": 0.0, "stride_error": 1.0, "legs": 0.0, "ok": False})
 
         def draw(i, first_seed, tries, note=""):
-            """Draw frame i with up to `tries` seeds (first_seed, then steps of 7919). Returns (score, png, detail, k)."""
+            """Draw frame i with up to `tries` seeds, keeping the best result and its engine."""
             job.touch()                                      # lets the UI show progress inside a long step
             if guided:
                 puppet, puppet_name = self._puppet(job, npc, direction, i, count, size, hard)
@@ -583,7 +581,7 @@ class Animator:
             best = None
             for k in range(tries):
                 step["detail"] = f"frame {i + 1}/{count}" + note + (f", draw {k + 1}" if k else "")
-                png = self._edit(job, refs, pr, first_seed + 7919 * k, steps, size)
+                png, engine = self._edit(job, refs, pr, first_seed + 7919 * k, steps, size)
                 if guided:
                     full = cutout_full(png, hard)
                     score, detail = guided_score(full, puppet, view, canonical) if full is not None else bad_draw
@@ -591,7 +589,7 @@ class Animator:
                     cut = cutout(png, hard)
                     score, detail = candidate_score(cut, canonical) if cut is not None else (-1.0, {"head": 0, "legs": 0})
                 if best is None or score > best[0]:
-                    best = (score, png, detail, k)
+                    best = (score, png, detail, k, engine)
                 if guided and candidates == 1 and detail["ok"]:
                     break                                    # good enough: no need to spend another draw
             return best
@@ -614,19 +612,21 @@ class Animator:
             if i not in drawn:
                 drawn[i] = draw(i, clip_seed, GUIDE_TRIES if guided and candidates == 1 else candidates)
 
-        raw_files, scores = [], []
+        raw_files, scores, frame_engines = [], [], []
         for i in range(count):
-            score, png, detail, k = drawn[i]
+            score, png, detail, k, engine = drawn[i]
             rel = f"animations/{clip_id}/raw/{direction}_{i}.png"
-            self.lib.write_asset(job.npc_id, rel, png)
+            self.lib.write_asset(job.npc_id, rel, media.label(png, [engine]))
             raw_files.append(rel)
             scores.append({"frame": i, "score": round(score, 3), "candidate": k, **detail})
+            frame_engines.append(engine)
 
         def apply(n):
             slot = n["assets"].setdefault("animations", {}).setdefault(clip_id, {})
             slot.setdefault("directions", {})[direction] = {"raw": raw_files, "scores": scores, "frames": count, "seed": clip_seed,
                                                             "refs": strategy, "candidates": candidates, "guided": guided,
-                                                            "engines": sorted(job.cache.get("edit_engines", ())), "created": now()}
+                                                            "engines": sorted(set(frame_engines)), "frame_engines": frame_engines,
+                                                            "created": now()}
         self.lib.update(job.npc_id, apply)
 
     def assemble(self, job, npc, data, clip_id):
@@ -636,7 +636,8 @@ class Animator:
         style = data["styles"][npc["style"]]
         hard = style.get("hard_edges", False)
         dirs, mirror = opts["dirs"], opts["mirror_left"]
-        frames_by_dir, report_dirs, flags = {}, {}, []
+        frames_by_dir, report_dirs, flags, recorded = {}, {}, [], {}
+        assets = self.lib.get(job.npc_id)["assets"]
 
         if clip["kind"] == "procedural":
             count = opts["frames"] if opts["frames"] in clip["frames"] else clip["frames"][0]
@@ -644,15 +645,23 @@ class Animator:
                 still = self._canonical_cut(job, d, hard)
                 if still is None:
                     raise ComfyError(f"Could not cut out the {d} view")
+                if d == "down":
+                    sprite = assets["sprite"]
+                    names = [licences.picture_engine(sprite)]
+                else:
+                    names = (assets.get("animation_views", {}).get(d) or {}).get("engines") or []
+                recorded[d] = [names] * count
                 frames_by_dir[d] = procedural_idle(align({d: [still]})[d][0], count, clip["lift"], clip.get("chest", 0.0))
             aligned = frames_by_dir                              # already on the canvas: aligning again would cancel the breath
         else:
             count = opts["frames"]
-            current = self.lib.get(job.npc_id)["assets"].get("animations", {}).get(clip_id, {}).get("directions", {})
+            current = assets.get("animations", {}).get(clip_id, {}).get("directions", {})
             for d in generated_directions(dirs, mirror):
                 info = current.get(d)
                 if not info or info["frames"] != count:
                     raise ComfyError(f"No {count}-frame {clip_id} frames for '{d}' yet")
+                names = info.get("frame_engines")
+                recorded[d] = [[name] for name in names] if names and len(names) == count else [info.get("engines") or []] * count
                 cuts = [cutout(self.lib.read_asset(job.npc_id, rel), hard) for rel in info["raw"]]
                 if any(c is None for c in cuts):
                     raise ComfyError(f"Could not cut out every {d} frame: the background is not one flat colour")
@@ -693,6 +702,7 @@ class Animator:
                 aligned = {d: add_step_bob(fr, pose.step_bob(count, pose.VIEW_OF[d])) for d, fr in aligned.items()}
         if "left" in dirs and mirror and "right" in aligned:
             aligned["left"] = [ImageOps.mirror(f) for f in aligned["right"]]
+            recorded["left"] = recorded["right"]
         order = [d for d in ("down", "left", "right", "up") if d in aligned]
         files = {}
         for d in order:
@@ -700,14 +710,13 @@ class Animator:
             for i, frame in enumerate(aligned[d]):
                 if style.get("monochrome"):                  # after the cut-out and the checks, which need the colours (keying.grey_image)
                     frame = grey_image(frame)
-                buf = io.BytesIO()
-                frame.save(buf, "PNG", optimize=True)
                 rel = f"animations/{clip_id}/{d}_{i}.png"
-                self.lib.write_asset(job.npc_id, rel, buf.getvalue())
+                self.lib.write_asset(job.npc_id, rel, media.png(frame, models=recorded[d][i], optimize=True))
                 files[d].append(rel)
         meta = {"kind": clip["kind"], "label": clip["label"], "fps": clip_fps(clip, count), "loop": clip.get("loop", True), "frames": count,
                 "experimental": clip.get("experimental", False), "quality_note": clip.get("quality_note", ""),
                 "canvas": CANVAS, "created": now(), "style": npc["style"], "order": order, "files": files,
+                "engines": {d: sorted({name for names in recorded[d] for name in names}) for d in order},
                 "mirrored": {"left": "right"} if "left" in order and mirror and "left" not in report_dirs else {},
                 "report": {"directions": report_dirs, "flags": flags, "ok": not flags}}
 

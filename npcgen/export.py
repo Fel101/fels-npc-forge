@@ -13,6 +13,7 @@ import zipfile
 import numpy as np
 from PIL import Image
 
+from . import licences, media
 from .anim import BASELINE, CANVAS
 from .sheet import VIEWS
 
@@ -55,10 +56,13 @@ def _script_json(value):
     return json.dumps(value).replace("&", "\\u0026").replace("<", "\\u003c").replace(">", "\\u003e")
 
 
-def _png(im):
-    buf = io.BytesIO()
-    im.save(buf, "PNG", optimize=True)
-    return buf.getvalue()
+def _provenance(npc, meta, groups, what):
+    engines = sorted({engine for group in groups for engine in group})
+    rating = licences.picture_report(groups, what)
+    return {"generator": "NPC Forge", "ai_generated": True, "model": ", ".join(engines) or "Unknown",
+            "engines": engines, "models": rating["models"], "verdict": rating["verdict"], "unknown": rating["unknown"],
+            "npc_id": npc["id"], "style": npc.get("style"), "created": meta.get("created"),
+            "note": "AI-generated. Review for suitability before shipping."}
 
 
 def pixelate_set(frames, colors=24, outline=False):
@@ -185,7 +189,7 @@ h1{font-size:18px;margin:0 0 4px}p{color:#98a2b3;margin:0 0 16px}
 .grid{display:flex;flex-wrap:wrap;gap:14px}.cell{background:#262b36;border-radius:10px;padding:10px;text-align:center}
 canvas{display:block;image-rendering:pixelated;background:repeating-conic-gradient(#2c323e 0 25%,#242934 0 50%) 50%/16px 16px}
 </style>
-<h1>__TITLE__</h1><p>Animations play at their own frame rate. Generated with NPC Forge and Mage-Flow-Edit.</p>
+<h1>__TITLE__</h1><p>Animations play at their own frame rate. Made with NPC Forge. __MODELS__</p>
 <div class="grid" id="g"></div>
 <script>
 const DATA = __DATA__;
@@ -231,6 +235,9 @@ def build(lib, npc, clip_id, preset_id, options=None, models=None):
 
     frames = {d: [downscale(Image.open(lib.resolve(npc["id"], rel)).convert("RGBA"), size, pixel) for rel in meta["files"][d]]
               for d in dirs}
+    used = {d: licences.animation_engines(meta, d) for d in dirs}
+    provenance = _provenance(npc, meta, list(used.values()), "animation frames")
+    provenance["seeds"] = {d: v.get("seed") for d, v in meta.get("directions", {}).items() if isinstance(v, dict)}
     if pixel:                                                        # one palette for the whole clip: no colour shimmer
         flat = pixelate_set([f for d in dirs for f in frames[d]], colors, outline)
         frames = {d: flat[i * count:(i + 1) * count] for i, d in enumerate(dirs)}
@@ -242,21 +249,17 @@ def build(lib, npc, clip_id, preset_id, options=None, models=None):
                 sheet.paste(f, (i * size, row * size))
             anims.append({"name": f"{clip_id}_{d}", "image": f"{stem}.png", "x": 0, "y": row * size, "w": size, "h": size,
                           "frames": count, "fps": meta["fps"], "loop": meta["loop"], "godot_name": f"{clip_id}_{d}"})
-        files[f"{stem}.png"] = _png(sheet)
+        files[f"{stem}.png"] = media.png(sheet, models=provenance["engines"], optimize=True)
     else:
         for d in dirs:
             strip = Image.new("RGBA", (count * size, size), (0, 0, 0, 0))
             for i, f in enumerate(frames[d]):
                 strip.paste(f, (i * size, 0))
             image = f"{stem}.png" if len(dirs) == 1 else f"{stem}_{d}.png"
-            files[image] = _png(strip)
+            files[image] = media.png(strip, models=used[d], optimize=True)
             anims.append({"name": f"{clip_id}_{d}", "image": image, "x": 0, "y": 0, "w": size, "h": size, "frames": count,
                           "fps": meta["fps"], "loop": meta["loop"], "godot_name": clip_id if len(dirs) == 1 else f"{clip_id}_{d}"})
 
-    seeds = {d: v.get("seed") for d, v in meta.get("directions", {}).items() if isinstance(v, dict)}
-    provenance = {"generator": "NPC Forge", "model": "Mage-Flow-Edit (Microsoft, MIT)", "npc_id": npc["id"], "style": npc.get("style"),
-                  "seeds": seeds, "created": meta.get("created"),
-                  "note": "AI-generated. Review for suitability before shipping; see the model's responsible-use notes."}
     atlas = {
         "clip": clip_id, "frame": [size, size], "columns": count, "fps": meta["fps"], "loop": meta["loop"],
         "anchor": [size // 2, round(BASELINE / CANVAS * size)],
@@ -277,7 +280,9 @@ def build(lib, npc, clip_id, preset_id, options=None, models=None):
         files[f"{name}.tres"] = _tres(anims, size, res).encode()
     title = f'{(npc["profile"]["first_name"] + " " + npc["profile"]["last_name"]).strip()}: {meta["label"]}'
     data = {"frame": [size, size], "anims": [{k: a[k] for k in ("name", "image", "x", "y", "w", "h", "frames", "fps")} for a in anims]}
-    files["preview.html"] = _PREVIEW.replace("__TITLE__", html.escape(title)).replace("__DATA__", _script_json(data)).encode()
+    model_note = f"Models used: {', '.join(provenance['engines'])}." if provenance["engines"] else "Model unrecorded."
+    files["preview.html"] = (_PREVIEW.replace("__MODELS__", html.escape(model_note))
+                             .replace("__TITLE__", html.escape(title)).replace("__DATA__", _script_json(data)).encode())
     return files
 
 
@@ -292,17 +297,19 @@ def build_sheet(lib, npc, options=None):
         raise ValueError("This NPC has no model sheet yet")
     name = slugify((options or {}).get("name") or f'{npc["profile"]["first_name"]}-{npc["profile"]["last_name"]}')
     order = [v for v in VIEWS if v in meta["views"]]
-    files = {f"{name}_{v}.png": lib.read_asset(npc["id"], meta["views"][v]["file"]) for v in order}
+    used = {v: [licences.picture_engine(meta["views"][v], edit=True)] for v in order}
+    provenance = _provenance(npc, meta, list(used.values()), "model-sheet views")
+    files = {f"{name}_{v}.png": media.label(lib.read_asset(npc["id"], meta["views"][v]["file"]), used[v]) for v in order}
     if meta.get("file"):
-        files[f"{name}_sheet.png"] = lib.read_asset(npc["id"], meta["file"])
+        composite = lib.read_asset(npc["id"], meta["file"])
+        models = media.source_models(composite) or ([] if meta.get("stale") else provenance["engines"])
+        files[f"{name}_sheet.png"] = media.label(composite, models)
     record = {
         "character": f'{npc["profile"]["first_name"]} {npc["profile"]["last_name"]}'.strip(), "panel": meta.get("panel"),
         "pose": meta.get("pose"), "order": order, "report": meta.get("report"),
         "views": {v: {"file": f"{name}_{v}.png", "seed": meta["views"][v].get("seed"), "from": meta["views"][v].get("from"),
                       "prompt": meta["views"][v].get("prompt")} for v in order},
-        "provenance": {"generator": "NPC Forge", "model": "Mage-Flow-Edit (Microsoft, MIT)", "npc_id": npc["id"], "style": npc.get("style"),
-                       "created": meta.get("created"),
-                       "note": "AI-generated. Review for suitability before shipping; see the model's responsible-use notes."},
+        "provenance": provenance,
     }
     files[f"{name}_sheet.json"] = json.dumps(record, indent=2).encode()
     return files
@@ -312,7 +319,7 @@ def to_zip(files):
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
         for name, data in files.items():
-            z.writestr(_safe_member(name), data)
+            z.writestr(_safe_member(name), media.label(data))
     return buf.getvalue()
 
 
@@ -324,5 +331,5 @@ def write_dir(files, out_dir):
         if not target.is_relative_to(root):
             raise ValueError(f"Unsafe export file name: {name!r}")
         target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_bytes(data)
+        target.write_bytes(media.label(data))
     return sorted(files)

@@ -34,6 +34,7 @@ import json
 import numpy as np
 from PIL import Image, ImageFilter
 
+from . import licences, media
 from .library import now
 
 VERSION = 1
@@ -217,12 +218,6 @@ def composite(base, frame, centre=None):
     return out, {"shift": shift, "coverage": round(coverage, 4)}
 
 
-def _png(img):
-    buf = io.BytesIO()
-    img.save(buf, "PNG", optimize=True)
-    return buf.getvalue()
-
-
 def assemble(lib, npc_id, data):
     """Build living/ from the portrait and the living expressions that exist and match the portrait. Returns the manifest.
     Raises ValueError when there is no portrait or not a single usable expression."""
@@ -259,7 +254,8 @@ def assemble(lib, npc_id, data):
         out = Image.composite(match_colour(base, frame, mask), base, mask)
         info = {"shift": shift, "coverage": round(float(np.asarray(mask, dtype=np.float32).mean() / 255), 4)}
         rel = f"living/{eid}.png"
-        lib.write_asset(npc_id, rel, _png(out))
+        models = [licences.picture_engine(portrait), licences.picture_engine(meta, edit=True)]
+        lib.write_asset(npc_id, rel, media.png(out, models=models, optimize=True))
         frames[eid] = {"file": rel, "source_created": meta.get("created"), **info}
     if not frames:
         raise ValueError("None of the living-portrait expressions exist for the current portrait yet")

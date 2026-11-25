@@ -12,6 +12,7 @@ import copy
 
 import numpy as np
 
+from . import media
 from .paint3d import Glb
 from .procmesh import matmul      # (no @ operator in NPC Forge: see procmesh.matmul)
 
@@ -226,7 +227,9 @@ def merge_bytes(target_glb, extra_glb, parent_name=None, world=None, tag=None):
     attach = None if local is None else _attach(target.json, parent, local)
     roots = add(target, extra, parent=parent, matrix=local, tag=tag)
     where = (target.json["nodes"][parent].get("name") if parent is not None else None)
-    return target.dumps(), {"parent": where, "node": target.json["nodes"][roots[0]].get("name") if roots else None, "attach": attach}
+    generated = any(media.read_label(source).get("ai-generated", True) for source in (target_glb, extra_glb))
+    out = media.label(target.dumps(), media.source_models(target_glb, extra_glb), ai_generated=generated)
+    return out, {"parent": where, "node": target.json["nodes"][roots[0]].get("name") if roots else None, "attach": attach}
 
 
 def attachment(target_glb, parent_name, world):
