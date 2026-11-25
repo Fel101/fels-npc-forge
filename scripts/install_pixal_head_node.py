@@ -1,43 +1,27 @@
 """Install NPC Forge's own ComfyUI nodes into a ComfyUI custom_nodes folder: the Pixal3D head-texture node, and with --trellis2 the
-Trellis2 shape-decode node (for the "Trellis2 four pictures" generator)."""
+Trellis2 shape-decode node (for the "Trellis2 four pictures" generator). Set up ComfyUI on the Models card does the same
+(npcgen/comfy_setup.py)."""
 import argparse
 import pathlib
-
+import sys
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-EXTENSIONS = ROOT / "npcgen" / "comfy_extensions"
-NODES = {
-    "head": {
-        "name": "NPC Forge Pixal3D head-texture node",
-        "source": EXTENSIONS / "npcforge_pixal_head_texture.py",
-        "folder": "npcforge_pixal_head_texture",
-        "marker": '"""ComfyUI node that adds head-resolution Pixal3D projection features to NPC Forge textures."""',
-    },
-    "trellis2": {
-        "name": "NPC Forge Trellis2 shape-decode node",
-        "source": EXTENSIONS / "npcforge_trellis2_decode.py",
-        "folder": "npcforge_trellis2_decode",
-        "marker": '"""ComfyUI node that decodes a Trellis2 shape latent to a mesh without the CuMesh hole fill, which crashes the GPU on ROCm for Windows."""',
-    },
-}
+sys.path.insert(0, str(ROOT))
+from npcgen import comfy_setup  # noqa: E402
+
+NODES = comfy_setup.NODES
 
 
-def install(parser, custom_nodes, node):
+def install(parser, custom_nodes, key):
     """Copy one node into custom_nodes. Returns True when something was written."""
-    target_dir = custom_nodes / node["folder"]
-    target = target_dir / "__init__.py"
-    content = node["source"].read_text("utf-8")
-    if target.exists():
-        existing = target.read_text("utf-8")
-        if existing == content:
-            print(f"{node['name']} is already current: {target}")
-            return False
-        if node["marker"] not in existing:
-            parser.error(f"Refusing to replace an unrelated custom node at {target}")
-    target_dir.mkdir(parents=True, exist_ok=True)
-    target.write_text(content, encoding="utf-8", newline="\n")
-    print(f"Installed {node['name']}: {target}")
-    return True
+    node = NODES[key]
+    target = custom_nodes / node["folder"] / "__init__.py"
+    try:
+        wrote = comfy_setup.install_node(custom_nodes, key)
+    except comfy_setup.SetupError:
+        parser.error(f"Refusing to replace an unrelated custom node at {target}")
+    print(f"Installed {node['name']}: {target}" if wrote else f"{node['name']} is already current: {target}")
+    return wrote
 
 
 def main():
@@ -51,7 +35,7 @@ def main():
     if not (custom_nodes.is_dir() and (comfy_dir / "comfy_api" / "latest").is_dir()):
         parser.error(f"{comfy_dir} does not look like the ComfyUI source directory")
 
-    changed = [install(parser, custom_nodes, NODES[key]) for key in (["head", "trellis2"] if args.trellis2 else ["head"])]
+    changed = [install(parser, custom_nodes, key) for key in (["head", "trellis2"] if args.trellis2 else ["head"])]
     if any(changed):
         print("Restart ComfyUI once to load the node(s).")
 

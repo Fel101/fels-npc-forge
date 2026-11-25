@@ -1,0 +1,176 @@
+{
+ "checked": "2026-11-25",
+ "files": [
+  {
+   "folder": "diffusion_models",
+   "name": "z_image_turbo_bf16.safetensors",
+   "repo": "Comfy-Org/z_image_turbo",
+   "revision": "6fc90a3b1b653e935a0d175e260736de25b84df5",
+   "path": "split_files/diffusion_models/z_image_turbo_bf16.safetensors",
+   "size": 12309866400,
+   "sha256": "2407613050b809ffdff18a4ac99af83ea6b95443ecebdf80e064a79c825574a6"
+  },
+  {
+   "folder": "text_encoders",
+   "name": "qwen_3_4b.safetensors",
+   "repo": "Comfy-Org/z_image_turbo",
+   "revision": "6fc90a3b1b653e935a0d175e260736de25b84df5",
+   "path": "split_files/text_encoders/qwen_3_4b.safetensors",
+   "size": 8044982048,
+   "sha256": "6c671498573ac2f7a5501502ccce8d2b08ea6ca2f661c458e708f36b36edfc5a"
+  },
+  {
+   "folder": "vae",
+   "name": "ae.safetensors",
+   "repo": "Comfy-Org/z_image_turbo",
+   "revision": "6fc90a3b1b653e935a0d175e260736de25b84df5",
+   "path": "split_files/vae/ae.safetensors",
+   "size": 335304388,
+   "sha256": "afc8e28272cd15db3919bacdb6918ce9c1ed22e96cb12c4d5ed0fba823529e38"
+  },
+  {
+   "folder": "diffusion_models",
+   "name": "qwen_image_2512_fp8_e4m3fn.safetensors",
+   "repo": "Comfy-Org/Qwen-Image_ComfyUI",
+   "revision": "1f12b17be14c89b026c51a91d67c32f84bb047bc",
+   "path": "split_files/diffusion_models/qwen_image_2512_fp8_e4m3fn.safetensors",
+   "size": 20430679144,
+   "sha256": "5dc80554d5d83390046a2f4a94ece06afb7700bf7b0aaf8bde9769793875876b"
+  },
+  {
+   "folder": "text_encoders",
+   "name": "qwen_2.5_vl_7b_fp8_scaled.safetensors",
+   "repo": "Comfy-Org/Qwen-Image_ComfyUI",
+   "revision": "1f12b17be14c89b026c51a91d67c32f84bb047bc",
+   "path": "split_files/text_encoders/qwen_2.5_vl_7b_fp8_scaled.safetensors",
+   "size": 9384670680,
+   "sha256": "cb5636d852a0ea6a9075ab1bef496c0db7aef13c02350571e388aea959c5c0b4"
+  },
+  {
+   "folder": "vae",
+   "name": "qwen_image_vae.safetensors",
+   "repo": "Comfy-Org/Qwen-Image_ComfyUI",
+   "revision": "1f12b17be14c89b026c51a91d67c32f84bb047bc",
+   "path": "split_files/vae/qwen_image_vae.safetensors",
+   "size": 253806246,
+   "sha256": "a70580f0213e67967ee9c95f05bb400e8fb08307e017a924bf3441223e023d1f"
+  },
+  {
+   "folder": "loras",
+   "name": "Qwen-Image-Lightning-4steps-V2.0.safetensors",
+   "repo": "lightx2v/Qwen-Image-Lightning",
+   "revision": "d468c534b360e0754c6bf9e38ed49e1e09cd2e2a",
+   "path": "Qwen-Image-Lightning-4steps-V2.0.safetensors",
+   "size": 1698951104,
+   "sha256": "878c519b75aaa19c5f37ef57b312ac035e936a0a36b14e02269e9dfd53d2c228"
+  },
+  {
+   "folder": "diffusion_models",
+   "name": "Qwen-Image-Edit-2511-FP8_e4m3fn.safetensors",
+   "repo": "1038lab/Qwen-Image-Edit-2511-FP8",
+   "revision": "f0487a2fd231fbf91b5267650cde228aeb4441b4",
+   "path": "Qwen-Image-Edit-2511-FP8_e4m3fn.safetensors",
+   "size": 20430635176,
+   "sha256": "c2555340fe05ce5316bcd54f38a4ffbd117b579d15ef53be73a7faf68ad8a1e1"
+  },
+  {
+   "folder": "loras",
+   "name": "Qwen-Image-Edit-2511-Lightning-4steps-V1.0-bf16.safetensors",
+   "repo": "lightx2v/Qwen-Image-Edit-2511-Lightning",
+   "revision": "107d238d68b8387e32843d0b4a2e24ceb0d3ad86",
+   "path": "Qwen-Image-Edit-2511-Lightning-4steps-V1.0-bf16.safetensors",
+   "size": 849608296,
+   "sha256": "22226e8d05d354bb356627d428809f5afd7819399b077238a2b70a82883a904f"
+  },
+  {
+   "folder": "checkpoints",
+   "name": "hunyuan_3d_v2.1.safetensors",
+   "repo": "Comfy-Org/hunyuan3D_2.1_repackaged",
+   "revision": "d28dcff0eb85a3740955e24cb1d53def66591278",
+   "path": "hunyuan_3d_v2.1.safetensors",
+   "size": 7365943290,
+   "sha256": "5f21e98a6cb99b13b5e224abaee33929570fff7af2b6a0060001559a04ba9d72"
+  },
+  {
+   "folder": "diffusion_models",
+   "name": "pixal3d_multiview_int8_convrot.safetensors",
+   "repo": "Comfy-Org/Pixal3D",
+   "revision": "f37641be376725d324c56626007cc477f1249a69",
+   "path": "diffusion_models/pixal3d_multiview_int8_convrot.safetensors",
+   "size": 5584555824,
+   "sha256": "6b1eb3328930d921d3b57508d9c46cceec1c174dcedeebc14f176ab67d49f477"
+  },
+  {
+   "folder": "clip_vision",
+   "name": "dino_v3_L_naf_fp32.safetensors",
+   "repo": "Comfy-Org/Pixal3D",
+   "revision": "f37641be376725d324c56626007cc477f1249a69",
+   "path": "clip_vision/dino_v3_L_naf_fp32.safetensors",
+   "size": 1215214176,
+   "sha256": "4ad2ec4e0879a5b5b04cd97325cc37da954a7b6edca5170b86510f17f2b2290f"
+  },
+  {
+   "folder": "vae",
+   "name": "trellis_2_shape_vae_bf16.safetensors",
+   "repo": "Comfy-Org/Pixal3D",
+   "revision": "f37641be376725d324c56626007cc477f1249a69",
+   "path": "vae/trellis_2_shape_vae_bf16.safetensors",
+   "size": 1095844024,
+   "sha256": "de0cb4949a76c59ee5c091a995a69bcc8c51d5aeda939f0c641a50d2a72341f4"
+  },
+  {
+   "folder": "vae",
+   "name": "trellis_2_texture_vae_bf16.safetensors",
+   "repo": "Comfy-Org/Pixal3D",
+   "revision": "f37641be376725d324c56626007cc477f1249a69",
+   "path": "vae/trellis_2_texture_vae_bf16.safetensors",
+   "size": 948461364,
+   "sha256": "714e5ebf094a610e12a8e3b5175c18a62f37f6ea4218acb6073644456b73ab0e"
+  },
+  {
+   "folder": "background_removal",
+   "name": "birefnet.safetensors",
+   "repo": "Comfy-Org/BiRefNet",
+   "revision": "884af709e9b795d89dafbf97f29c8d6a2386f5c6",
+   "path": "background_removal/birefnet.safetensors",
+   "size": 444473596,
+   "sha256": "9ab37426bf4de0567af6b5d21b16151357149139362e6e8992021b8ce356a154"
+  },
+  {
+   "folder": "diffusion_models",
+   "name": "mage_flow_int8_convrot.safetensors",
+   "repo": "Comfy-Org/Mage-Flow",
+   "revision": "6ff68fbf3c667325e961d551691b246791d5eec0",
+   "path": "diffusion_models/mage_flow_int8_convrot.safetensors",
+   "size": 4159146848,
+   "sha256": "e081068163d7793b7e0d54ae2a773d3ac1c0d5b099c09b69dcbff36448485ae8"
+  },
+  {
+   "folder": "diffusion_models",
+   "name": "mage_flow_edit_int8_convrot.safetensors",
+   "repo": "Comfy-Org/Mage-Flow",
+   "revision": "6ff68fbf3c667325e961d551691b246791d5eec0",
+   "path": "diffusion_models/mage_flow_edit_int8_convrot.safetensors",
+   "size": 4159146848,
+   "sha256": "e7ce4c48df7cd044f53d69fd1dbdb18a5fca320c34945b8289ba5b5e627c9221"
+  },
+  {
+   "folder": "text_encoders",
+   "name": "qwen3vl_4b_bf16.safetensors",
+   "repo": "Comfy-Org/Mage-Flow",
+   "revision": "6ff68fbf3c667325e961d551691b246791d5eec0",
+   "path": "text_encoders/qwen3vl_4b_bf16.safetensors",
+   "size": 8875719384,
+   "sha256": "36f3ff447ef59201722e8f9ce6020c9819fdcfba6aa2608c4e09b1c0ce114e34"
+  },
+  {
+   "folder": "vae",
+   "name": "mage_flow_vae_bf16.safetensors",
+   "repo": "Comfy-Org/Mage-Flow",
+   "revision": "6ff68fbf3c667325e961d551691b246791d5eec0",
+   "path": "vae/mage_flow_vae_bf16.safetensors",
+   "size": 345053056,
+   "sha256": "34e076dc1e8a15321e1e07be5111d59cf16dd10b804b7c7e20b4de29013427e0"
+  }
+ ]
+}

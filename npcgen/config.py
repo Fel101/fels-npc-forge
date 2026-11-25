@@ -95,6 +95,20 @@ def save_gpu_setting(name, value):
     _write_user(path, user)
 
 
+def save_setting(name, value):
+    """Save one top-level setting in config.json ("comfy_folder": the ComfyUI folder Set up ComfyUI uses when ComfyUI is not
+    running); None removes it. Everything else in the file stays as it is. Raises OSError or ValueError, as save_gpu_setting."""
+    path = config_file()
+    user = json.loads(path.read_text("utf-8")) if path.exists() else {}
+    if not isinstance(user, dict):
+        raise ValueError(f"{path.name} is not a JSON object")
+    if value is None:
+        user.pop(name, None)
+    else:
+        user[name] = value
+    _write_user(path, user)
+
+
 def _migrate_saved_port(path, user):
     user["port"] = DEFAULT_PORT
     try:

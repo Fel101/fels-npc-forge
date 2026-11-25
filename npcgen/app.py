@@ -4,6 +4,7 @@ import threading
 
 from . import config as cfgmod
 from .comfy import Comfy, LockBusy, _operation_lock
+from .comfy_setup import Installer
 from .jobs import Jobs
 from .library import Library
 from .cast_packs import CastPacks
@@ -60,6 +61,7 @@ class App:
             self.faces = FaceScans(self.cfg, self.comfy, self.lib, busy=self.jobs.busy)                 # (a thread of its own, started by the first scan)
             self.dressings = Dressings(self.items, self.lib, cfg=self.cfg)                              # (the same, for clothes tried on a body: started by the first fit)
             self.scene_jobs = SceneRenderJobs(self.scenes)
+            self.comfy_setup = Installer()            # Set up ComfyUI: one install at a time, in a thread of its own
         except BaseException:
             self._library_lock.release()
             with _ACTIVE_LIBRARIES_LOCK:
@@ -79,6 +81,7 @@ class App:
     def close(self):
         if not self.closed:
             self.closed = True
+            self.comfy_setup.stop()                  # a download keeps what arrived; the next Install carries on
             try:
                 try:
                     self.scene_jobs.close()

@@ -29,7 +29,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import npcgen
 from npcgen import config as cfgmod
-from npcgen import character_card, fels_suite
+from npcgen import character_card, comfy_setup, fels_suite
 from npcgen import suite_gpu
 from npcgen import anim, best3d, bodymaker, cast, check3d, cleanup3d, dialogue, engines, equip, export, eyes, facefit, facescan, gpu, hairmask, hands3d, hardware, head3d, headdetail, headgraft, import3d, items, licences, posekeys, prompts, rig3d, roll, service, sheet, three_d
 from npcgen import morphology, scene_export, scene_recording, scene_takes, scene_sound, scene_writer
@@ -66,7 +66,7 @@ mimetypes.add_type("application/wasm", ".wasm")
 
 # Bump when web/app.js starts needing something an older server does not provide; the page compares it with its own
 # REQUIRED_API and switches the newer features off (with a banner) instead of crashing. A test keeps the two in sync.
-API_VERSION = 49             # 49: One model at a time as a switch, PUT /api/gpu/settings (docs/api.md)
+API_VERSION = 50             # 50: Set up ComfyUI, /api/comfy-setup (docs/api.md, docs/comfyui-setup.md)
 
 DEFAULT_ASSETS = {"portrait": True, "sprite": True, "model_3d": False, "expressions": ["happy", "sad", "angry", "surprised"]}
 
@@ -2498,6 +2498,80 @@ def gpu_settings(q, body):
     return _switch_state()
 
 
+# ---- Set up ComfyUI (npcgen/comfy_setup.py, docs/comfyui-setup.md) -----------------------------------------------------------
+def _setup_place(app):
+    return comfy_setup.locate(app.comfy, app.cfg.get("comfy_folder"))
+
+
+def _setup_error(error):
+    return ApiError(error.status, str(error))
+
+
+@route("GET", "/api/comfy-setup")
+def comfy_setup_status(q, body):
+    """Where ComfyUI is, what each tier needs, what is there already and the install in progress. `?progress=1`: just the
+    install, for polling while it runs."""
+    app = current_app()
+    if q.get("progress") == ["1"]:
+        return {"install": app.comfy_setup.snapshot()}
+    return comfy_setup.status(app.comfy, _setup_place(app), app.comfy.models, hardware.your_pc()["tier"], app.comfy_setup)
+
+
+@route("POST", "/api/comfy-setup/folder")
+def comfy_setup_folder(q, body):
+    """The ComfyUI folder Set up ComfyUI uses when ComfyUI is not running: {"folder": "D:/ComfyUI"}, {"pick": true} to choose it
+    with this computer's own folder picker (refused when NPC Forge needs a password, as the picker would open on the server's
+    screen), or {"folder": null} to forget it. Saved in config.json as "comfy_folder"."""
+    app = current_app()
+    folder = body.get("folder")
+    if body.get("pick") is True:
+        if getattr(app, "password_needed", False):
+            raise ApiError(403, "The folder picker opens on the computer NPC Forge runs on, so it is not offered over the network. "
+                                "Type the folder under Details instead.")
+        try:
+            folder = comfy_setup.pick_folder()
+        except comfy_setup.SetupError as error:
+            raise _setup_error(error) from None
+        if folder is None:
+            return {"folder": app.cfg.get("comfy_folder"), "changed": False}
+    elif folder is not None and not isinstance(folder, str):
+        raise ApiError(400, "folder must be the ComfyUI folder, or null to forget it.")
+    try:
+        value = None if folder is None else str(comfy_setup.comfy_folder(folder))
+        cfgmod.save_setting("comfy_folder", value)
+    except comfy_setup.SetupError as error:
+        raise _setup_error(error) from None
+    except (OSError, ValueError) as error:
+        raise ApiError(500, f"NPC Forge could not save the folder in config.json ({error}). Check that the NPC Forge folder can be "
+                            "written to, then try again.") from None
+    if value is None:
+        app.cfg.pop("comfy_folder", None)
+    else:
+        app.cfg["comfy_folder"] = value
+    return {"folder": value, "changed": True}
+
+
+@route("POST", "/api/comfy-setup/install")
+def comfy_setup_install(q, body):
+    """Install the parts in {"parts": ["image:zimage", ...], "yes": true}: check the files already there against their pinned
+    SHA-256, download what is missing from its pinned Hugging Face commit, and copy NPC Forge's own nodes into custom_nodes.
+    Nothing happens without "yes": true. Answers the install as it starts; GET /api/comfy-setup?progress=1 follows it."""
+    parts = body.get("parts")
+    if not isinstance(parts, list) or not all(isinstance(p, str) for p in parts):
+        raise ApiError(400, "parts must be a list of part ids, as GET /api/comfy-setup lists them.")
+    app = current_app()
+    try:
+        return {"install": app.comfy_setup.start(_setup_place(app), parts, app.comfy.models, app.comfy, yes=body.get("yes"))}
+    except comfy_setup.SetupError as error:
+        raise _setup_error(error) from None
+
+
+@route("POST", "/api/comfy-setup/stop")
+def comfy_setup_stop(q, body):
+    """Stop the install. What arrived of a download is kept, and the next install carries on from there."""
+    return {"install": current_app().comfy_setup.stop()}
+
+
 @route("POST", "/api/gpu/free-voice-lab")
 def free_voice_lab(q, body):
     """Ask the current Voice Lab GPU holder to unload after the user requests it in the picture queue."""
@@ -2575,6 +2649,7 @@ class NPCServer(ThreadingHTTPServer):
     def __init__(self, address, app, require_auth=False):
         self.npc_app = app
         self.require_auth = require_auth
+        app.password_needed = bool(require_auth)        # what only the computer NPC Forge runs on may do (its own folder picker)
         self._app_closed = False
         super().__init__(address, Handler)
 

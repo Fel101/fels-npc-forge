@@ -28,6 +28,14 @@ GPU alone for pictures now) and `switch_applies` (`now`, or `next_job` while a j
 Studio's and Ollama's models, and takes the suite lock alone; off, it holds the lock shared and unloads nothing of anyone
 else's. Only pictures are affected: work in Voice Lab and Altera shares the GPU either way.
 
+**Set up ComfyUI** ([comfyui-setup.md](comfyui-setup.md)). `GET /api/comfy-setup` says where ComfyUI is (`comfy`), the
+tier and what each tier ticks (`tiers`), and every part (an engine such as `image:zimage`) with its files, NPC Forge's nodes,
+other people's node packs and its licence; `?progress=1` gives just `install`. `POST /api/comfy-setup/install` with
+`{"parts": [...], "yes": true}` checks the files already there against their pinned SHA-256, downloads what is missing from
+its pinned Hugging Face commit and copies NPC Forge's own nodes; without `"yes": true` it is refused. `POST
+/api/comfy-setup/stop` keeps what arrived. `POST /api/comfy-setup/folder` takes `{"folder": path}`, `{"pick": true}` or
+`{"folder": null}` for when ComfyUI is not running.
+
 ## Character cards
 
 - `GET /api/npcs/<id>/card.png` returns the portrait with Character Card V3 in its `ccv3` chunk and V2 in its `chara` chunk.
@@ -44,6 +52,7 @@ else's. Only pictures are affected: work in Voice Lab and Altera shares the GPU 
 
 ## Changes
 
+- **API 50.** Set up ComfyUI: `GET /api/comfy-setup`, and `POST /api/comfy-setup/install`, `/stop` and `/folder`.
 - **API 49.** One model at a time is a switch: `PUT /api/gpu/settings`, and `GET /api/gpu`'s `one_model_at_a_time`,
   `alone` and `switch_applies`. A job's step note says what it unloaded to make room. `GET /api/health` adds
   `vram_total_mb` and `your_pc`: the tier of ComfyUI's card, what it makes and the engines it starts with, which a request
@@ -56,7 +65,7 @@ else's. Only pictures are affected: work in Voice Lab and Altera shares the GPU 
   `GET /api/health?identity=1` to read just that object without waiting for the ComfyUI and tool checks.
 
 
-167 routes.
+171 routes.
 
 
 ## Server, settings and the queue
@@ -265,6 +274,10 @@ else's. Only pictures are affected: work in Voice Lab and Altera shares the GPU 
 
 | Method | Path | What it does |
 |---|---|---|
+| `GET` | `/api/comfy-setup` | Where ComfyUI is, what each tier needs, what is there already and the install in progress. |
+| `POST` | `/api/comfy-setup/folder` | The ComfyUI folder Set up ComfyUI uses when ComfyUI is not running: {"folder": "D:/ComfyUI"}, {"pick": true} to choose it with this computer's own folder picker (refused when NPC Forge needs a password, as the picker would open on the server's screen), or {"folder": null} to forget it. |
+| `POST` | `/api/comfy-setup/install` | Install the parts in {"parts": ["image:zimage", ...], "yes": true}: check the files already there against their pinned SHA-256, download what is missing from its pinned Hugging Face commit, and copy NPC Forge's own nodes into custom_nodes. |
+| `POST` | `/api/comfy-setup/stop` | Stop the install. |
 | `GET` | `/api/update` | This version, the last answer from GitHub (kept across restarts) and what the last update left to say. |
 | `POST` | `/api/update/check` | Ask GitHub now whether there is a newer release: {"current", "latest", "newer", "message", "release", "checked_at"}. |
 | `POST` | `/api/update/plan` | What Update now would do, as update.bat shows it: {"ok", "newer", "message", "from", "to", "release", "steps", "notes", "method"} or {"ok": false, "problem"}. |
