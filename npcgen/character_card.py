@@ -12,7 +12,7 @@ import zipfile
 
 from PIL import Image, PngImagePlugin
 
-from . import __version__, dialogue, fels_suite, licences, roll
+from . import __version__, dialogue, fels_suite, licences, media, roll
 from .voice import engines, markup, record
 from .voice.lab_client import LabClient, LabError
 
@@ -123,7 +123,7 @@ def _image(data, label):
     return data
 
 
-def _png_card(portrait, card):
+def _png_card(portrait, card, models):
     metadata = PngImagePlugin.PngInfo()
     v2 = {key: value for key, value in card["data"].items()
           if key not in {"assets", "group_only_greetings", "creation_date", "modification_date"}}
@@ -134,12 +134,11 @@ def _png_card(portrait, card):
             raise ValueError("The character card text is over 2 MB. Shorten the character's sheet and try again.")
         metadata.add_text(keyword, base64.b64encode(encoded).decode("ascii"))
     with Image.open(io.BytesIO(portrait)) as image:
-        output = io.BytesIO()
         # Keep the portrait's pixels and colour profile, with fresh card fields as its text metadata.
-        image.save(output, format="PNG", pnginfo=metadata)
-    if output.tell() > MAX_MEMBER:
+        output = media.png(image, pnginfo=metadata, models=models)
+    if len(output) > MAX_MEMBER:
         raise ValueError("The PNG card is over 20 MB. Make a smaller portrait or try the CHARX card.")
-    return output.getvalue()
+    return output
 
 
 class _Archive:
@@ -173,7 +172,7 @@ class _Archive:
         return output.getvalue()
 
 
-def _living(archive, lib, npc_id, meta, portrait, expressions):
+def _living(archive, lib, npc_id, meta, portrait, packed_portrait, portrait_models, expressions):
     if not meta or meta.get("stale"):
         return None, {}
     label = "living portrait"
@@ -188,18 +187,25 @@ def _living(archive, lib, npc_id, meta, portrait, expressions):
     except (TypeError, KeyError, ValueError):
         raise ValueError("The saved living portrait is unreadable. Rebuild it in Forge and try again.") from None
     source = {}
+    packed_digest = hashlib.sha256(packed_portrait).hexdigest()
+    manifest["portrait"]["sha256"] = packed_digest
     for key, frame in frames.items():
         if not re.fullmatch(r"[a-z0-9_-]{1,40}", key) or not isinstance(frame, dict) or frame.get("file") != f"living/{key}.png":
             raise ValueError("The saved living portrait has an invalid frame. Rebuild it in Forge and try again.")
         name = f"living portrait frame {key}"
         picture = _image(_asset(lib, npc_id, frame["file"], name), name)
         path = f"{LIVING}/{key}.png"
-        archive.add(path, picture, "other", f"living-{key}")
-        frame["file"] = path
         expr = expressions.get(key)
         source[key] = expr if expr and expr.get("created") == frame.get("source_created") else None
+        models = media.source_models(picture)
+        if not models:
+            models = list(portrait_models)
+            if source[key]:
+                models.append(licences.picture_engine(source[key], edit=True))
+        archive.add(path, media.label(picture, models), "other", f"living-{key}")
+        frame["file"] = path
     uri = archive.add(f"{LIVING}/manifest.json", _json(manifest), "other", "living-portrait-manifest")
-    return {"manifest": uri, "portrait_sha256": digest}, source
+    return {"manifest": uri, "portrait_sha256": packed_digest}, source
 
 
 def voice_selection(npc):
@@ -298,6 +304,7 @@ def build(lib, npc, form, *, include_voice=True, permission=False):
         raise ValueError("Make a portrait for this character, then export its card.")
     npc_id = npc["id"]
     base = _image(_asset(lib, npc_id, portrait["file"], "portrait"), "portrait")
+    portrait_models = [licences.picture_engine(portrait)]
     pictures = {"portrait": portrait}
     lines = _lines(npc)
     selected = voice_selection(npc) if include_voice else None
@@ -307,21 +314,23 @@ def build(lib, npc, form, *, include_voice=True, permission=False):
     sources = {}
     archive = _Archive() if form == "charx" else None
     if archive:
-        archive.add("assets/icon/images/main.png", base, "icon", "main")
+        packed_portrait = media.label(base, portrait_models)
+        archive.add("assets/icon/images/main.png", packed_portrait, "icon", "main")
         sheet_uri = archive.add(SHEET, _json(_sheet(npc)), "other", "character-sheet")
         expressions = assets.get("expressions") or {}
         for expr_id, name in EMOTIONS.items():
             meta = expressions.get(expr_id)
             if meta and meta.get("file") and not meta.get("stale"):
                 image = _image(_asset(lib, npc_id, meta["file"], f"{name} expression"), f"{name} expression")
-                archive.add(f"assets/emotion/images/{name}.png", image, "emotion", name)
+                archive.add(f"assets/emotion/images/{name}.png",
+                            media.label(image, [licences.picture_engine(meta, edit=True)]), "emotion", name)
                 pictures.setdefault("expressions", {})[expr_id] = meta
         sprite = assets.get("sprite") or {}
         if sprite.get("file") and not sprite.get("stale"):
             image = _image(_asset(lib, npc_id, sprite["file"], "full-body sprite"), "full-body sprite")
-            archive.add("assets/other/images/sprite.png", image, "other", "sprite")
+            archive.add("assets/other/images/sprite.png", media.label(image, [licences.picture_engine(sprite)]), "other", "sprite")
             pictures["sprite"] = sprite
-        living, sources = _living(archive, lib, npc_id, assets.get("living"), base, expressions)
+        living, sources = _living(archive, lib, npc_id, assets.get("living"), base, packed_portrait, portrait_models, expressions)
         if selected and selected.get("identity_id"):
             voice, selected = _persona(selected, lines["greeting"][0][:400], permission)
             voice_uri = archive.add(PERSONA, voice, "other", "voice")
@@ -340,4 +349,4 @@ def build(lib, npc, form, *, include_voice=True, permission=False):
     if npc.get("created"):
         data["creation_date"] = int(datetime.datetime.fromisoformat(npc["created"]).timestamp())
     card = {"spec": "chara_card_v3", "spec_version": "3.0", "data": data}
-    return archive.finish(card) if archive else _png_card(base, card)
+    return archive.finish(card) if archive else _png_card(base, card, portrait_models)

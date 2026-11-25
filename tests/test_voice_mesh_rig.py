@@ -6,6 +6,7 @@ import zipfile
 
 import pytest
 
+from npcgen import media
 from npcgen.library import Library
 from npcgen.voice import mesh_rig
 
@@ -56,7 +57,8 @@ def test_mesh_export_checks_snapshot_and_keeps_immutable_versions(tmp_path):
     with zipfile.ZipFile(output) as archive:
         rig=json.loads(archive.read(descriptor))
         assert hashlib.sha256(archive.read(rig['model_file'])).hexdigest()==rig['model_sha256']
-        assert archive.read(rig['model_file'])==data and rig['config']['jaw_radians']==.4
+        assert archive.read(rig['model_file']) == media.label(data) and rig['config']['jaw_radians'] == .4
+    assert lib.read_asset(npc['id'], changed['voice_mesh_rig']['source']['snapshot_file']) == data
     lib.write_asset(npc['id'],changed['voice_mesh_rig']['source']['snapshot_file'],b'corrupt')
     assert mesh_rig.describe(lib,lib.get(npc['id']))['status']=='stale'
     with zipfile.ZipFile(io.BytesIO(),'w') as archive:

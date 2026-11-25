@@ -16,7 +16,7 @@ import io
 import numpy as np
 from PIL import Image
 
-from . import anim, engines, prompts, three_d
+from . import anim, engines, licences, media, prompts, three_d
 from .comfy import ComfyError
 from .keying import grey_png
 from .library import now
@@ -195,8 +195,9 @@ class Sheeter:
         if style.get("monochrome"):                      # see keying.grey_image
             final = grey_png(final)
         self.lib.archive_picture(job.npc_id, f"sheet/{view}")          # (the view this one replaces stays among its earlier versions)
-        self.lib.write_asset(job.npc_id, f"sheet/raw/{view}.png", png)
-        self.lib.write_asset(job.npc_id, f"sheet/{view}.png", final)
+        used_models = [licences.picture_engine(used, edit=True)]
+        self.lib.write_asset(job.npc_id, f"sheet/raw/{view}.png", media.label(png, used_models))
+        self.lib.write_asset(job.npc_id, f"sheet/{view}.png", media.label(final, used_models))
         source_sprite_created = npc.get("assets", {}).get("sprite", {}).get("created") if view in FULL_BODY else None
 
         def apply(n):
@@ -225,7 +226,8 @@ class Sheeter:
             w, h = images[0].size
             images = [im if im.size == (w, h) else im.resize((w, h), Image.LANCZOS) for im in images]
         sheet = stitch(images)
-        self.lib.write_asset(job.npc_id, "sheet/sheet.png", _png(sheet))
+        used_models = [licences.picture_engine(views[v], edit=True) for v in order]
+        self.lib.write_asset(job.npc_id, "sheet/sheet.png", media.png(sheet, models=used_models, optimize=True))
 
         report, flags = {}, []
         sprite = assets.get("sprite")

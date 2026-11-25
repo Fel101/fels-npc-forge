@@ -3,6 +3,8 @@ import hashlib
 import json
 import struct
 
+from . import licences
+
 
 def item_model(lib, item_id):
     base = (lib.root / '.npcforge-items' / item_id).resolve()
@@ -31,6 +33,7 @@ def pin(scene, scenes, previous=None):
             item, meta, data = item_model(scenes.lib, prop['item_id'])
         except (OSError, ValueError, KeyError, TypeError) as error:
             raise ValueError(f"Cannot place prop {prop['item_id']}: {error}") from error
+        data = licences.label_shape(data, meta)
         sha = hashlib.sha256(data).hexdigest(); filename = f'props/{sha}.glb'
         scenes.write_media(scene['id'], filename, data)
         sources[prop['id']] = {'item_id': prop['item_id'], 'name': item.get('name', prop['item_id']),

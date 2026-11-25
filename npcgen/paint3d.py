@@ -13,6 +13,8 @@ from collections import namedtuple
 import numpy as np
 from PIL import Image
 
+from . import media
+
 # For each turnaround view: the model axis that runs left-to-right across the picture, and the axis pointing at the
 # camera. glTF coordinates: the model stands on +Y, faces +Z, and its own left is +X. "side_left" shows the
 # character's own left side, facing the left of the picture (measured: the outline matches 0.87 this way, 0.69 mirrored).
@@ -1231,12 +1233,14 @@ if __name__ == "__main__":
     folder = pathlib.Path(args.sheet_dir)
     pics = {v: (folder / f"{v}.png").read_bytes() for v in VIEWS if (folder / f"{v}.png").exists()}
     info, maps = {}, {}
-    pathlib.Path(args.out).write_bytes(paint(pathlib.Path(args.model).read_bytes(), pics, report=info, debug=maps))
+    model = pathlib.Path(args.model).read_bytes()
+    painted = paint(model, pics, report=info, debug=maps)
+    pathlib.Path(args.out).write_bytes(media.label(painted, media.source_models(model, *pics.values())))
     if args.debug:
         pathlib.Path(args.debug).mkdir(parents=True, exist_ok=True)
         for name, alpha in maps.items():
             rgb = np.zeros(alpha.shape + (3,), np.uint8)
             rgb[alpha >= 0] = (np.clip(alpha[alpha >= 0], 0, 1)[:, None] * [0, 255, 0] + (1 - np.clip(alpha[alpha >= 0], 0, 1))[:, None] * [255, 0, 0]).astype(np.uint8)
-            Image.fromarray(rgb).save(pathlib.Path(args.debug) / f"{name}.png")
+            media.png(Image.fromarray(rgb), pathlib.Path(args.debug) / f"{name}.png", models=media.source_models(*pics.values()))
     info["seconds"] = round(time.time() - started, 1)
     print(json.dumps(info, indent=1))

@@ -149,7 +149,8 @@ def test_the_glb_is_valid_with_bounds_normals_materials_and_a_node_tree():
     glb = _parse_glb(g.dumps([root], extras={"recipe": {"a": 1}}))
     doc = glb.json
     assert [n["name"] for n in doc["nodes"]] == ["leaf", "root"] and doc["scenes"][0]["nodes"] == [1] and doc["nodes"][1]["children"] == [0]
-    assert doc["asset"]["extras"] == {"recipe": {"a": 1}} and doc["nodes"][0]["rotation"][1] == pytest.approx(math.sin(math.pi / 4))
+    assert doc["asset"]["extras"]["recipe"] == {"a": 1} and doc["nodes"][0]["rotation"][1] == pytest.approx(math.sin(math.pi / 4))
+    assert doc["asset"]["extras"]["fels"]["ai-generated"] is False
     prims = doc["meshes"][0]["primitives"]
     assert len(prims) == 2 and prims[0]["material"] == steel and prims[1]["material"] == glass          # the empty part was left out
     for prim in prims:

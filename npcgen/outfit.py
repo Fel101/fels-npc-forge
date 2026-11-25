@@ -19,7 +19,7 @@ import time
 from functools import lru_cache
 from pathlib import Path
 
-from . import bodymatch, config as cfgmod, glbprune
+from . import bodymatch, config as cfgmod, glbprune, media
 from .paint3d import Glb
 
 DATA_FILE = cfgmod.ROOT / "data" / "outfit.json"
@@ -493,9 +493,9 @@ def main(argv=None):
         wanted = json.loads(args.pieces.read_text("utf-8"))
         plain, animated, report = wear(None if args.plain is None else args.plain.read_bytes(), None if args.animated is None else args.animated.read_bytes(), wanted, replace=args.replace)
         if args.plain is not None:
-            args.out_plain.write_bytes(plain)
+            args.out_plain.write_bytes(media.label(plain, ai_generated=False))
         if args.animated is not None:
-            args.out_animated.write_bytes(animated)
+            args.out_animated.write_bytes(media.label(animated, ai_generated=False))
         args.report.write_text(json.dumps(report), "utf-8")
     except (ValueError, OSError, KeyError) as exc:
         p.error(str(exc))

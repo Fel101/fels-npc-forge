@@ -28,7 +28,7 @@ import threading
 import time
 from pathlib import Path
 
-from . import creature_projects, licences
+from . import creature_projects, licences, media
 from .library import ID_RE, now
 
 BRIEFS_DIR = Path(__file__).resolve().parent.parent / "data" / "briefs"     # one file per game: data/briefs/<project>.json (the examples)
@@ -476,6 +476,8 @@ class CreatureStore:
                 raise ValueError(f"There is no picture with seed {seed} in the grid")
             picture = self.read_file(creature_id, f"{CANDIDATES}/{seed}.png")
             record = self.record(creature_id, f"{CANDIDATES}/{seed}.json") or {"seed": seed}
+            names = media.source_models(picture) or [licences.model_name(f"image:{record.get('engine')}")]
+            picture = media.label(picture, names)
             record = {**record, "sha256": hashlib.sha256(picture).hexdigest()}      # the picture the 3D model will be made from
             self.write_file(creature_id, "concept.png", picture)
             self.write_file(creature_id, "concept.json", json.dumps(record, indent=2))

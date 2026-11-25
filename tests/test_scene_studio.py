@@ -115,6 +115,7 @@ def test_sound_upload_loop_offset_volume_and_actual_speech_ducking(studio):
 
 def test_props_are_pinned_and_existing_items_are_not_modified(studio):
     import struct
+    from npcgen import media
     from npcgen.scene_props import describe
     lib, scenes, raw = studio; item_id = 'qa-crate-abcdef'
     folder = lib.root / '.npcforge-items' / item_id; folder.mkdir(parents=True)
@@ -130,9 +131,9 @@ def test_props_are_pinned_and_existing_items_are_not_modified(studio):
     (folder / 'model.glb').write_bytes(b'new item version')
     assert describe(scene, scenes)[0][0]['source']['sha256'] == rows[0]['source']['sha256']
     changed = scenes.update(scene['id'], {**scene, 'props': [{**scene['props'][0], 'rotation': 45}]})
-    assert scenes.resolve(scene['id'], changed['prop_sources']['prop-one']['file']).read_bytes() == model
+    assert scenes.resolve(scene['id'], changed['prop_sources']['prop-one']['file']).read_bytes() == media.label(model)
     duplicate = scenes.duplicate(scene['id'])
-    assert scenes.resolve(duplicate['id'], duplicate['prop_sources']['prop-one']['file']).read_bytes() == model
+    assert scenes.resolve(duplicate['id'], duplicate['prop_sources']['prop-one']['file']).read_bytes() == media.label(model)
     assert (folder / 'model.glb').read_bytes() == b'new item version'
 
 

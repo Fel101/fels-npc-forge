@@ -37,6 +37,12 @@ The character is rated by the **worst** of the models that made anything of it, 
 
 The rating is part of each Library row. It is worked out again whenever the character is saved (so it follows a new picture or model the moment it is made) and for every character when `data/licences.json` is edited (no restart), so the filter and the badge never disagree with the report.
 
+## Provenance inside exported files
+
+Forge's PNGs carry `fels:ai-generated`, `fels:made-by` and `fels:models`. The model field is a JSON list of names. AI-generated PNGs also carry IPTC's `trainedAlgorithmicMedia` source type in XMP. GLB files carry `ai-generated`, `made-by` and `models` under `asset.extras.fels`. A purely procedural model or a normalized source photo records `false` for AI generation. Files imported byte for byte and existing hash-bound source files keep their original bytes. [IPTC source type](https://cv.iptc.org/newscodes/digitalsourcetype/trainedAlgorithmicMedia)
+
+Animation manifests rate the engines that drew the frames in the exported directions. A mirrored direction uses its source's engines. The model-sheet manifest rates the engines recorded on its views. Missing still-image records follow the Mage-Flow rule above. Older animations with missing engine records use an empty model list for those frames and rate them **Not cleared**. A model name absent from the licence registry is listed as unknown and also keeps the export from a cleared rating.
+
 ## The models and the answer to the usual question
 
 | | Rating | Why |

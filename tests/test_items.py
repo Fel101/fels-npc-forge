@@ -15,6 +15,7 @@ import pytest
 from PIL import Image
 
 from npcgen import cleanup3d, cli, clothing, config, dressing, engines, glasses, itemmaker, itemposter, items, roll, three_d
+from npcgen import media
 from npcgen.comfy import ComfyError
 from npcgen.itemstore import ItemStore
 from npcgen.jobs import Job, Jobs
@@ -586,28 +587,33 @@ def test_the_shape_is_made_from_the_four_views_and_scaled_to_the_items_size(benc
     assert graph == three_d.trellis2_graph(names, item_id, "job1", item["seed"], quality="low") and timeout == 3600 and unload is True
     meta = item["assets"]["model_3d"]
     assert (meta["engine_id"], meta["textured"], meta["quality"], meta["quality_label"]) == ("trellis2", False, "low", "Low")
-    assert meta["raw"] == "model_3d_original.glb" and store.read_asset(item_id, "model_3d_original.glb") == comfy.shape
+    raw = store.read_asset(item_id, meta["raw"])
+    assert meta["raw"] == "model_3d_original.glb" and Glb(raw).bin == Glb(comfy.shape).bin
+    assert "TRELLIS.2-4B" in media.read_label(raw)["models"][0]
     low, high = _world(store.read_asset(item_id, "model_3d.glb"))
     assert np.isclose((high - low).max(), 0.85, atol=1e-4) and np.isclose(low[1], -0.17, atol=1e-4)     # the grip (a fifth up) is the origin
     assert meta["fit"]["requested_m"] == 0.85 and meta["source_views"] == {v: item["assets"]["views"][v]["created"] for v in VIEWS}
-    assert store.read_asset(item_id, "model_3d_preview.png") == _png((1, 2, 3))
+    preview = store.read_asset(item_id, "model_3d_preview.png")
+    assert media.read_label(preview)["models"] == media.read_label(raw)["models"]
+    assert Image.open(io.BytesIO(preview)).getpixel((0, 0)) == (1, 2, 3)
 
 
 def test_the_finish_paints_the_generators_own_shape_makes_the_game_version_and_scales_it(bench):
     store, item_id, comfy, calls, run = bench
     for kind in ("item_hero", "item_views", "item_shape"):
         run(kind)
+    original = store.read_asset(item_id, "model_3d_original.glb")
     store.update(item_id, lambda n: n["assets"]["model_3d"].update(stale=True, game_stale=True, fit_error="old"))
     item = run("item_finish")
     call = calls["refine"][0]
-    assert call["model"] == comfy.shape and call["faces"] == 30000 and list(call["views"]) == list(VIEWS) and call["extra"] == {}
+    assert call["model"] == original and call["faces"] == 30000 and list(call["views"]) == list(VIEWS) and call["extra"] == {}
     meta = item["assets"]["model_3d"]
     assert meta["textured"] is True and meta["refined"]["faces"] == 30000 and meta["refined"]["faces_generated"] == 700000
     assert meta["refined"]["painted_from"] == sorted(VIEWS) and meta["refined"]["paint"]["front"] == {"outline_match": 0.95, "trust": 1.0}
     assert not {"game_stale", "fit_error", "fit_stale"} & set(meta) and meta["preview"] == "model_3d_preview.png"
     low, high = _world(store.read_asset(item_id, "model_3d.glb"))
     assert np.isclose((high - low).max(), 0.85, atol=1e-4)
-    assert store.read_asset(item_id, "model_3d_original.glb") == comfy.shape                              # the raw shape is not replaced
+    assert store.read_asset(item_id, "model_3d_original.glb") == original
     assert items.state(item) == {"item_hero": True, "item_views": True, "item_shape": False, "item_high": True, "item_finish": False}   # (the shape was marked stale above)
 
 
@@ -615,9 +621,10 @@ def test_painting_again_starts_from_the_raw_shape_never_from_the_last_game_versi
     store, item_id, comfy, calls, run = bench
     for kind in ("item_hero", "item_views", "item_shape", "item_finish"):
         run(kind)
+    original = store.read_asset(item_id, "model_3d_original.glb")
     store.update(item_id, lambda n: n.update(faces=100000))
     run("item_finish")
-    assert calls["refine"][1]["model"] == comfy.shape and calls["refine"][1]["faces"] == 100000
+    assert calls["refine"][1]["model"] == original and calls["refine"][1]["faces"] == 100000
 
 
 def test_a_deleted_item_stops_its_job_with_a_clear_message(bench):

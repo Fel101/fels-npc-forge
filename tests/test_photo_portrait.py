@@ -9,7 +9,7 @@ import types
 import pytest
 from PIL import Image
 
-from npcgen import config, jobs as jobsmod, prompts, roll, service
+from npcgen import config, jobs as jobsmod, media, prompts, roll, service
 from npcgen.comfy import DEFAULT_MODELS
 from npcgen.jobs import DEFAULT_OPTIONS, Jobs
 from npcgen.library import Library
@@ -179,7 +179,7 @@ def test_with_no_source_photo_the_portrait_step_is_unchanged(world):
     seen = {}
     jobsmod.add_portrait_engine(lambda **ctx: seen.update(ctx) or None)     # takes nothing, just observes
     job, step, meta, data_bytes = draw()
-    assert data_bytes == FROM_SCRATCH and "source" not in meta and comfy.uploads == []
+    assert data_bytes == media.label(FROM_SCRATCH, ['Mage-Flow']) and "source" not in meta and comfy.uploads == []
     assert seen["npc"]["profile"]["first_name"] == "Mara"
 
 
@@ -190,7 +190,7 @@ def test_a_source_photo_is_edited_instead_of_generated_from_scratch(world):
     seen = {}
     jobsmod.add_portrait_engine(lambda **ctx: seen.update(ctx) or None)
     job, step, meta, data_bytes = draw()
-    assert data_bytes == FROM_PHOTO and meta["source"] == "photo"
+    assert data_bytes == media.label(FROM_PHOTO, ['Mage-Flow-Edit']) and meta["source"] == "photo"
     assert seen == {}, "PORTRAIT_ENGINES must not be consulted for a photo-sourced portrait"
     assert len(comfy.uploads) == 1 and comfy.uploads[0][0] == f"{npc_id}_source_photo.png"
     w, h = config.DEFAULTS["quality"]["standard"]["portrait"]

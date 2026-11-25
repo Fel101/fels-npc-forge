@@ -11,7 +11,7 @@ import zipfile
 from PIL import Image, PngImagePlugin
 import pytest
 
-from npcgen import __version__, character_card, engines, roll
+from npcgen import __version__, character_card, engines, media, roll
 from npcgen.library import Library
 
 
@@ -89,6 +89,7 @@ def test_png_is_v3_with_v2_fallback_in_alteras_reader(character):
     chunks = list(altera_reader._chunks(data))
     texts = {body.split(b"\0", 1)[0]: body.split(b"\0", 1)[1] for kind, body, _ in chunks if kind == b"tEXt"}
     assert set(texts) == {b"ccv3", b"chara"}
+    assert media.read_label(data) == {"ai-generated": True, "made-by": media.MADE_BY, "models": ["Z-Image Turbo"]}
     v3 = json.loads(base64.b64decode(texts[b"ccv3"]))["data"]
     fels = v3["extensions"]["fels"]
     assert fels["sheet"] is None and fels["living_portrait"] is None
@@ -110,12 +111,15 @@ def test_charx_lists_every_asset_and_links_living_frames_to_exact_portrait(chara
     assert fels["licence"]["rating"] == "not_cleared" and "Unlisted model" in fels["licence"]["unknown"][0]
     assert any("living portrait" in model["used_for"] for model in fels["licence"]["models"])
     assert "Made with Fel's NPC Forge" in card["creator_notes"]
-    assert files["assets/other/images/sprite.png"] == lib.read_asset(npc["id"], "sprite.png")
+    assert files["assets/other/images/sprite.png"] == media.label(lib.read_asset(npc["id"], "sprite.png"), ["Unlisted model"])
+    assert all(media.read_label(data)["ai-generated"] for path, data in files.items() if path.endswith(".png"))
     sheet = json.loads(files[fels["sheet"][10:]])
     assert sheet["profile"]["occupation"] == "mechanic" and set(sheet) <= {"id", "setting", "style", "freeform", "morphology", "profile", "appearance"}
     assert all("personal-photo" not in path for path in files)
     manifest = json.loads(files[fels["living_portrait"]["manifest"][10:]])
     assert manifest["portrait"]["sha256"] == fels["living_portrait"]["portrait_sha256"] == hashlib.sha256(files["assets/icon/images/main.png"]).hexdigest()
+    assert json.loads(lib.read_asset(npc["id"], "living/living.json"))["portrait"]["sha256"] == hashlib.sha256(
+        lib.read_asset(npc["id"], "portrait.png")).hexdigest()
     assert all(frame["file"] in files for frame in manifest["frames"].values())
     lib.write_asset(npc["id"], "portrait.png", png("green"))
     card, files = _read_charx(character_card.build(lib, npc, "charx"))

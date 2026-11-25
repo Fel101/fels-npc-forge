@@ -14,7 +14,7 @@ import uuid
 
 from PIL import Image, ImageOps
 
-from . import engines
+from . import engines, licences, media
 
 NEGATIVE = "people, person, character, humanoid, silhouette, portrait, lettering, caption, watermark"
 BARS_CUT = "The picture engine drew black bars at the top and bottom; they were cut off."
@@ -84,11 +84,11 @@ def run(worker, job, step):
     if top or bottom:
         picture = picture.crop((0, top, picture.width, picture.height - bottom))
         notes.append(BARS_CUT)
-    output = io.BytesIO()
-    ImageOps.fit(picture, (1280, 720), method=Image.Resampling.LANCZOS).save(output, "PNG")
+    engine = licences.picture_engine(meta)
+    plate = ImageOps.fit(picture, (1280, 720), method=Image.Resampling.LANCZOS)
     filename = f"background/{uuid.uuid4().hex[:10]}.png"
-    worker.scenes.write_media(job.scene_id, filename, output.getvalue())
-    if not worker.scenes.set_background(job.scene_id, prompt, filename, meta.get("engine", "Mage-Flow")):
+    worker.scenes.write_media(job.scene_id, filename, media.png(plate, models=[engine]))
+    if not worker.scenes.set_background(job.scene_id, prompt, filename, engine):
         worker.scenes.resolve(job.scene_id, filename).unlink(missing_ok=True)
         notes.append("The prompt changed before generation finished; save and generate again.")
     if notes:

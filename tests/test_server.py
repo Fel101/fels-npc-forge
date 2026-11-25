@@ -14,6 +14,8 @@ import zipfile
 import pytest
 from PIL import Image
 
+from npcgen import media
+
 
 @pytest.fixture(scope="module")
 def api(tmp_path_factory):
@@ -575,8 +577,8 @@ def test_candidate_selection_updates_the_active_image_and_preserves_the_previous
 
     status, updated = api("POST", f"/api/npcs/{npc_id}/assets/portrait/candidates/{candidate_id}/select")
     assert status == 200 and updated["assets"]["portrait"]["candidate_id"] == candidate_id
-    assert api.app.lib.read_asset(npc_id, "portrait.png") == variant_png.getvalue()
-    assert api.app.lib.read_asset(npc_id, updated["assets"]["candidates"]["portrait"][1]["file"]) == old_png.getvalue()
+    assert api.app.lib.read_asset(npc_id, "portrait.png") == media.label(variant_png.getvalue(), ["Mage-Flow"])
+    assert api.app.lib.read_asset(npc_id, updated["assets"]["candidates"]["portrait"][1]["file"]) == media.label(old_png.getvalue(), ["Mage-Flow"])
     api("DELETE", f"/api/npcs/{npc_id}")
 
 
@@ -1005,14 +1007,14 @@ def test_the_earlier_versions_of_a_picture_are_listed_restored_and_deleted_throu
 
     status, after = api("POST", f"/api/npcs/{npc_id}/assets/expressions/happy/candidates/{kept['id']}/select")
     assert status == 200 and after["assets"]["expressions"]["happy"]["seed"] == 1
-    assert lib.read_asset(npc_id, "expressions/happy.png") == red
+    assert lib.read_asset(npc_id, "expressions/happy.png") == media.label(red, ["Mage-Flow-Edit"])
     assert [c["seed"] for c in after["assets"]["candidates"]["expressions/happy"]] == [1, 2]       # the blue one is kept in turn
     blue_entry = after["assets"]["candidates"]["expressions/happy"][1]
     assert api("POST", f"/api/npcs/{npc_id}/assets/expressions/happy/candidates/ffffffffffff/select")[0] == 404
     assert api("POST", f"/api/npcs/{npc_id}/assets/sprite/candidates/{blue_entry['id']}/select")[0] == 404
     status, after = api("DELETE", f"/api/npcs/{npc_id}/assets/expressions/happy/candidates/{blue_entry['id']}")
     assert status == 200 and [c["seed"] for c in after["assets"]["candidates"]["expressions/happy"]] == [1]
-    assert not lib.resolve(npc_id, blue_entry["file"]).exists() and lib.read_asset(npc_id, "expressions/happy.png") == red
+    assert not lib.resolve(npc_id, blue_entry["file"]).exists() and lib.read_asset(npc_id, "expressions/happy.png") == media.label(red, ["Mage-Flow-Edit"])
     assert api("DELETE", f"/api/npcs/{npc_id}/assets/expressions/happy/candidates/{blue_entry['id']}")[0] == 404
     # names that are not pictures never reach the library
     assert api("POST", f"/api/npcs/{npc_id}/assets/model_3d/candidates/{blue_entry['id']}/select")[0] in (404, 405)

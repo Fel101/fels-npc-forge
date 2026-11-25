@@ -4,6 +4,7 @@ import json
 import math
 import struct
 
+from .. import licences
 from ..library import now
 from .alignment import VISEMES
 
@@ -113,7 +114,10 @@ def write_export(archive,lib,npc,root='',folder='game/character-rigs/mesh'):
     if rig.get('status')!='ready':return None
     file=f'{folder}/rig.json'
     model_file=f'{folder}/model.glb'
-    archive.writestr(root+model_file,lib.read_asset(npc['id'],rig['source']['snapshot_file']))
-    archive.writestr(root+file,json.dumps({'schema':1,'forge_version':rig['version'],'model_sha256':rig['source']['sha256'],
+    source = lib.read_asset(npc['id'], rig['source']['snapshot_file'])
+    model = (npc.get('assets') or {}).get('model_3d') or {}
+    data = licences.label_shape(source, model)
+    archive.writestr(root+model_file,data)
+    archive.writestr(root+file,json.dumps({'schema':1,'forge_version':rig['version'],'model_sha256':hashlib.sha256(data).hexdigest(),
         'source_model':rig['source']['file'],'model_file':model_file,'targets':rig['source']['targets'],'joints':rig['source']['joints'],'config':rig['config']},indent=2))
     return file

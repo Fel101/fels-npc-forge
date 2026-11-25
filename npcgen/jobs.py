@@ -19,6 +19,7 @@ import uuid
 from PIL import Image
 
 from . import best3d, bodymaker, check3d, cleanup3d, creatures, creaturemaker, engines, eyes, eyesoft, glassesoff, gpu, hairmask, hands3d, head3d, headdetail, headgraft, import3d, itemmaker, items, living, morphology, posekeys, prompts, rig3d, roll, scene_background, scene_voice, three_d
+from . import licences, media
 from .anim import Animator, generated_directions
 from .voice import steps as voice_steps
 from .comfy import Cancelled, ComfyError
@@ -1052,10 +1053,12 @@ class Jobs:
             preview = comfy.fetch_file(shot["filename"], shot.get("subfolder", ""), shot.get("type", "output"))
         else:
             model = comfy.fetch_file(name, sub, folder)
+        if clean:
+            model = media.label(model, ai_generated=False)
         lib.archive_model(job.npc_id)                           # the model this one replaces is kept among the earlier ones
         lib.write_asset(job.npc_id, "model_3d.glb", model)
         if preview:
-            lib.write_asset(job.npc_id, "model_3d_preview.png", preview)
+            lib.write_asset(job.npc_id, "model_3d_preview.png", media.label(preview, ai_generated=False))
         else:
             try:
                 lib.resolve(job.npc_id, "model_3d_preview.png").unlink()      # the old model's picture is not this one's
@@ -1189,7 +1192,7 @@ class Jobs:
                         pictures, stripped = glassesoff.strip(comfy, pictures, job.npc_id, seed, sheet_quality["sheet_steps"], cfg["sheet_cfg"],
                                                               engine=opt.get("edit_model"), cancel=job.cancel)
                         for view, png in pictures.items():
-                            lib.write_asset(job.npc_id, f"{glassesoff.DIR}/{view}.png", png)
+                            lib.write_asset(job.npc_id, f"{glassesoff.DIR}/{view}.png", media.label(png, [stripped.get("engine")]))
                     except glassesoff.StripError as exc:
                         if not opt.get("three_d_pictures_optional"):    # asked for on its own: stop rather than make a model with glasses
                             raise
@@ -1266,8 +1269,10 @@ class Jobs:
             model = comfy.fetch_file(model_file["filename"], model_file.get("subfolder", ""), model_file.get("type", "output"))
             preview = comfy.fetch_file(preview_file["filename"], preview_file.get("subfolder", ""), preview_file.get("type", "output"))
             lib.archive_model(job.npc_id)                       # the model this one replaces is kept among the earlier ones
+            model_names = [licences.model_name(f"three_d:{engine}")]
+            model = media.label(model, model_names)
             lib.write_asset(job.npc_id, "model_3d.glb", model)
-            lib.write_asset(job.npc_id, "model_3d_preview.png", preview)
+            lib.write_asset(job.npc_id, "model_3d_preview.png", media.label(preview, model_names))
             try:
                 lib.resolve(job.npc_id, cleanup3d.ORIGINAL_FILE).unlink()   # kept from the previous model's clean-up
             except FileNotFoundError:
@@ -1331,7 +1336,7 @@ class Jobs:
                 upscaler = headdetail.pick_upscaler(comfy, cfg.get("face_upscaler"))
                 closeups = headdetail.closeups(comfy, pictures, job.npc_id, upscaler, cancel=job.cancel)
                 for view, close in closeups.items():
-                    lib.write_asset(job.npc_id, f"model_3d_head/{view}.png", close["png"])
+                    lib.write_asset(job.npc_id, f"model_3d_head/{view}.png", media.label(close["png"], [upscaler]))
                 face = {"upscaler": upscaler, "licence": headdetail.LICENCES.get(upscaler),
                         "closeups": {v: f"model_3d_head/{v}.png" for v in closeups}}
             if "hair" in extras:
@@ -1366,11 +1371,19 @@ class Jobs:
                 layout = report.get("head_layout") or report.get("unwrap") or {}
                 face.update(texels_before=layout.get("head_texels_per_unit_before"), texels=layout.get("head_texels_per_unit"),
                             texture=layout.get("texture"))
+            model_names = licences.shape_models(model_meta, original)
             if not model_meta.get("raw"):
-                lib.write_asset(job.npc_id, cleanup3d.ORIGINAL_FILE, original)
+                lib.write_asset(job.npc_id, cleanup3d.ORIGINAL_FILE, original)  # keep the source byte for byte
+            model_names.extend(media.source_models(*pictures.values()))
+            if face:
+                model_names.append(face["upscaler"])
+            if attacher is not None:
+                model_names.extend(media.source_models(attacher.head_glb) or [licences.model_name("three_d:pixal3d")])
+            generated = bool(model_names) or media.read_label(original).get("ai-generated", not model_meta.get("imported"))
+            refined = media.label(refined, model_names, ai_generated=generated)
             lib.write_asset(job.npc_id, "model_3d.glb", refined)
             if poster:
-                lib.write_asset(job.npc_id, "model_3d_preview.png", poster)
+                lib.write_asset(job.npc_id, "model_3d_preview.png", media.label(poster, model_names, ai_generated=generated))
             game = report.get("game_version", {})
             refined_info = {"created": now(), "faces": game.get("faces_after"), "faces_requested": game_faces,
                             "faces_generated": report["inner_skin"]["faces_before"],
@@ -1429,7 +1442,7 @@ class Jobs:
             result, shown = check3d.check(cfg, lib.read_asset(job.npc_id, model_meta["raw"]),
                                           lib.read_asset(job.npc_id, model_meta["file"]), lib.read_asset(job.npc_id, front["file"]),
                                           comfy, cancel=job.cancel)
-            lib.write_asset(job.npc_id, check3d.BOARD_FILE, shown)
+            lib.write_asset(job.npc_id, check3d.BOARD_FILE, media.label(shown, licences.shape_models(model_meta)))
             result.update(created=now(), board=check3d.BOARD_FILE)
 
             def apply(n):
@@ -1457,6 +1470,11 @@ class Jobs:
             hands = hands if hands.get("l") or hands.get("r") else None   # clean hands: the rig uses their own joints
             rigged, poster, report = rig3d.run(cfg, model, cancel=job.cancel, shape_glb=shape, skeleton=skeleton,
                                                keypoints=finder, clips=opt.get("rig_clips"), hands=hands)
+            model_names = licences.shape_models(model_meta, model)
+            if report.get("keypoint_scores"):
+                model_names.append(posekeys.CHECKPOINT)
+            generated = bool(model_names) or media.read_label(model).get("ai-generated", not model_meta.get("imported"))
+            rigged = media.label(rigged, model_names, ai_generated=generated)
             lib.write_asset(job.npc_id, "model_3d_rigged.glb", rigged)
             notes = report.get("notes") or []
             if finder is None:
@@ -1475,7 +1493,7 @@ class Jobs:
                 info["keypoint_scores"] = report["keypoint_scores"]
                 info["pose_model"] = {"model": posekeys.CHECKPOINT, "licence": posekeys.LICENCE}
             if poster:
-                lib.write_asset(job.npc_id, "model_3d_rigged.png", poster)
+                lib.write_asset(job.npc_id, "model_3d_rigged.png", media.label(poster, model_names, ai_generated=generated))
                 info["preview"] = "model_3d_rigged.png"
             lib.update(job.npc_id, lambda n: n.setdefault("assets", {}).update(rig_3d=info))
             return
@@ -1587,8 +1605,9 @@ class Jobs:
         lib, npc_id = self.lib, job.npc_id
         meta = {"seed": seed, "prompt": prompt["positive"], "negative": prompt["negative"], "quality": quality,
                 "style": style_id, "created": now(), **(extra or {})}
+        model = licences.picture_engine(meta, edit=isinstance(slot, tuple))
         if slot in ("portrait", "sprite") and job.options.get("save_candidates") and lib.get(npc_id).get("assets", {}).get(slot):
-            self._store_candidate(job, slot, png, keyed, style, key, trim, meta)
+            self._store_candidate(job, slot, png, keyed, style, key, trim, meta, model)
             return False
         lib.archive_picture(npc_id, "/".join(slot) if isinstance(slot, tuple) else slot)
         info = {"keyed": False}
@@ -1596,11 +1615,11 @@ class Jobs:
             cut, info = remove_background(png, hard_edges=style.get("hard_edges", False), trim=trim)
         grey = style.get("monochrome", False)          # the raw file keeps its colour: re-cutting it needs the coloured backdrop
         if keyed and info["keyed"]:
-            lib.write_asset(npc_id, f"{base}_raw.png", png)
-            lib.write_asset(npc_id, f"{base}.png", grey_png(cut) if grey else cut)
+            lib.write_asset(npc_id, f"{base}_raw.png", media.label(png, [model]))
+            lib.write_asset(npc_id, f"{base}.png", media.label(grey_png(cut) if grey else cut, [model]))
             meta.update(file=f"{base}.png", raw=f"{base}_raw.png", transparent=True, size=info["size"], key=key)
         else:
-            lib.write_asset(npc_id, f"{base}.png", grey_png(png) if grey else png)
+            lib.write_asset(npc_id, f"{base}.png", media.label(grey_png(png) if grey else png, [model]))
             try:
                 lib.resolve(npc_id, f"{base}_raw.png").unlink()
             except FileNotFoundError:
@@ -1621,7 +1640,7 @@ class Jobs:
             lib.make_thumb(npc_id)
         return True
 
-    def _store_candidate(self, job, kind, png, keyed, style, key, trim, meta):
+    def _store_candidate(self, job, kind, png, keyed, style, key, trim, meta, model):
         """Store an opt-in portrait/sprite reroll without changing the active asset or its dependents."""
         lib, npc_id = self.lib, job.npc_id
         candidate_id = uuid.uuid4().hex[:12]
@@ -1632,11 +1651,11 @@ class Jobs:
         grey = style.get("monochrome", False)
         if keyed and info["keyed"]:
             raw = f"candidates/{kind}/{candidate_id}_raw.png"
-            lib.write_asset(npc_id, raw, png)
-            lib.write_asset(npc_id, file, grey_png(cut) if grey else cut)
+            lib.write_asset(npc_id, raw, media.label(png, [model]))
+            lib.write_asset(npc_id, file, media.label(grey_png(cut) if grey else cut, [model]))
             meta.update(file=file, raw=raw, transparent=True, size=info["size"], key=key)
         else:
-            lib.write_asset(npc_id, file, grey_png(png) if grey else png)
+            lib.write_asset(npc_id, file, media.label(grey_png(png) if grey else png, [model]))
             meta.update(file=file, transparent=False, size=_png_size(png))
             if keyed:
                 meta["key_error"] = info.get("reason", "background removal failed")

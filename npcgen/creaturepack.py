@@ -18,7 +18,7 @@ import io
 import json
 import zipfile
 
-from . import creature_export, creature_projects, creatures
+from . import creature_export, creature_projects, creatures, licences, media
 
 SCHEMA = "npcforge.creature-pack/1"
 
@@ -117,10 +117,14 @@ def build(store, creature_id):
                                for m in rating["models"]],
                     "unknown": rating["unknown"]},
     }
-    files = {"model.glb": store.read_file(creature_id, "model.glb"),
+    model = store.read_file(creature_id, "model.glb")
+    names = media.source_models(model) or [run.get("model") or licences.model_name(f"three_d:{three_d_engine}")]
+    files = {"model.glb": media.label(model, names),
              "manifest.json": (json.dumps(manifest, indent=2, ensure_ascii=False) + "\n").encode("utf-8")}
     if on_disk["concept"]:
-        files["concept.png"] = store.read_file(creature_id, "concept.png")
+        picture = store.read_file(creature_id, "concept.png")
+        names = media.source_models(picture) or [licences.model_name(f"image:{concept.get('engine')}")]
+        files["concept.png"] = media.label(picture, names)
     files.update(loader)
     return files
 

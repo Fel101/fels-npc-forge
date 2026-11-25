@@ -10,6 +10,7 @@ import re
 import numpy as np
 from PIL import Image, ImageOps
 
+from .. import licences, media
 from ..library import now
 from .alignment import VISEMES
 
@@ -31,7 +32,7 @@ def _decode_png(data, size=None):
             raise ValueError('Mouth frames must match the saved preview dimensions')
         if not size:
             image.thumbnail((512, 512), Image.Resampling.LANCZOS)
-        out = io.BytesIO(); image.save(out, 'PNG')
+        out = io.BytesIO(); image.save(out, 'PNG')   # normalized pixels, labelled with their source at _store
         return out.getvalue(), list(image.size)
 
 
@@ -51,7 +52,8 @@ def _source(lib, npc, kind):
     return {'kind': kind, 'file': file, 'sha256': hashlib.sha256(data).hexdigest(), 'size': size}, png
 
 
-def _store(lib, npc_id, kind, data, size):
+def _store(lib, npc_id, kind, data, size, *, models=None, ai_generated=True):
+    data = media.label(data, models, ai_generated=ai_generated)
     digest = hashlib.sha256(data).hexdigest()
     file = f'voice/visual-rigs/{kind}/frames/{digest}.png'
     path = lib.resolve(npc_id, file); path.parent.mkdir(parents=True, exist_ok=True)
@@ -94,13 +96,17 @@ def save(lib, npc_id, kind, body):
                 raise ValueError('The character artwork changed; rebind its mouth frames first')
             frames = previous['frames']
         else:
-            frames = {'rest': _store(lib, npc_id, kind, png, source['size'])}
+            portrait_model = licences.picture_engine(npc['assets'][kind])
+            frames = {'rest': _store(lib, npc_id, kind, png, source['size'], models=[portrait_model])}
             if kind == 'portrait':
                 try:
                     living = json.loads(lib.read_asset(npc_id, 'living/living.json'))
                     if living.get('portrait', {}).get('sha256') == source['sha256'] and 'talking' in living.get('frames', {}):
-                        data, size = _png(lib.read_asset(npc_id, 'living/talking.png'))
-                        if size == source['size']: frames['talking'] = _store(lib, npc_id, kind, data, size)
+                        talking = lib.read_asset(npc_id, 'living/talking.png')
+                        data, size = _png(talking)
+                        models = media.source_models(talking) or [portrait_model, licences.picture_engine(
+                            (npc['assets'].get('expressions') or {}).get('talking'), edit=True)]
+                        if size == source['size']: frames['talking'] = _store(lib, npc_id, kind, data, size, models=models)
                 except (FileNotFoundError, KeyError, ValueError): pass
         opened = 'talking' if 'talking' in frames else 'rest'
         mapping = body.get('mapping') or (previous.get('mapping') if previous and not body.get('reset') else None) or {
@@ -132,7 +138,9 @@ def upload(lib, npc_id, kind, body):
         if len(rig['frames']) >= 32 and name not in rig['frames']:
             raise ValueError('Use at most 32 frames per character visual')
         png, size = _png(data, source['size'])
-        frames = {**rig['frames'], name: _store(lib, npc_id, kind, png, size)}
+        # The approved source art is part of the editor's canvas. The uploaded pixels can also contain artist edits.
+        models = media.source_models(data) or [licences.picture_engine(npc['assets'][kind])]
+        frames = {**rig['frames'], name: _store(lib, npc_id, kind, png, size, models=models)}
         return _commit(lib, npc, kind, {k: v for k, v in {**rig, 'frames': frames}.items() if k not in ('version', 'version_file')})
 
 
@@ -223,10 +231,15 @@ def write_exports(archive, lib, npc, root='', folder='game/character-rigs'):
         if rig.get('status') != 'ready': continue
         frames, written = {}, set()
         for name, frame in rig['frames'].items():
-            file = f"{folder}/{kind}/frames/{frame['sha256']}.png"
+            original = lib.read_asset(npc['id'], frame['file'])
+            models = media.source_models(original) or [licences.picture_engine(npc['assets'][kind])]
+            data = media.label(original, models)
+            sha256 = hashlib.sha256(data).hexdigest()
+            file = f"{folder}/{kind}/frames/{sha256}.png"
             if file not in written:
-                archive.writestr(root+file, lib.read_asset(npc['id'], frame['file'])); written.add(file)
-            frames[name] = {'file': file, 'sha256': frame['sha256'], 'size': frame['size']}
+                archive.writestr(root+file, data)
+                written.add(file)
+            frames[name] = {'file': file, 'sha256': sha256, 'size': frame['size']}
         file = f'{folder}/{kind}/rig.json'
         data = {'schema':1, 'kind':kind, 'forge_version':rig['version'], 'source_sha256':rig['source']['sha256'],
             'size':rig['source']['size'], 'frames':frames, 'mapping':rig['mapping'], 'amplitude_open':rig['amplitude_open'],

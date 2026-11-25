@@ -18,6 +18,7 @@ import time
 import zipfile
 
 from . import __version__
+from . import media
 from . import best3d, bodymaker, cast, config, clothing, engines, equip, export, facefit, glasses, head3d, import3d, items, morphology, outfit, prompts, rig3d, roll, service, sheet, three_d
 from .app import App
 from .comfy import ComfyError
@@ -625,7 +626,7 @@ def cmd_item_fit(a, app):
             glb, info = app.items.worn(item["id"], npc["id"], scan, report["nudge"])
             target = pathlib.Path(a.out) / f'{npc["id"]}-{item["id"]}.glb'
             target.parent.mkdir(parents=True, exist_ok=True)
-            target.write_bytes(glb)
+            target.write_bytes(media.label(glb))
             print(f'{target} ({len(glb) / 1048576:.1f} MB; the pair is under the bone "{info["bone"]}": {info["attach"]})')
     except ValueError as e:
         raise SystemExit(str(e)) from None
@@ -653,7 +654,7 @@ def cmd_item_dress(a, app):
         glb, _info = dressings.worn(item["id"], npc["id"])
         target = pathlib.Path(a.out) / f'{npc["id"]}-{item["id"]}.glb'
         target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_bytes(glb)
+        target.write_bytes(media.label(glb))
         print(f"{target} ({len(glb) / 1048576:.1f} MB)")
     return 0
 
@@ -687,7 +688,7 @@ def cmd_item_equip(a, app):
         if a.out:
             target = pathlib.Path(a.out) / f'{npc["id"]}-equipped.glb'
             target.parent.mkdir(parents=True, exist_ok=True)
-            target.write_bytes(glb)
+            target.write_bytes(media.label(glb))
             print(f"{target} ({len(glb) / 1048576:.1f} MB; each item hangs under its bone, so it follows every animation clip)")
     except (ValueError, KeyError) as e:
         raise SystemExit(str(e)) from None
