@@ -31,7 +31,7 @@ import npcgen
 from npcgen import config as cfgmod
 from npcgen import character_card, fels_suite
 from npcgen import suite_gpu
-from npcgen import anim, best3d, bodymaker, cast, check3d, cleanup3d, dialogue, engines, equip, export, eyes, facefit, facescan, gpu, hairmask, hands3d, head3d, headdetail, headgraft, import3d, items, licences, posekeys, prompts, rig3d, roll, service, sheet, three_d
+from npcgen import anim, best3d, bodymaker, cast, check3d, cleanup3d, dialogue, engines, equip, export, eyes, facefit, facescan, gpu, hairmask, hands3d, hardware, head3d, headdetail, headgraft, import3d, items, licences, posekeys, prompts, rig3d, roll, service, sheet, three_d
 from npcgen import morphology, scene_export, scene_recording, scene_takes, scene_sound, scene_writer
 from npcgen import creaturepack
 from npcgen import updates as updatesmod
@@ -361,6 +361,9 @@ def health(q, body):
     comfy = app.comfy
     status = comfy.health()
     if status.get("online"):
+        hardware.remember(status.get("vram_total_mb"), status.get("gpu"))
+    status["your_pc"] = hardware.your_pc()                          # the tier of ComfyUI's card, for the Models card's Your PC box
+    if status.get("online"):
         status["engines_missing"] = engines.availability(comfy)       # {engine id: [missing files]}, for the Models card
         status["three_d_missing"] = three_d.availability(comfy)       # {generator id: [missing files/nodes]}
     status["voice"] = {"provider": "voice-lab"}
@@ -392,6 +395,10 @@ def health(q, body):
 def config(q, body):
     app = current_app()
     cfg = app.cfg
+    if hardware.your_pc()["total_mb"] is None:         # the first page load: read the card once, for the tier's engines
+        reading = app.comfy.health()
+        if reading.get("online"):
+            hardware.remember(reading.get("vram_total_mb"), reading.get("gpu"))
     data = roll.load_data()
     settings = {}
     for sid, s in data["settings"].items():

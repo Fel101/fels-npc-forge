@@ -58,7 +58,7 @@ app's identity at each address. To try a specific address first, add `--url http
 
 | Tool | What it does |
 |---|---|
-| `forge_status` | Is NPC Forge ready: its version, whether ComfyUI answers, which model files each feature lacks, the queue. |
+| `forge_status` | Is NPC Forge ready: its version, whether ComfyUI answers, which model files each feature lacks, the queue, the card's tier (what it makes, the engines it starts with) and who holds the GPU (One model at a time). |
 | `forge_options` | The settings, art styles, genders, age groups, expressions, qualities, engines and export formats it knows. |
 | `make_characters` | 1-50 characters from a setting (narrowed by gender, age group, occupation, heritage, hair) or from a description, and their pictures queued: portrait, sprite, expressions, model sheet, walk cycle, 3D. |
 | `generate_assets` | More for characters that exist: another expression set, a model sheet, a walk cycle, a 3D model. |

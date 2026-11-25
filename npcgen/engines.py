@@ -39,12 +39,13 @@ froze (twice). So a big engine runs the careful way:
 """
 import contextlib
 import io
+import os
 import threading
 import time
 
 from PIL import Image
 
-from . import gpu
+from . import gpu, hardware
 from .comfy import Cancelled, ComfyError, beat, edit_graph, t2i_graph
 
 START_FREE_RAM_MB = 36000       # a Qwen picture needs about 30 GB of RAM: it does not start with less than this free ...
@@ -397,8 +398,19 @@ def _run_big(comfy, spec, graph, cancel):
         return _run_big_locked(comfy, spec, graph, cancel)
 
 
+def start_needs(spec):
+    """(free RAM MB, free VRAM MB) before a big engine starts: measured on the smallest card it ran on (npcgen/hardware.py,
+    docs/hardware.md), else the engine's own figures."""
+    if os.environ.get("NPCGEN_MEASURE") == "1":         # scripts/measure_gpu.py: what to ask for is what it measures
+        return 0, 0
+    kind, engine_id = next(((kind, key) for kind, table in (("image", IMAGE_ENGINES), ("edit", EDIT_ENGINES))
+                            for key, value in table.items() if value is spec), (None, None))
+    measured = hardware.start_needs(f"{kind}:{engine_id}") if kind else None
+    return measured or (spec["min_free_ram_mb"], spec["min_free_vram_mb"])
+
+
 def _run_big_locked(comfy, spec, graph, cancel):
-    need_ram, need_vram = spec["min_free_ram_mb"], spec["min_free_vram_mb"]
+    need_ram, need_vram = start_needs(spec)
     here = _endpoint(comfy)
     prepare = getattr(comfy, "prepare_picture", None)
     if prepare is not None:
@@ -474,6 +486,8 @@ def _run_big_locked(comfy, spec, graph, cancel):
                 for node_out in entry.get("outputs", {}).values():
                     for img in node_out.get("images", []):
                         png = comfy.fetch_image(img["filename"], img.get("subfolder", ""), img.get("type", "temp"))
+                        if _blank(png):
+                            raise EngineError(BLANK, transient=True, code="low_memory")
                         _LOADED[here] = spec["weights"]
                         return png
                 raise EngineError("ComfyUI finished but produced no picture.")
@@ -483,6 +497,20 @@ def _run_big_locked(comfy, spec, graph, cancel):
         _LOADED[here] = None
         _wait_idle(comfy)
         raise
+
+
+BLANK = ("the picture came out black, which happens when the GPU runs short of memory, so it was not kept. Free the GPU "
+         "(One model at a time does that) and try again.")
+
+
+def _blank(png):
+    """Whether a picture is one flat colour. Measured on this PC (docs/hardware.md): with a 32 GB card made to look like 16 GB,
+    Qwen-Image 2512 and Qwen-Image-Edit 2511 finished without an error and returned a black picture."""
+    try:
+        with Image.open(io.BytesIO(png)) as picture:
+            return all(high - low <= 2 for low, high in picture.convert("RGB").getextrema())
+    except Exception:                                 # not a picture this can read: leave it to the step that uses it
+        return False
 
 
 # ---- sizes ---------------------------------------------------------------------------------------------------------------------

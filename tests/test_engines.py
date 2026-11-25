@@ -22,7 +22,9 @@ GB = 1024 * 2 ** 20                                   # ComfyUI reports bytes
 
 def png(size=(64, 64), colour=(90, 120, 150)):
     out = io.BytesIO()
-    Image.new("RGB", size, colour).save(out, "PNG")
+    picture = Image.new("RGB", size, colour)
+    picture.paste((200, 60, 40), (0, 0, max(1, size[0] // 2), max(1, size[1] // 2)))     # not one flat colour (see _blank)
+    picture.save(out, "PNG")
     return out.getvalue()
 
 
@@ -274,6 +276,23 @@ def test_an_edit_with_no_size_takes_the_first_references_shape(engine_id):
     _links_resolve(graph)
     latent = next(n for n in graph.values() if "Latent" in n["class_type"] and "Method" not in n["class_type"])["inputs"]
     assert latent["width"][0] == latent["height"][0] and graph[latent["width"][0]]["class_type"] == "GetImageSize"
+
+
+def test_a_black_picture_is_not_kept_and_the_engine_is_unloaded():
+    """Measured: on a card short of memory the Qwen engines finished without an error and returned a black picture."""
+    comfy = FakeComfy()
+    comfy.fetch_image = lambda *a, **kw: _black()
+    with pytest.raises(engines.EngineError, match="came out black") as raised:
+        engines._run_big(comfy, engines.IMAGE_ENGINES["zimage"], {"9": {}}, None)
+    assert raised.value.transient and raised.value.code == "low_memory"
+    assert comfy.events[-1] == "free" and engines._LOADED.get(engines._endpoint(comfy)) is None
+    assert not engines._blank(png()) and not engines._blank(b"not a picture")
+
+
+def _black(size=(64, 64)):
+    out = io.BytesIO()
+    Image.new("RGB", size, (1, 0, 2)).save(out, "PNG")
+    return out.getvalue()
 
 
 def test_sizes_are_capped_for_the_big_engines_and_scaled_back():

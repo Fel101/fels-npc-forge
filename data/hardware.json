@@ -1,0 +1,455 @@
+{
+  "measured": "2026-11-25",
+  "card": "AMD Radeon AI PRO R9700",
+  "pipelines": [
+    {
+      "id": "portrait-mage",
+      "what": "Portrait, Mage-Flow",
+      "makes": null,
+      "engine": "image:mage",
+      "default": false,
+      "listed": false,
+      "runs": {
+        "16": {
+          "status": "done",
+          "seconds": 20,
+          "step_seconds": [
+            19
+          ],
+          "vram_mb": 13205,
+          "shared_mb": 281,
+          "ram_private_mb": 7848,
+          "ram_working_mb": 2765,
+          "others_mb": 8,
+          "error": null
+        },
+        "32": {
+          "status": "done",
+          "seconds": 24,
+          "step_seconds": [
+            23
+          ],
+          "vram_mb": 12993,
+          "shared_mb": 293,
+          "ram_private_mb": 4971,
+          "ram_working_mb": 3558,
+          "others_mb": 8,
+          "error": null
+        }
+      }
+    },
+    {
+      "id": "portrait-zimage",
+      "what": "Portrait, Z-Image Turbo",
+      "makes": "Portraits with Z-Image Turbo",
+      "engine": "image:zimage",
+      "default": true,
+      "listed": true,
+      "runs": {
+        "16": {
+          "status": "done",
+          "seconds": 40,
+          "step_seconds": [
+            40
+          ],
+          "vram_mb": 16023,
+          "shared_mb": 3544,
+          "ram_private_mb": 12364,
+          "ram_working_mb": 4872,
+          "others_mb": 8,
+          "error": null
+        },
+        "24": {
+          "status": "done",
+          "seconds": 32,
+          "step_seconds": [
+            31
+          ],
+          "vram_mb": 21873,
+          "shared_mb": 2585,
+          "ram_private_mb": 11988,
+          "ram_working_mb": 4366,
+          "others_mb": 8,
+          "error": null
+        },
+        "32": {
+          "status": "done",
+          "seconds": 22,
+          "step_seconds": [
+            21
+          ],
+          "vram_mb": 29177,
+          "shared_mb": 273,
+          "ram_private_mb": 9317,
+          "ram_working_mb": 3532,
+          "others_mb": 85,
+          "error": null
+        }
+      }
+    },
+    {
+      "id": "portrait-qwen2512",
+      "what": "Portrait, Qwen-Image 2512 + Lightning",
+      "makes": "Portraits with Qwen-Image 2512",
+      "engine": "image:qwen2512",
+      "default": true,
+      "listed": true,
+      "runs": {
+        "24": {
+          "status": "done",
+          "seconds": 42,
+          "step_seconds": [
+            41
+          ],
+          "vram_mb": 22882,
+          "shared_mb": 4824,
+          "ram_private_mb": 10871,
+          "ram_working_mb": 5439,
+          "others_mb": 8,
+          "error": null
+        },
+        "32": {
+          "status": "done",
+          "seconds": 26,
+          "step_seconds": [
+            25
+          ],
+          "vram_mb": 31490,
+          "shared_mb": 400,
+          "ram_private_mb": 8171,
+          "ram_working_mb": 3659,
+          "others_mb": 85,
+          "error": null
+        }
+      }
+    },
+    {
+      "id": "expressions-mage",
+      "what": "Four expressions, Mage-Flow-Edit",
+      "makes": null,
+      "engine": "edit:mage",
+      "default": false,
+      "listed": false,
+      "runs": {
+        "16": {
+          "status": "done",
+          "seconds": 163,
+          "step_seconds": [
+            46,
+            37,
+            41,
+            38
+          ],
+          "vram_mb": 15850,
+          "shared_mb": 665,
+          "ram_private_mb": 7886,
+          "ram_working_mb": 2498,
+          "others_mb": 8,
+          "error": null
+        },
+        "32": {
+          "status": "done",
+          "seconds": 159,
+          "step_seconds": [
+            46,
+            38,
+            37,
+            38
+          ],
+          "vram_mb": 15634,
+          "shared_mb": 273,
+          "ram_private_mb": 5176,
+          "ram_working_mb": 3857,
+          "others_mb": 85,
+          "error": null
+        }
+      }
+    },
+    {
+      "id": "expressions-qwen2511",
+      "what": "Four expressions, Qwen-Image-Edit 2511 + Lightning",
+      "makes": "Expressions with Qwen-Image-Edit 2511",
+      "engine": "edit:qwen2511",
+      "default": true,
+      "listed": true,
+      "runs": {
+        "16": {
+          "status": "done",
+          "seconds": 753,
+          "step_seconds": [
+            48,
+            284,
+            149,
+            270
+          ],
+          "vram_mb": 16388,
+          "shared_mb": 4855,
+          "ram_private_mb": 11078,
+          "ram_working_mb": 5666,
+          "others_mb": 8,
+          "error": null
+        },
+        "24": {
+          "status": "done",
+          "seconds": 703,
+          "step_seconds": [
+            43,
+            261,
+            139,
+            259
+          ],
+          "vram_mb": 22867,
+          "shared_mb": 4599,
+          "ram_private_mb": 10707,
+          "ram_working_mb": 4532,
+          "others_mb": 8,
+          "error": null
+        },
+        "32": {
+          "status": "done",
+          "seconds": 108,
+          "step_seconds": [
+            35,
+            25,
+            23,
+            24
+          ],
+          "vram_mb": 31320,
+          "shared_mb": 1894,
+          "ram_private_mb": 8073,
+          "ram_working_mb": 4784,
+          "others_mb": 85,
+          "error": null
+        }
+      }
+    },
+    {
+      "id": "sprite-qwen2511",
+      "what": "Full-body sprite from the portrait, Qwen-Image-Edit 2511",
+      "makes": "Full-body sprites",
+      "engine": "edit:qwen2511",
+      "default": false,
+      "listed": true,
+      "runs": {
+        "16": {
+          "status": "done",
+          "seconds": 58,
+          "step_seconds": [
+            57
+          ],
+          "vram_mb": 16145,
+          "shared_mb": 4751,
+          "ram_private_mb": 8771,
+          "ram_working_mb": 5150,
+          "others_mb": 8,
+          "error": null
+        },
+        "24": {
+          "status": "done",
+          "seconds": 38,
+          "step_seconds": [
+            36
+          ],
+          "vram_mb": 22887,
+          "shared_mb": 5021,
+          "ram_private_mb": 8418,
+          "ram_working_mb": 4718,
+          "others_mb": 8,
+          "error": null
+        },
+        "32": {
+          "status": "done",
+          "seconds": 30,
+          "step_seconds": [
+            28
+          ],
+          "vram_mb": 29627,
+          "shared_mb": 3188,
+          "ram_private_mb": 5773,
+          "ram_working_mb": 5653,
+          "others_mb": 85,
+          "error": null
+        }
+      }
+    },
+    {
+      "id": "sheet-qwen2511",
+      "what": "Model sheet, four views, Qwen-Image-Edit 2511",
+      "makes": "Model sheets",
+      "engine": "edit:qwen2511",
+      "default": false,
+      "listed": true,
+      "runs": {
+        "24": {
+          "status": "error",
+          "seconds": 833,
+          "step_seconds": [
+            34,
+            426,
+            36,
+            34,
+            301,
+            4
+          ],
+          "vram_mb": 22873,
+          "shared_mb": 4249,
+          "ram_private_mb": 8414,
+          "ram_working_mb": 3363,
+          "others_mb": 8,
+          "error": "Qwen-Image-Edit 2511 + Lightning could not draw it: the picture took more than 420 s, so it was stopped."
+        },
+        "32": {
+          "status": "done",
+          "seconds": 102,
+          "step_seconds": [
+            25,
+            20,
+            17,
+            18,
+            17,
+            4
+          ],
+          "vram_mb": 30112,
+          "shared_mb": 2461,
+          "ram_private_mb": 4816,
+          "ram_working_mb": 5110,
+          "others_mb": 85,
+          "error": null
+        }
+      }
+    },
+    {
+      "id": "walk-qwen2511",
+      "what": "Walk cycle, four frames facing the camera, Qwen-Image-Edit 2511",
+      "makes": "Walk cycles and other animation",
+      "engine": "edit:qwen2511",
+      "default": false,
+      "listed": true,
+      "runs": {
+        "24": {
+          "status": "error",
+          "seconds": 528,
+          "step_seconds": [
+            527,
+            0
+          ],
+          "vram_mb": 22874,
+          "shared_mb": 2744,
+          "ram_private_mb": 8431,
+          "ram_working_mb": 2500,
+          "others_mb": 8,
+          "error": "Qwen-Image-Edit 2511 + Lightning could not draw it: the picture took more than 420 s, so it was stopped."
+        },
+        "32": {
+          "status": "done",
+          "seconds": 135,
+          "step_seconds": [
+            128,
+            5
+          ],
+          "vram_mb": 31040,
+          "shared_mb": 1915,
+          "ram_private_mb": 5792,
+          "ram_working_mb": 4395,
+          "others_mb": 85,
+          "error": null
+        }
+      }
+    },
+    {
+      "id": "3d-hunyuan21",
+      "what": "3D model, Hunyuan3D 2.1",
+      "makes": "3D models with Hunyuan3D 2.1",
+      "engine": "3d:hunyuan21",
+      "default": false,
+      "listed": true,
+      "needs": [
+        "sprite-qwen2511"
+      ],
+      "runs": {
+        "32": {
+          "status": "done",
+          "seconds": 48,
+          "step_seconds": [
+            47
+          ],
+          "vram_mb": 8358,
+          "shared_mb": 273,
+          "ram_private_mb": 9414,
+          "ram_working_mb": 7656,
+          "others_mb": 85,
+          "error": null
+        }
+      }
+    },
+    {
+      "id": "3d-trellis2",
+      "what": "3D model, Trellis2",
+      "makes": "3D models with Trellis2",
+      "engine": "3d:trellis2",
+      "default": false,
+      "listed": true,
+      "needs": [
+        "sheet-qwen2511"
+      ],
+      "runs": {
+        "16": {
+          "status": "error",
+          "seconds": 733,
+          "step_seconds": [
+            38,
+            225,
+            240,
+            225,
+            4
+          ],
+          "vram_mb": 16397,
+          "shared_mb": 4729,
+          "ram_private_mb": 8776,
+          "ram_working_mb": 4449,
+          "others_mb": 8,
+          "error": "ComfyUI failed in node 73 (Trellis2PreProcessImage): zero-size array to reduction operation minimum which has no identity"
+        },
+        "32": {
+          "status": "done",
+          "seconds": 229,
+          "step_seconds": [
+            228
+          ],
+          "vram_mb": 16949,
+          "shared_mb": 344,
+          "ram_private_mb": 18675,
+          "ram_working_mb": 12938,
+          "others_mb": 85,
+          "error": null
+        }
+      }
+    },
+    {
+      "id": "3d-pixal3d",
+      "what": "3D model, Pixal3D (medium)",
+      "makes": "3D models with Pixal3D",
+      "engine": "3d:pixal3d",
+      "default": false,
+      "listed": true,
+      "needs": [
+        "sheet-qwen2511"
+      ],
+      "runs": {
+        "32": {
+          "status": "done",
+          "seconds": 1320,
+          "step_seconds": [
+            1319
+          ],
+          "vram_mb": 11024,
+          "shared_mb": 569,
+          "ram_private_mb": 21483,
+          "ram_working_mb": 18371,
+          "others_mb": 291,
+          "error": null
+        }
+      }
+    }
+  ]
+}

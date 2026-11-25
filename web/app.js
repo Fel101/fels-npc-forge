@@ -92,10 +92,11 @@ function renderStatus() {
 }
 
 async function refreshHealth() {
-  const before = JSON.stringify(S.health?.engines_missing || {});
+  const seen = () => JSON.stringify([S.health?.engines_missing || {}, S.health?.your_pc || null]);
+  const before = seen();
   try { S.health = await api('GET', '/api/health'); } catch (e) { S.health = { online: false, error: e.message }; }
   renderStatus();
-  if (JSON.stringify(S.health.engines_missing || {}) !== before) rerenderSettings();      // Models & options greys out what is not installed
+  if (seen() !== before) rerenderSettings();      // Models & options greys out what is not installed, and shows Your PC
 }
 
 const gpuTime = new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit' });
@@ -139,6 +140,35 @@ async function refreshGpuLight() {
   catch { gpuRule = null; }
   finally { gpuRefreshing = false; }
   renderGpuLight(gpuRule);
+}
+
+/** Your PC (npcgen/hardware.py, docs/hardware.md): the tier of the card ComfyUI draws on, what it makes and the engines it
+ * starts with. A new page starts with them; "Use these models" sets them on a page that chose others. */
+function yourPcBox() {
+  const pc = S.health?.your_pc;
+  if (!pc) return null;
+  const o = S.recipe.options, eng = S.cfg.engines || {};
+  const label = (kind, id) => ((eng[kind] || []).find(e => e.id === id)?.label || id).replace(/\s*\(.*\)$/, '');
+  const card = [pc.device?.replace(/^cuda:\d+\s*/, '').replace(/\s*:\s*\w+$/, ''), pc.total_mb ? `${Math.round(pc.total_mb / 1024)} GB` : null]
+    .filter(Boolean).join(', ');
+  const tierWords = { 16: 'about 16 GB', 24: 'about 24 GB', 32: '32 GB' };
+  const headline = !pc.tier ? 'Start ComfyUI to see which pictures this PC can make. Everything listed below works without it.'
+    : pc.tier === 'none' ? `${card || 'This graphics card'}: too small for pictures, which need a card of about 16 GB. Everything listed below works without one.`
+    : `${card}: the ${tierWords[pc.tier]} tier.`;
+  const chosen = pc.defaults || {};
+  const names = [chosen.image_model && label('image', chosen.image_model), chosen.edit_model && label('edit', chosen.edit_model)].filter(Boolean);
+  const differs = Object.entries(chosen).some(([key, value]) => o[key] !== value);
+  const use = differs ? btn('Use these models', '', () => { Object.assign(o, chosen); saveRecipe(); rerenderSettings(); toast(`Pictures now use ${names.join(' and ')}.`, 'ok'); }, { cls: 'small' }) : null;
+  return h('section', { class: 'your-pc', 'aria-labelledby': 'yourPcTitle' },
+    h('h5', { id: 'yourPcTitle' }, 'Your PC'),
+    h('p', {}, headline),
+    h('details', {}, h('summary', {}, 'What it makes'), h('ul', {}, (pc.makes || []).map(item => h('li', {}, item)),
+      (pc.slow || []).map(item => h('li', {}, `${item.what}, slowly: about ${item.times} times as long as on a 32 GB card`))),
+      pc.tier === '16' || pc.tier === '24' ? h('p', { class: 'hint' }, 'Measured on a 32 GB card made to look smaller, so a real card of that size may do better. docs/hardware.md has the table.') : null),
+    names.length ? h('p', {}, `Best models for it: ${names.join(' and ')}. `, differs ? use : h('span', { class: 'hint' }, 'In use.')) : null,
+    chosen.image_model === 'zimage' ? h('p', { class: 'hint' }, 'Z-Image Turbo pulls toward famous characters: check that its pictures look like yours.') : null,
+    pc.needs_switch === true ? h('p', { class: 'hint' }, `${pc.need_engine ? label(...pc.need_engine.split(':')) : 'A picture'} needs ${pc.whole_card ? 'the whole card' : `about ${Math.round(pc.need_mb / 1024)} GB of this card`} to run at its usual speed: keep One model at a time on if Voice Lab or a chat model run beside NPC Forge.`)
+      : pc.needs_switch === false ? h('p', { class: 'hint' }, 'This card has room for a voice and a chat model beside the pictures: One model at a time can be off.') : null);
 }
 
 /** One model at a time (contract 8): the same switch on the Models card and in the GPU light's popup. Saved in config.json. */
@@ -433,6 +463,7 @@ function modelsSection() {
     v => { o.three_d_hunyuan_detail = v; saveRecipe(); rerenderSettings(); }, undefined, { 'aria-label': 'Hunyuan3D detail' }),
   selectedHunyuanDetail?.summary || '') : null;
   return h('div', { class: 'stack' },
+    yourPcBox(),
     oneModelSwitch(),
     picker('image', 'image_model', 'Image model'),
     picker('edit', 'edit_model', 'Edit model'),

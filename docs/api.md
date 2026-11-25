@@ -45,7 +45,9 @@ else's. Only pictures are affected: work in Voice Lab and Altera shares the GPU 
 ## Changes
 
 - **API 49.** One model at a time is a switch: `PUT /api/gpu/settings`, and `GET /api/gpu`'s `one_model_at_a_time`,
-  `alone` and `switch_applies`. A job's step note says what it unloaded to make room.
+  `alone` and `switch_applies`. A job's step note says what it unloaded to make room. `GET /api/health` adds
+  `vram_total_mb` and `your_pc`: the tier of ComfyUI's card, what it makes and the engines it starts with, which a request
+  that names no engine now gets (docs/hardware.md).
 - **API 48.** Saved characters export as PNG and CHARX, with a consent-aware Voice Lab file and Altera inbox handoff.
 - **API 47.** Voice Lab provides new speech through `GET /api/voice/lab` and the character's `/voice/lab` routes.
   Forge's local speech workers, model discovery and Drama studio routes are retired. Old voice records and packs remain readable.
@@ -61,7 +63,7 @@ else's. Only pictures are affected: work in Voice Lab and Altera shares the GPU 
 
 | Method | Path | What it does |
 |---|---|---|
-| `GET` | `/api/health` | Whether ComfyUI answers, which model files and nodes each feature lacks, the GPU and the voice engines. |
+| `GET` | `/api/health` | Whether ComfyUI answers, which model files and nodes each feature lacks, the GPU, its tier (`your_pc`) and the voice engines. |
 | `GET` | `/api/config` | Everything the page needs to draw itself: settings, styles, engines, qualities, licences, defaults, `version`. |
 | `GET` | `/api/choices` | What each character-sheet field can be in a setting, for the Advanced options popup (roll.field_choices). |
 | `POST` | `/api/manner` | Suggest how a character talks and comes across, from their traits: {setting, traits: [...]} -> {speech, demeanor}. |

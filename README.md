@@ -3,8 +3,9 @@
 A local character generator for games. Roll a character, describe one in a sentence, or import a cast list, and NPC Forge
 makes a data sheet with a personality, a portrait, expressions, a transparent full-body sprite, **walk cycles ready for your
 engine**, a **model sheet** (a turnaround for 3D work), a **rigged 3D model**, items for them to hold and wear, and (experimental)
-a voice. Everything is drawn by models running in your own ComfyUI. There is no cloud and nothing to train: a web app and a
-command line on your own PC.
+a voice. The characters, their personalities and their dialogue need no graphics card; the pictures, animation and 3D
+models are drawn by models running in your own ComfyUI. There is no cloud and nothing to train: a web app and a command
+line on your own PC.
 
 ![The Create page: settings, who, art style and what to make](docs/images/create.png)
 
@@ -27,13 +28,23 @@ checked on fewer characters than the rest; see [Status](#status-what-has-and-has
 
 ## What you need
 
-- **A GPU with about 32 GB of VRAM and 64 GB of RAM** for the default picture engines (Qwen-Image 2512 and Qwen-Image-Edit 2511,
-  Apache-2.0): a picture needs about 29 GB of free VRAM and 30 GB of free RAM. It was built and tested on an AMD Radeon AI PRO
-  R9700 (32 GB) under Windows 11 with ROCm. Smaller cards can use the lighter built-in **Mage-Flow** engine instead (see
-  [Models](#models-which-engine-draws-and-which-one-edits)), but read its licence note first: Microsoft released it for research.
-- **[ComfyUI](https://github.com/comfyanonymous/ComfyUI) 0.36 or newer**, running at `http://127.0.0.1:8188`, with the model files
-  listed under [Requirements](#requirements).
-- **Python 3.10 or newer**.
+- **Python 3.10 or newer**, and nothing else, for characters with their personalities and backstories, dialogue packs
+  (JSON, Ink, Yarn Spinner), cast packs, scene scripts and the MCP server for AI agents. No graphics card.
+- **For pictures, animation and 3D: a graphics card and [ComfyUI](https://github.com/comfyanonymous/ComfyUI) 0.36 or
+  newer** at `http://127.0.0.1:8188`, with the model files listed under [Requirements](#requirements). What a card makes
+  depends on its memory:
+  - **About 16 GB:** portraits with Z-Image Turbo, full-body sprites and 3D models with Hunyuan3D 2.1; expressions
+    slowly (about 7 times as long).
+  - **About 24 GB:** the same, and portraits with Qwen-Image 2512.
+  - **32 GB:** everything, with the default Qwen-Image 2512 and Qwen-Image-Edit 2511 (Apache-2.0): model sheets, walk
+    cycles and other animation, and 3D models with Trellis2 and Pixal3D too.
+
+  The **Your PC** box on the Models card says which one yours is, and a new page starts with its models; you can still
+  pick any. This was measured on an AMD Radeon AI PRO R9700 (32 GB) under Windows 11 with ROCm, with the smaller cards
+  made by holding part of it, which is cautious: [docs/hardware.md](docs/hardware.md) has the table. ComfyUI used up to
+  12 GB of the PC's own memory for a picture and 21 GB for a 3D model; that PC has 64 GB. The built-in **Mage-Flow**
+  engine runs on 16 GB at its usual speed (see [Models](#models-which-engine-draws-and-which-one-edits)), but read its
+  licence note first: Microsoft released it for research.
 - Optional: **Blender 5** (skeletons, clean-up and game models), **FFmpeg** (scene videos), **Godot 4** (to try the exports).
 
 ## Quick start
@@ -66,7 +77,9 @@ says the same on the command line. The rest of this README is the reference.
 ## Requirements
 
 - A running ComfyUI (0.36 or newer) at `http://127.0.0.1:8188`.
-- The files of the default engines, Qwen-Image 2512 and Qwen-Image-Edit 2511 with their 4-step Lightning LoRAs (about 30 GB of RAM and 29 GB of free VRAM while a picture is drawn): `diffusion_models/qwen_image_2512_fp8_e4m3fn.safetensors`, `diffusion_models/Qwen-Image-Edit-2511-FP8_e4m3fn.safetensors`, `text_encoders/qwen_2.5_vl_7b_fp8_scaled.safetensors`, `vae/qwen_image_vae.safetensors`, `loras/Qwen-Image-Lightning-4steps-V2.0.safetensors` and `loras/Qwen-Image-Edit-2511-Lightning-4steps-V1.0-bf16.safetensors`. Without them a picture fails and names what is missing; to use the lighter Mage-Flow instead, set `"options": {"image_model": "mage", "edit_model": "mage", "engine_fallback": true}` in `config.json` (or pick it in Models).
+- The files of the default engines, Qwen-Image 2512 and Qwen-Image-Edit 2511 with their 4-step Lightning LoRAs (what they need on each size of card: [docs/hardware.md](docs/hardware.md)): `diffusion_models/qwen_image_2512_fp8_e4m3fn.safetensors`, `diffusion_models/Qwen-Image-Edit-2511-FP8_e4m3fn.safetensors`, `text_encoders/qwen_2.5_vl_7b_fp8_scaled.safetensors`, `vae/qwen_image_vae.safetensors`, `loras/Qwen-Image-Lightning-4steps-V2.0.safetensors` and `loras/Qwen-Image-Edit-2511-Lightning-4steps-V1.0-bf16.safetensors`. Without them a picture fails and names what is missing; to use the lighter Mage-Flow instead, set `"options": {"image_model": "mage", "edit_model": "mage", "engine_fallback": true}` in `config.json` (or pick it in Models).
+- For a 16 GB card, Z-Image Turbo ([Tongyi-MAI/Z-Image-Turbo](https://huggingface.co/Tongyi-MAI/Z-Image-Turbo), Apache-2.0, as ComfyUI packages it):
+  `diffusion_models/z_image_turbo_bf16.safetensors`, `text_encoders/qwen_3_4b.safetensors`, `vae/ae.safetensors`.
 - Optional, the built-in Mage-Flow engine: these files in ComfyUI (from [Comfy-Org/Mage-Flow](https://huggingface.co/Comfy-Org/Mage-Flow)):
   `diffusion_models/mage_flow_int8_convrot.safetensors`, `diffusion_models/mage_flow_edit_int8_convrot.safetensors`,
   `text_encoders/qwen3vl_4b_bf16.safetensors`, `vae/mage_flow_vae_bf16.safetensors`.
@@ -267,14 +280,21 @@ See [Voices](docs/voices.md) for setup, older recordings, pronunciation and effe
 
 ### One model on the GPU at a time
 
-With `gpu.one_model_at_a_time` on, Forge asks other local suite apps and local chat
-servers to unload before a picture. Forge then takes the suite GPU lock and checks
-ComfyUI and Windows per-process memory before loading the model. The queue shows
-what is holding the GPU while you wait, and you can cancel. The header GPU light
-shows who holds the lock.
+**One model at a time** is a switch on the Models card (Models & options) and in the
+header GPU light's popup, on by default. Before NPC Forge makes a picture, it asks
+Voice Lab, Altera, LM Studio and Ollama to unload their models, and they wait until
+it is done: slower, but it needs the least memory. Forge then takes the suite GPU
+lock alone and checks ComfyUI and Windows' per-process memory before loading the
+model. While an app is busy the queue says which and what ("Waiting for Voice Lab:
+speaking a scene, 12 of 40 lines"), and you can cancel. The first time Forge unloads
+another app's model, the job says so. Only pictures are affected: Voice Lab and a
+chat in Altera share the GPU either way. The header GPU light shows who holds the
+lock ("NPC Forge, alone: pictures").
 
-Set `gpu.one_model_at_a_time` to `false` in `config.json` to share the GPU.
-If a picture needs more memory while Voice Lab is using it, the queue offers
+Turn it off if your card has room for everything at once; the Models card's **Your
+PC** box says whether yours is likely to need it ([hardware.md](docs/hardware.md)).
+The switch is saved as `gpu.one_model_at_a_time` in `config.json`, and a change
+applies from the next job. With it off, if a picture needs more memory while Voice Lab is using it, the queue offers
 **Ask Voice Lab to free the GPU**. Forge frees its ComfyUI models after the queue
 has been idle for `gpu.unload_idle_seconds` (120 by default) or before it sends
 speech to Voice Lab.

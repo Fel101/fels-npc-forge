@@ -294,10 +294,15 @@ class Comfy:
             if self.models[key] not in have:
                 missing.append(f"{folder}/{self.models[key]}")
         devices = stats.get("devices") or [{}]
+        try:
+            total = int(devices[0].get("vram_total") or 0) // 2 ** 20 if devices[0].get("type") != "cpu" else 0
+        except (TypeError, ValueError):
+            total = 0
         return {
             "online": True,
             "version": stats.get("system", {}).get("comfyui_version"),
             "gpu": devices[0].get("name"),
+            "vram_total_mb": total or None,                 # the card ComfyUI draws on (None: on the CPU, or not said)
             "missing": missing,
         }
 

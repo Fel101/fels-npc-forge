@@ -83,6 +83,12 @@ a.tab { text-decoration: none; display: inline-block; }
   padding: 12px 14px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--panel); box-shadow: var(--shadow); overflow-wrap: anywhere; }
 .gpu-details p { margin: 0; }
 .gpu-details p + p { margin-top: 8px; }
+.gpu-details .one-model { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border); white-space: normal; }
+.your-pc { padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius); background: color-mix(in srgb, var(--accent) 6%, var(--panel)); }
+.your-pc h5 { margin: 0 0 4px; font-size: 13px; }
+.your-pc p { margin: 4px 0 0; }
+.your-pc ul { margin: 4px 0 0; padding-left: 20px; }
+.your-pc summary { cursor: pointer; margin-top: 4px; }
 .banner { padding: 10px 20px; background: color-mix(in srgb, var(--danger) 14%, var(--panel)); border-bottom: 1px solid var(--border); color: var(--text); }
 .banner.warn { background: color-mix(in srgb, var(--warn) 16%, var(--panel)); }
 

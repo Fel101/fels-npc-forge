@@ -10,6 +10,7 @@ from . import anim as animation
 from . import bodymaker
 from . import cleanup3d
 from . import engines
+from . import hardware
 from . import head3d
 from . import import3d
 from . import living
@@ -214,8 +215,10 @@ def clean_photo(raw):
 def default_options(cfg):
     """The options a request that does not name them gets: the built-in ones, with whatever config.json's "options" section sets
     over them. A PC that has not the Qwen models, or wants the built-in Mage-Flow back, names its engines there once, instead of in every
-    request (the built-in defaults are Qwen-Image 2512 and Qwen-Image-Edit 2511 with no quiet Mage-Flow fallback: Mage-Flow's licence is unclear)."""
+    request (the built-in defaults are Qwen-Image 2512 and Qwen-Image-Edit 2511 with no quiet Mage-Flow fallback: Mage-Flow's licence is unclear).
+    Between the two come the engines the tier of ComfyUI's card starts with (npcgen/hardware.py: Z-Image Turbo on 16 GB)."""
     options = dict(DEFAULT_OPTIONS)
+    options.update(hardware.default_engines())
     for key, value in ((cfg or {}).get("options") or {}).items():
         if key in options:
             options[key] = value
