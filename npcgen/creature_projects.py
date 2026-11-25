@@ -11,10 +11,11 @@ and from then on the Projects panel edits the copy. A creature belongs to the pr
 import copy
 import datetime
 import json
-import os
 import re
 import threading
 from pathlib import Path
+
+from . import atomic
 
 DEFAULT_PATH = Path(__file__).resolve().parent.parent / "data" / "projects.json"
 LIVE_FILE = ".npcforge-projects.json"                 # beside the creature store, in the library folder
@@ -118,12 +119,12 @@ class ProjectRegistry:
     def _load(self):
         if not self.path.exists():                        # the first time: the default list becomes the library's own
             self._save(json.loads(DEFAULT_PATH.read_text("utf-8"))["projects"])
-        return json.loads(self.path.read_text("utf-8"))["projects"]
+        return json.loads(atomic.read_text(self.path))["projects"]
 
     def _save(self, projects):
         tmp = self.path.with_suffix(".tmp")
         tmp.write_text(json.dumps({"schema": SCHEMA, "projects": projects}, indent=2, ensure_ascii=False) + "\n", "utf-8")
-        os.replace(tmp, self.path)
+        atomic.replace(tmp, self.path)
 
     def list(self):
         with self.lock:

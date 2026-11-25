@@ -3,7 +3,6 @@ import copy
 import hashlib
 import json
 import math
-import os
 import re
 import secrets
 import shutil
@@ -14,7 +13,7 @@ from .voice import authoring as voice_authoring, describe as voice_describe, eng
 from .voice.record import line_is_stale
 from .voice import alignment as voice_alignment, effects as voice_effects, character_rig
 from .voice import mesh_rig
-from . import scene_schema
+from . import atomic, scene_schema
 
 SCENE_ID = re.compile(r"^scene-[a-f0-9]{10}$")
 BEAT_ID = re.compile(r"^[a-z0-9][a-z0-9_-]{1,40}$")
@@ -238,14 +237,14 @@ class Scenes:
         path = self.resolve(scene_id, "scene.json")
         if not path.is_file():
             raise KeyError(scene_id)
-        return json.loads(path.read_text("utf-8"))
+        return json.loads(atomic.read_text(path))
 
     def list(self):
         with self.lock:
             scenes = []
             for path in self.root.glob("scene-*/scene.json"):
                 try:
-                    scenes.append(json.loads(path.read_text("utf-8")))
+                    scenes.append(json.loads(atomic.read_text(path)))
                 except (OSError, ValueError, TypeError):
                     continue
             return sorted(scenes, key=lambda s: s.get("updated", ""), reverse=True)
@@ -255,7 +254,7 @@ class Scenes:
         path.parent.mkdir(parents=True, exist_ok=True)
         tmp = path.with_suffix(".tmp")
         tmp.write_text(json.dumps(scene, indent=2, ensure_ascii=False), "utf-8")
-        os.replace(tmp, path)
+        atomic.replace(tmp, path)
 
     def create(self, raw):
         with self.lock:
@@ -330,7 +329,7 @@ class Scenes:
         path.parent.mkdir(parents=True, exist_ok=True)
         tmp = path.with_suffix(".tmp")
         tmp.write_bytes(data)
-        os.replace(tmp, path)
+        atomic.replace(tmp, path)
 
     def write_audio(self, scene_id, rel, wav):
         self.write_media(scene_id, rel, wav)

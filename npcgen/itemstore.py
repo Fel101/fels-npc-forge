@@ -19,7 +19,7 @@ import zipfile
 from PIL import Image
 
 from . import equip, facefit, facescan, glbmerge, itemposter, items
-from . import licences, media
+from . import atomic, licences, media
 from .library import ID_RE, now
 
 PROMPT_FIELDS = ("family", "kind", "description", "setting", "look")      # what the pictures are drawn from
@@ -71,7 +71,7 @@ class ItemStore:
                 if not path.exists():
                     continue
                 try:
-                    item = json.loads(path.read_text("utf-8"))
+                    item = json.loads(atomic.read_text(path))
                     fresh[item["id"]] = self.summary(item)
                 except (KeyError, ValueError, TypeError, AttributeError, UnicodeError, OSError):
                     continue
@@ -119,7 +119,7 @@ class ItemStore:
         path = self._dir(item_id) / "item.json"
         if not path.exists():
             raise KeyError(item_id)
-        return json.loads(path.read_text("utf-8"))
+        return json.loads(atomic.read_text(path))
 
     def save(self, item):
         with self.lock:
@@ -139,7 +139,7 @@ class ItemStore:
         path = self._dir(item["id"]) / "item.json"
         tmp = path.with_suffix(".tmp")
         tmp.write_text(json.dumps(item, indent=2, ensure_ascii=False), "utf-8")
-        os.replace(tmp, path)
+        atomic.replace(tmp, path)
 
     def delete(self, item_id):
         with self.lock:
@@ -433,11 +433,11 @@ class ItemStore:
         path.parent.mkdir(parents=True, exist_ok=True)
         tmp = path.with_name(path.name + ".tmp")
         tmp.write_bytes(data)
-        os.replace(tmp, path)
+        atomic.replace(tmp, path)
         return rel
 
     def read_asset(self, item_id, rel):
-        return self.resolve(item_id, rel).read_bytes()
+        return atomic.read_bytes(self.resolve(item_id, rel))
 
     def delete_asset(self, item_id, kind):
         """Remove the main picture, the four views, the high-angle views or the 3D model with its files. What was made from it is marked out of date."""

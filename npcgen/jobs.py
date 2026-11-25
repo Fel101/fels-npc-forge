@@ -4,7 +4,6 @@ import copy
 import heapq
 import io
 import json
-import os
 import pathlib
 import queue
 import random
@@ -19,7 +18,7 @@ import uuid
 from PIL import Image
 
 from . import best3d, bodymaker, check3d, cleanup3d, creatures, creaturemaker, engines, eyes, eyesoft, glassesoff, gpu, hairmask, hands3d, head3d, headdetail, headgraft, import3d, itemmaker, items, living, morphology, posekeys, prompts, rig3d, roll, scene_background, scene_voice, three_d
-from . import licences, media
+from . import atomic, licences, media
 from .anim import Animator, generated_directions
 from .voice import steps as voice_steps
 from .comfy import Cancelled, ComfyError
@@ -393,7 +392,7 @@ class Jobs:
 
     def _restore(self):
         try:
-            records = json.loads(self.state_path.read_text("utf-8"))
+            records = json.loads(atomic.read_text(self.state_path))
         except FileNotFoundError:
             return
         except (OSError, ValueError, TypeError) as exc:
@@ -442,7 +441,7 @@ class Jobs:
             try:
                 self.state_path.parent.mkdir(parents=True, exist_ok=True)
                 tmp.write_text(json.dumps(rows, indent=2, ensure_ascii=False), "utf-8")
-                os.replace(tmp, self.state_path)
+                atomic.replace(tmp, self.state_path)
             except (OSError, TypeError, ValueError):
                 traceback.print_exc()
 

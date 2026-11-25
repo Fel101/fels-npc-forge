@@ -3,7 +3,6 @@ import copy
 import datetime
 import io
 import json
-import os
 import re
 import secrets
 import shutil
@@ -14,7 +13,7 @@ import zipfile
 
 from PIL import Image
 
-from . import licences, media
+from . import atomic, licences, media
 
 ID_RE = re.compile(r"^[a-z0-9][a-z0-9\-]{1,80}$")
 TRASH = ".trash"          # where a deleted character waits, inside the library folder (not an NPC folder: it has no npc.json)
@@ -210,7 +209,7 @@ class Library:
                 if not path.exists():
                     continue
                 try:
-                    npc = json.loads(path.read_text("utf-8"))
+                    npc = json.loads(atomic.read_text(path))
                     fresh[npc["id"]] = self._summary(npc)
                 except (KeyError, ValueError, TypeError, AttributeError, UnicodeError, OSError):
                     continue
@@ -257,7 +256,7 @@ class Library:
         path = self._dir(npc_id) / "npc.json"
         if not path.exists():
             raise KeyError(npc_id)
-        return json.loads(path.read_text("utf-8"))
+        return json.loads(atomic.read_text(path))
 
     def save(self, npc):
         with self.lock:
@@ -277,7 +276,7 @@ class Library:
         path = self._dir(npc["id"]) / "npc.json"
         tmp = path.with_suffix(".tmp")
         tmp.write_text(json.dumps(npc, indent=2, ensure_ascii=False), "utf-8")
-        os.replace(tmp, path)
+        atomic.replace(tmp, path)
 
     def delete(self, npc_id, trash=True):
         """Move a character into the library's trash (`.trash/<id>--<time>`): `restore` brings it back, `purge_trash` removes
@@ -298,7 +297,7 @@ class Library:
             target, n = trash / f"{npc_id}--{stamp}", 1
             while target.exists():
                 target, n = trash / f"{npc_id}--{stamp}-{n}", n + 1
-            os.replace(source, target)
+            atomic.replace(source, target)
             self._index.pop(npc_id, None)
             self._ordered = None
 
@@ -306,7 +305,7 @@ class Library:
     def _trash_row(folder):
         npc_id, _, stamp = folder.name.partition("--")
         try:
-            npc = json.loads((folder / "npc.json").read_text("utf-8"))
+            npc = json.loads(atomic.read_text(folder / "npc.json"))
             when = datetime.datetime.strptime(stamp[:15], "%Y%m%d-%H%M%S")
         except (OSError, ValueError, TypeError, UnicodeError):
             return None
@@ -356,7 +355,7 @@ class Library:
             target = self._dir(npc_id)
             if target.exists():
                 raise ValueError(f"There is already a character with the id {npc_id}")
-            os.replace(self.root / TRASH / copies[0]["folder"], target)
+            atomic.replace(self.root / TRASH / copies[0]["folder"], target)
             self._trash_rows.pop(copies[0]["folder"], None)
             self._index_npc(self.get(npc_id))
             return copy.deepcopy(self._index[npc_id])
@@ -406,11 +405,11 @@ class Library:
         path.parent.mkdir(parents=True, exist_ok=True)
         tmp = path.with_name(path.name + ".tmp")
         tmp.write_bytes(data)
-        os.replace(tmp, path)
+        atomic.replace(tmp, path)
         return rel
 
     def read_asset(self, npc_id, rel):
-        return self.resolve(npc_id, rel).read_bytes()
+        return atomic.read_bytes(self.resolve(npc_id, rel))
 
     def remove_asset_files(self, npc_id, meta):
         for rel in (meta.get("file"), meta.get("raw"), meta.get("preview")):

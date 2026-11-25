@@ -28,7 +28,7 @@ import threading
 import time
 from pathlib import Path
 
-from . import creature_projects, licences, media
+from . import atomic, creature_projects, licences, media
 from .library import ID_RE, now
 
 BRIEFS_DIR = Path(__file__).resolve().parent.parent / "data" / "briefs"     # one file per game: data/briefs/<project>.json (the examples)
@@ -71,7 +71,7 @@ def load_briefs(project=None):
     briefs = []
     for path in files:
         if path.exists():
-            briefs.extend(json.loads(path.read_text("utf-8")))
+            briefs.extend(json.loads(atomic.read_text(path)))
     for brief in briefs:
         brief["rig_intent"] = brief.pop("rigged", None)
         brief["rigged"] = brief.get("body_plan") in RIG_BUILT
@@ -280,7 +280,7 @@ class CreatureStore:
         path.parent.mkdir(parents=True, exist_ok=True)
         tmp = path.with_suffix(path.suffix + ".tmp")
         tmp.write_bytes(data if isinstance(data, bytes) else data.encode("utf-8"))
-        os.replace(tmp, path)
+        atomic.replace(tmp, path)
         return path
 
     def read_file(self, creature_id, rel):
@@ -312,7 +312,7 @@ class CreatureStore:
         path = self._dir(creature_id) / "creature.json"
         if not path.exists():
             raise KeyError(creature_id)
-        creature = json.loads(path.read_text("utf-8"))
+        creature = json.loads(atomic.read_text(path))
         creature["_on_disk"] = self._on_disk(creature_id)
         creature.setdefault("concept_approved", creature["_on_disk"]["concept"])    # a record from before approval keeps its picture
         if not creature.get("tris"):                        # a record from before the game budgets takes its game's budget
@@ -423,7 +423,7 @@ class CreatureStore:
                 if not path.exists():
                     continue
                 try:
-                    out.append(self.summary(json.loads(path.read_text("utf-8"))))
+                    out.append(self.summary(json.loads(atomic.read_text(path))))
                 except (KeyError, ValueError, TypeError, OSError):
                     continue
             if project is not None:
@@ -491,7 +491,7 @@ class CreatureStore:
         path = self._dir(creature["id"]) / "creature.json"
         tmp = path.with_suffix(".tmp")
         tmp.write_text(json.dumps(creature, indent=2, ensure_ascii=False), "utf-8")
-        os.replace(tmp, path)
+        atomic.replace(tmp, path)
 
     def delete(self, creature_id):
         with self.lock:
@@ -512,7 +512,7 @@ class CreatureStore:
             for folder in self.root.iterdir():
                 path = folder / "creature.json"
                 try:
-                    creature = json.loads(path.read_text("utf-8"))
+                    creature = json.loads(atomic.read_text(path))
                 except (OSError, ValueError):
                     continue
                 wanted = project_of.get(creature.get("key"))

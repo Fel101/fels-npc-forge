@@ -28,6 +28,7 @@ import zipfile
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import npcgen
+from npcgen import atomic
 from npcgen import config as cfgmod
 from npcgen import character_card, comfy_setup, fels_suite
 from npcgen import suite_gpu
@@ -763,7 +764,7 @@ def trash_thumb(q, body, folder):
     except KeyError:
         raise ApiError(404, "Not found") from None
     stat = path.stat()
-    return Raw(path.read_bytes(), "image/png", {"Cache-Control": "no-cache"}, etag=f'"{stat.st_mtime_ns:x}-{stat.st_size:x}"')
+    return Raw(atomic.read_bytes(path), "image/png", {"Cache-Control": "no-cache"}, etag=f'"{stat.st_mtime_ns:x}-{stat.st_size:x}"')
 
 
 @route("DELETE", f"/api/trash/{TRASH_FOLDER}")
@@ -941,7 +942,7 @@ def scene_file(q, body, scene_id, rel):
     path = current_app().scenes.resolve(scene_id, rel)
     if not path.is_file():
         raise ApiError(404, "Scene video not found")
-    return Raw(path.read_bytes(), "video/mp4", {"Cache-Control": "no-cache"})
+    return Raw(atomic.read_bytes(path), "video/mp4", {"Cache-Control": "no-cache"})
 
 
 @route("GET", "/api/scenes/([a-z0-9-]+)/files/(audio/[a-z0-9_-]+-[a-f0-9]{10}\\.wav)")
@@ -949,7 +950,7 @@ def scene_audio_file(q, body, scene_id, rel):
     path = current_app().scenes.resolve(scene_id, rel)
     if not path.is_file():
         raise ApiError(404, "Scene audio not found")
-    return Raw(path.read_bytes(), "audio/wav", {"Cache-Control": "no-cache"})
+    return Raw(atomic.read_bytes(path), "audio/wav", {"Cache-Control": "no-cache"})
 
 
 @route("GET", "/api/scenes/([a-z0-9-]+)/files/(background/[a-f0-9]{10}\\.png)")
@@ -960,7 +961,7 @@ def scene_background_file(q, body, scene_id, rel):
     path = current_app().scenes.resolve(scene_id, rel)
     if not path.is_file():
         raise ApiError(404, "Scene background not found")
-    return Raw(path.read_bytes(), "image/png", {"Cache-Control": "no-cache"})
+    return Raw(atomic.read_bytes(path), "image/png", {"Cache-Control": "no-cache"})
 
 
 @route('GET', r'/api/scenes/([a-z0-9-]+)/files/((?:media/[a-f0-9]{64}\.wav|props/[a-f0-9]{64}\.glb))')
@@ -970,7 +971,7 @@ def scene_studio_media_file(q, body, scene_id, rel):
     meta = next((row for row in manifest if row.get('file') == rel), None)
     if not meta:
         raise ApiError(404, 'Scene media not found')
-    data = scenes.resolve(scene_id, rel).read_bytes()
+    data = atomic.read_bytes(scenes.resolve(scene_id, rel))
     if hashlib.sha256(data).hexdigest() != meta.get('sha256'):
         raise ApiError(409, 'Scene media changed; review it before use')
     return Raw(data, 'audio/wav' if rel.endswith('.wav') else 'model/gltf-binary', {'Cache-Control': 'no-cache'})
@@ -1729,7 +1730,7 @@ def npc_file(q, body, npc_id, rel):
         raise ApiError(404, "Not found")
     stat = path.stat()
     ctype = FILE_TYPES[path.suffix.lower()]
-    return Raw(path.read_bytes(), ctype, {"Cache-Control": "no-cache"}, etag=f'"{stat.st_mtime_ns:x}-{stat.st_size:x}"')
+    return Raw(atomic.read_bytes(path), ctype, {"Cache-Control": "no-cache"}, etag=f'"{stat.st_mtime_ns:x}-{stat.st_size:x}"')
 
 
 # ---- creatures (the Creatures tab; npcgen/creatures.py keeps them, npcgen/creaturemaker.py makes them) -----------------------------
@@ -1899,7 +1900,7 @@ def creature_file(q, body, creature_id, rel):
         raise ApiError(404, "Not found")
     stat = path.stat()
     kind = FILE_TYPES.get(suffix, "text/plain; charset=utf-8")
-    return Raw(path.read_bytes(), kind, {"Cache-Control": "no-cache"}, etag=f'"{stat.st_mtime_ns:x}-{stat.st_size:x}"')
+    return Raw(atomic.read_bytes(path), kind, {"Cache-Control": "no-cache"}, etag=f'"{stat.st_mtime_ns:x}-{stat.st_size:x}"')
 
 
 @route("GET", "/api/creatures/([a-z0-9-]+)/pack\\.zip")
@@ -2419,7 +2420,7 @@ def item_file(q, body, item_id, rel):
     if not path.is_file() or path.suffix.lower() not in FILE_TYPES or path.name == "item.json":
         raise ApiError(404, "Not found")
     stat = path.stat()
-    return Raw(path.read_bytes(), FILE_TYPES[path.suffix.lower()], {"Cache-Control": "no-cache"},
+    return Raw(atomic.read_bytes(path), FILE_TYPES[path.suffix.lower()], {"Cache-Control": "no-cache"},
                etag=f'"{stat.st_mtime_ns:x}-{stat.st_size:x}"')
 
 

@@ -1,11 +1,11 @@
 """Persistent cast-pack manifests that group existing NPC library records."""
 import copy
 import json
-import os
 import re
 import secrets
 import threading
 
+from . import atomic
 from .library import now
 
 PACK_ID_RE = re.compile(r"^[a-z0-9][a-z0-9-]{1,80}$")
@@ -133,7 +133,7 @@ class CastPacks:
         self.lock = threading.RLock()
         self._packs = {}
         if self.path.exists():
-            data = json.loads(self.path.read_text("utf-8"))
+            data = json.loads(atomic.read_text(self.path))
             if not isinstance(data, list) or not all(isinstance(item, dict) for item in data):
                 raise ValueError(f"Invalid cast pack store: {self.path}")
             self._packs = {item["id"]: item for item in data if isinstance(item.get("id"), str)}
@@ -142,7 +142,7 @@ class CastPacks:
         self.path.parent.mkdir(parents=True, exist_ok=True)
         tmp = self.path.with_suffix(self.path.suffix + ".tmp")
         tmp.write_text(json.dumps(list(self._packs.values()), indent=2, ensure_ascii=False), "utf-8")
-        os.replace(tmp, self.path)
+        atomic.replace(tmp, self.path)
 
     def list(self):
         with self.lock:
