@@ -53,9 +53,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 /* ---- top bar ---- */
 .topbar { display: flex; align-items: center; gap: 24px; padding: 10px 20px; background: var(--panel); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 30; }
 .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 16px; letter-spacing: .2px; }
-.logo { width: 26px; height: 26px; border-radius: 8px; background: var(--accent); position: relative; overflow: hidden; }
-.logo::before { content: ""; position: absolute; left: 9px; top: 5px; width: 8px; height: 8px; border-radius: 50%; background: var(--accent-fg); }
-.logo::after { content: ""; position: absolute; left: 4px; top: 15px; width: 18px; height: 12px; border-radius: 9px 9px 0 0; background: var(--accent-fg); }
+.logo { width: 26px; height: 26px; flex: none; background: url(/icon.svg) center / contain no-repeat; }   /* Fel's Studio's icon for NPC Forge */
 .tabs { display: flex; min-width: 0; gap: 4px; overflow-x: auto; }
 .tab { border: 0; background: transparent; padding: 7px 14px; border-radius: 8px; color: var(--muted); cursor: pointer; font-weight: 600; white-space: nowrap; }
 .tab:focus-visible { outline-offset: -2px; }

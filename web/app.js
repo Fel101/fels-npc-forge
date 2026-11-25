@@ -38,8 +38,8 @@ const check = (name, checked, onchange, hint) =>
     h('span', {}, h('span', { class: 'name' }, name), hint && h('span', { class: 'hint', style: { display: 'block' } }, hint)));
 
 // ---------- shell: tabs, status, banner ------------------------------------------------------------------------
-// The newer tabs work, but have been checked on fewer characters than Create, Library and Items (README, Status).
-const experimental = (label = 'Experimental') => h('span', { class: 'tab-tag', title: 'This feature has been tested less than Create, Library and Items. See the README.' }, label);
+// The newer tabs work, but have been checked on fewer characters than Create, Library and Items (docs/status.md).
+const preview = () => h('span', { class: 'tab-tag', title: 'Preview: checked on fewer characters than Create, Library and Items. The documentation says what has been checked (Status).' }, 'Preview');
 function renderTabs() {
   $('#tabs').replaceChildren(
     h('button', { class: 'tab', 'aria-current': S.view === 'create' ? 'page' : null, onclick: () => { S.view = 'create'; render(); } }, 'Create'),
@@ -48,11 +48,11 @@ function renderTabs() {
     h('button', { class: 'tab', 'aria-current': S.view === 'items' ? 'page' : null,
       disabled: S.outdated, onclick: safe(() => itemController.openTab()) }, 'Items'),
     h('button', { class: 'tab', 'aria-current': S.view === 'creatures' ? 'page' : null,
-      disabled: S.outdated, onclick: safe(() => creatureController.openTab()) }, 'Creatures', experimental()),
+      disabled: S.outdated, onclick: safe(() => creatureController.openTab()) }, 'Creatures', preview()),
     h('button', { class: 'tab', 'aria-current': S.view === 'voices' ? 'page' : null,
-      disabled: S.outdated, onclick: safe(() => voiceWorkspace.openTab()) }, 'Voice Designer', experimental('Preview')),
+      disabled: S.outdated, onclick: safe(() => voiceWorkspace.openTab()) }, 'Voice Designer', preview()),
     h('button', { class: 'tab', 'aria-current': S.view === 'scenes' ? 'page' : null,
-      disabled: S.outdated, onclick: safe(() => sceneController.showList()) }, 'Scenes', experimental()),
+      disabled: S.outdated, onclick: safe(() => sceneController.showList()) }, 'Scenes', preview()),
     // pages added by local extensions (an older server has no `extensions` field: then there are none)
     ...(S.cfg.extensions || []).map(e => h('a', { class: 'tab', href: e.url }, e.label)));
 }
@@ -2149,7 +2149,7 @@ $('#aboutLicences').addEventListener('click', safe(async () => { $('#about').clo
 $('#settingsBtn').addEventListener('click', openSettings);
 $('#about').addEventListener('click', e => { if (e.target === e.currentTarget) e.currentTarget.close(); });     // a click on the backdrop
 
-// What a local extension's script may use (see "Local extensions" in the README). Defined before any of them load.
+// What a local extension's script may use (see docs/extensions.md and docs/customising.md). Defined before any of them load.
 window.NPCForge = {
   version: 1, reload: reloadConfig, toast, aboutFooter: () => $('#aboutFoot'),
   addBodyOptions(option) { bodyOptions.push(option); renderGallery(); },

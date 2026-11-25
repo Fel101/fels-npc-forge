@@ -63,6 +63,7 @@ WEB = cfgmod.ROOT / "web"
 # On Windows mimetypes reads the registry, which may not know these (the style samples, the 3D viewer's decoders).
 mimetypes.add_type("image/webp", ".webp")
 mimetypes.add_type("application/wasm", ".wasm")
+mimetypes.add_type("image/svg+xml", ".svg")
 
 # Bump when web/app.js starts needing something an older server does not provide; the page compares it with its own
 # REQUIRED_API and switches the newer features off (with a banner) instead of crashing. A test keeps the two in sync.
@@ -2786,7 +2787,7 @@ class Handler(BaseHTTPRequestHandler):
             if not path.startswith("/api/"):
                 if method != "GET":
                     raise ApiError(405, "Method not allowed")
-                if path == "/favicon.ico":                      # the page ships an inline icon; stop browsers asking for this one
+                if path == "/favicon.ico":                      # the page names its icon (/icon.svg); stop browsers asking for this one
                     return self._send(Raw(b"", "image/x-icon", status=204))
                 return self._send(static_response(path))
             for m, rx, fn in ROUTES:
