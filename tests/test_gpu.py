@@ -3,6 +3,7 @@ empty card, and the voice runtime and ComfyUI client both going through it."""
 import json
 import threading
 import os
+import time
 
 import pytest
 
@@ -217,8 +218,12 @@ def test_picture_residency_shares_or_waits_for_voice_lab(tmp_path, monkeypatch, 
         lab.release()
         return 200, {}
 
+    told = []
+    cancel.tell = told.append
     monkeypatch.setattr(suite_gpu, "unload_holder", unload)
-    monkeypatch.setattr(fels_suite, "unload_outside", lambda **kwargs: outside.append(kwargs))
+    monkeypatch.setattr(suite_gpu, "ASK_EVERY", 0.2)
+    monkeypatch.setattr(suite_gpu, "_TOLD", set())
+    monkeypatch.setattr(fels_suite, "unload_outside", lambda **kwargs: outside.append(kwargs) or [])
     try:
         with comfy.operation_lock:
             gate.claim_picture(comfy, {}, cancel)
@@ -226,7 +231,8 @@ def test_picture_residency_shares_or_waits_for_voice_lab(tmp_path, monkeypatch, 
             if exclusive:
                 assert holders == {"npc-forge": True}
                 assert len(contacts) == 2 and len(outside) == 1
-                assert any("Voice Lab is speaking a scene" in (message or "") for message in messages)
+                assert any("Waiting for Voice Lab: speaking a scene" in (message or "") for message in messages)
+                assert told == ["Unloaded Voice Lab's model to make room (One model at a time; the switch is on the Models card)."]
             else:
                 assert holders == {"npc-forge": False, "voice-lab": False}
                 assert not contacts and not outside
@@ -258,6 +264,90 @@ def test_cancel_during_busy_unload_clears_forge_intent(tmp_path, monkeypatch):
         assert lab.held
     finally:
         lab.release()
+
+
+def test_a_busy_app_keeps_the_wait_going_and_a_missing_lms_is_said_once(tmp_path, monkeypatch):
+    monkeypatch.setenv("FELS_SUITE_DIR", str(tmp_path))
+    monkeypatch.setattr(suite_gpu, "ASK_EVERY", 0.01)
+    monkeypatch.setattr(suite_gpu, "_TOLD", set())
+    cancel = threading.Event()
+    beats, told = [], []
+    cancel.beat, cancel.tell = beats.append, told.append
+    lab = fels_suite.GpuLock("voice-lab")
+    forge = fels_suite.GpuLock("npc-forge")
+    assert lab.acquire("Kokoro 82M", timeout=0)
+    replies = iter([(409, {"code": "busy", "doing": "speaking a scene, 12 of 40 lines"})] * 6)
+
+    def unload(holder):
+        reply = next(replies, None)
+        if reply is None:
+            lab.release()
+            return 200, {}
+        return reply
+
+    problem = "LM Studio's lms command was not found, so its model stays loaded: unload it in LM Studio."
+    monkeypatch.setattr(suite_gpu, "unload_holder", unload)
+    monkeypatch.setattr(fels_suite, "unload_outside",
+                        lambda **kwargs: [{"program": "LM Studio", "models": ["chat"], "done": False, "problem": problem}])
+    try:
+        started = time.monotonic()
+        suite_gpu.acquire_pictures(forge, True, 0.3, cancel)           # the busy Lab outlasts the 0.3 s wait
+        assert forge.held and forge.alone and time.monotonic() - started > 0.6
+        assert "Waiting for Voice Lab: speaking a scene, 12 of 40 lines" in beats
+        assert told == [problem, suite_gpu.unloaded_sentence(["Voice Lab"])]
+        forge.release()
+        assert lab.acquire("Kokoro 82M", timeout=0)
+        suite_gpu.acquire_pictures(forge, True, 0.3, cancel)           # once a session: the job line says nothing more
+        assert forge.held and told == [problem, suite_gpu.unloaded_sentence(["Voice Lab"])]
+    finally:
+        forge.release()
+        lab.release()
+
+
+def test_a_wait_with_nothing_busy_ends_with_the_holder_named(tmp_path, monkeypatch):
+    monkeypatch.setenv("FELS_SUITE_DIR", str(tmp_path))
+    monkeypatch.setattr(suite_gpu, "ASK_EVERY", 0.01)
+    monkeypatch.setattr(fels_suite, "unload_outside", lambda **kwargs: [])
+    other = fels_suite.GpuLock("altera")
+    forge = fels_suite.GpuLock("npc-forge")
+    assert other.acquire("a chat reply", timeout=0)
+    monkeypatch.setattr(suite_gpu, "unload_holder", lambda holder: (None, {}))     # no address: it cannot be asked
+    try:
+        with pytest.raises(gpu.GpuBusy, match="Altera is using the GPU for a chat reply"):
+            suite_gpu.acquire_pictures(forge, True, 0.3, threading.Event())
+        assert not forge.held and fels_suite.gpu_status()["alone"] is None
+    finally:
+        other.release()
+
+
+def test_the_job_line_names_every_app_it_unloaded():
+    assert suite_gpu.unloaded_sentence(["LM Studio"]) == (
+        "Unloaded LM Studio's model to make room (One model at a time; the switch is on the Models card).")
+    assert suite_gpu.unloaded_sentence(["Voice Lab", "LM Studio", "Ollama", "LM Studio"]).startswith(
+        "Unloaded Voice Lab's, LM Studio's and Ollama's models to make room")
+
+
+def test_a_switch_change_waits_for_the_next_job_and_the_lock_is_taken_again_the_new_way(tmp_path, monkeypatch, gate):
+    monkeypatch.setenv("FELS_SUITE_DIR", str(tmp_path))
+    monkeypatch.setattr(fels_suite, "unload_outside", lambda **kwargs: [])
+    gate.configure({"gpu": {"one_model_at_a_time": True, "wait_seconds": 4}})
+    assert gate.switch(False, busy=True) is False and gate.strict and gate.status()["switch"] is False
+    gate.start_job()
+    assert not gate.strict and gate.status()["switch"] is False
+    comfy = Comfy("http://127.0.0.1:9")
+    card = FakeCard()
+    monkeypatch.setattr(comfy, "get_json", card.get_json)
+    monkeypatch.setattr(comfy, "free_memory", card.free_memory)
+    try:
+        with comfy.operation_lock:
+            gate.claim_picture(comfy, {}, threading.Event())
+            assert [row["alone"] for row in fels_suite.gpu_holders()] == [False]
+            assert gate.switch(True, busy=False) and gate.held_the_other_way()
+            gate.claim_picture(comfy, {}, threading.Event())               # let go, then alone
+            assert [row["alone"] for row in fels_suite.gpu_holders()] == [True]
+            assert gate.status()["alone"] and not gate.held_the_other_way() and card.frees
+    finally:
+        gate.reset()
 
 
 def test_unload_only_contacts_the_holder_with_a_matching_address(tmp_path, monkeypatch):

@@ -69,6 +69,7 @@ class Gate:
         self._holder = None                      # (key, release) of what is on the GPU now, or None
         self._picture_lock = None
         self._picture_endpoint = None
+        self._next = None                        # One model at a time as switched while a job ran: applies when the next starts
         self.last_switch = None                  # {"from", "to", "seconds", "used_mb"} of the latest unload, for the UI
 
     def configure(self, cfg):
@@ -82,17 +83,42 @@ class Gate:
             except (TypeError, ValueError):
                 pass
         self.settings = s
+        self._next = None
 
     @property
     def strict(self):
         return self.settings["one_model_at_a_time"]
+
+    def switch(self, on, busy):
+        """The page's One model at a time switch. A running job finishes as it started (`busy`): the change then applies
+        when the next job starts (start_job). True when it applied at once."""
+        if busy:
+            self._next = bool(on)
+            return False
+        self._next = None
+        self.settings["one_model_at_a_time"] = bool(on)
+        return True
+
+    def start_job(self):
+        """A job starts: a switch changed while the last one ran applies now."""
+        if self._next is not None:
+            self.settings["one_model_at_a_time"], self._next = self._next, None
+
+    def held_the_other_way(self):
+        """Whether Forge holds the suite lock for pictures the way the switch no longer says (alone with the switch off, or
+        shared with it on): the next picture lets go and takes it again, and an idle Forge can let go at once."""
+        lock = self._picture_lock
+        return lock is not None and lock.alone != self.strict
 
     def holder(self):
         with self._state:
             return self._holder[0] if self._holder else None
 
     def status(self):
-        return {"one_model_at_a_time": self.strict, "loaded": describe(self.holder()) if self.holder() else None,
+        lock = self._picture_lock
+        return {"one_model_at_a_time": self.strict, "switch": self.strict if self._next is None else self._next,
+                "alone": bool(lock is not None and lock.alone),
+                "loaded": describe(self.holder()) if self.holder() else None,
                 "last_switch": self.last_switch, "unload_idle_seconds": self.settings["unload_idle_seconds"]}
 
     def reset(self):
@@ -114,6 +140,9 @@ class Gate:
         new = self._picture_lock is None
         if not new and comfy.operation_lock is not self._picture_endpoint:
             raise GpuBusy("Another local ComfyUI still holds Forge's model. Wait for it to unload and retry.", code="gpu_busy")
+        if not new and self.held_the_other_way():
+            self._release_comfy_locked(comfy)    # the switch changed since the lock was taken: let go, then take it the new way
+            new = True
         if new:
             stats = _stats(comfy)
             if stats is None or stats.get("cpu"):

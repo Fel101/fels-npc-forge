@@ -355,7 +355,7 @@ def test_gpu_light_reads_the_live_suite_lock_without_comfyui(api, monkeypatch, t
 
     def status():
         code, data = api("GET", "/api/gpu?lock=1")
-        assert code == 200 and list(data) == ["suite_lock"]
+        assert code == 200 and set(data) == {"suite_lock", "one_model_at_a_time", "alone", "switch_applies"}
         return data["suite_lock"]
 
     lab = fels_suite.GpuLock("voice-lab")
@@ -390,6 +390,43 @@ def test_gpu_light_reads_the_live_suite_lock_without_comfyui(api, monkeypatch, t
     code, report = api("GET", "/api/gpu")
     assert code == 200 and report["suite_lock"] == free
     assert report["code"] == "comfy_down" and report["holders"] == []
+
+
+def test_the_one_model_switch_is_saved_in_config_json_and_waits_for_a_running_job(api, monkeypatch, tmp_path):
+    from npcgen import config, gpu
+
+    saved = tmp_path / "config.json"
+    saved.write_text(json.dumps({"port": 8766, "gpu": {"wait_seconds": 30}, "options": {"quality": "draft"}}), "utf-8")
+    monkeypatch.setattr(config, "CONFIG_FILE", saved)
+    app = api.app
+    before = dict(gpu.GATE.settings)
+    try:
+        assert api("PUT", "/api/gpu/settings", {"one_model_at_a_time": "no"})[0] == 400
+        code, answer = api("PUT", "/api/gpu/settings", {"one_model_at_a_time": False})
+        assert code == 200 and answer == {"one_model_at_a_time": False, "alone": False, "switch_applies": "now"}
+        assert json.loads(saved.read_text("utf-8")) == {"port": 8766, "gpu": {"wait_seconds": 30, "one_model_at_a_time": False},
+                                                        "options": {"quality": "draft"}}
+        assert not gpu.GATE.strict and config.load()["gpu"]["one_model_at_a_time"] is False
+        assert api("GET", "/api/gpu?lock=1")[1]["one_model_at_a_time"] is False
+
+        # A running job finishes as it started: the change waits for the next job.
+        with app.jobs.lock:
+            app.jobs.current = ("a job", "a step")
+        try:
+            code, answer = api("PUT", "/api/gpu/settings", {"one_model_at_a_time": True})
+        finally:
+            with app.jobs.lock:
+                app.jobs.current = None
+        assert code == 200 and answer["one_model_at_a_time"] is True and answer["switch_applies"] == "next_job"
+        assert not gpu.GATE.strict and gpu.status()["switch"] is True
+        gpu.GATE.start_job()
+        assert gpu.GATE.strict and api("GET", "/api/gpu?lock=1")[1]["switch_applies"] == "now"
+
+        saved.write_text("[1, 2]", "utf-8")
+        code, answer = api("PUT", "/api/gpu/settings", {"one_model_at_a_time": False})
+        assert code == 500 and "config.json" in answer["error"] and gpu.GATE.strict
+    finally:
+        gpu.GATE.settings = before
 
 
 def test_roll_normal_and_freeform(api):

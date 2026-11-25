@@ -21,6 +21,13 @@ How to drive it from a game's own scripts, with the options that matter for a bu
 lock, with `app`, `name`, `pid`, `what`, `since` and `alone`. `suite_lock.alone` gives the request for exclusive use, with the
 same identity and timing fields, or `null`.
 
+**One model at a time.** `GET /api/gpu` also says `one_model_at_a_time` (the switch), `alone` (whether NPC Forge holds the
+GPU alone for pictures now) and `switch_applies` (`now`, or `next_job` while a job that started the other way runs).
+`PUT /api/gpu/settings` with `{"one_model_at_a_time": true|false}` turns the switch on or off and saves it in
+`config.json`'s `gpu` section. On, a picture first asks Voice Lab and Altera to unload (`POST /api/unload`), unloads LM
+Studio's and Ollama's models, and takes the suite lock alone; off, it holds the lock shared and unloads nothing of anyone
+else's. Only pictures are affected: work in Voice Lab and Altera shares the GPU either way.
+
 ## Character cards
 
 - `GET /api/npcs/<id>/card.png` returns the portrait with Character Card V3 in its `ccv3` chunk and V2 in its `chara` chunk.
@@ -37,6 +44,8 @@ same identity and timing fields, or `null`.
 
 ## Changes
 
+- **API 49.** One model at a time is a switch: `PUT /api/gpu/settings`, and `GET /api/gpu`'s `one_model_at_a_time`,
+  `alone` and `switch_applies`. A job's step note says what it unloaded to make room.
 - **API 48.** Saved characters export as PNG and CHARX, with a consent-aware Voice Lab file and Altera inbox handoff.
 - **API 47.** Voice Lab provides new speech through `GET /api/voice/lab` and the character's `/voice/lab` routes.
   Forge's local speech workers, model discovery and Drama studio routes are retired. Old voice records and packs remain readable.
@@ -45,7 +54,7 @@ same identity and timing fields, or `null`.
   `GET /api/health?identity=1` to read just that object without waiting for the ComfyUI and tool checks.
 
 
-166 routes.
+167 routes.
 
 
 ## Server, settings and the queue
@@ -57,7 +66,8 @@ same identity and timing fields, or `null`.
 | `GET` | `/api/choices` | What each character-sheet field can be in a setting, for the Advanced options popup (roll.field_choices). |
 | `POST` | `/api/manner` | Suggest how a character talks and comes across, from their traits: {setting, traits: [...]} -> {speech, demeanor}. |
 | `GET` | `/api/jobs` | The queue: every job with its steps, status and `code`. |
-| `GET` | `/api/gpu` | Picture-job readiness and the suite GPU lock. |
+| `GET` | `/api/gpu` | Picture-job readiness, One model at a time and the suite GPU lock. |
+| `PUT` | `/api/gpu/settings` | Turn One model at a time on or off: {"one_model_at_a_time": true\|false}. |
 | `POST` | `/api/gpu/free-voice-lab` | Ask the current Voice Lab GPU holder to unload after the user requests it in the picture queue. |
 | `POST` | `/api/jobs/cancel-all` | Stop every queued and running job. |
 | `POST` | `/api/jobs/{job}/cancel` | Stop one job. |

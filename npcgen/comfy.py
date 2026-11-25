@@ -65,6 +65,14 @@ def beat(cancel, note=None):
         signal(note)
 
 
+def tell(cancel, note):
+    """Leave a sentence on the running step for good, where a beat's note goes away again (a job's flag adds it to the
+    step's note; any other Event has no `tell` and is left alone)."""
+    signal = getattr(cancel, "tell", None)
+    if signal is not None:
+        signal(note)
+
+
 class _EndpointOperationLock:
     """A re-entrant lock shared by all clients targeting one ComfyUI endpoint, including other processes."""
 

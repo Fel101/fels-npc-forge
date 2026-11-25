@@ -59,20 +59,22 @@ DEFAULTS = {
 }
 
 
-def _migrate_saved_port(path, user):
-    user["port"] = DEFAULT_PORT
+CONFIG_FILE = None          # tests point this at a file of their own; None is config.json beside server.py
+
+
+def config_file():
+    return pathlib.Path(CONFIG_FILE) if CONFIG_FILE else ROOT / "config.json"
+
+
+def _write_user(path, user):
+    """Replace config.json in one step, so a crash never leaves half a file. Raises OSError."""
     temporary = None
     try:
         with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", dir=path.parent, delete=False) as output:
             temporary = pathlib.Path(output.name)
-            output.write(json.dumps(user, indent=2) + "\n")
+            output.write(json.dumps(user, indent=2, ensure_ascii=False) + "\n")
         temporary.replace(path)
-    except OSError:
-        print(f"Could not update {path.name}. Using port {DEFAULT_PORT} for this start. "
-              f"Set the saved port to {DEFAULT_PORT} to keep the change.", flush=True)
-    else:
-        print(f"Changed the saved NPC Forge port from {LEGACY_PORT} to {DEFAULT_PORT}. "
-              f"Port {LEGACY_PORT} is reserved for Voice Lab.", flush=True)
+        temporary = None
     finally:
         if temporary is not None:
             try:
@@ -81,9 +83,33 @@ def _migrate_saved_port(path, user):
                 pass
 
 
+def save_gpu_setting(name, value):
+    """Save one "gpu" setting in config.json, as the page's switch does. Everything else in the file stays as it is. Raises
+    OSError when the file cannot be written and ValueError when it is not a JSON object."""
+    path = config_file()
+    user = json.loads(path.read_text("utf-8")) if path.exists() else {}
+    if not isinstance(user, dict):
+        raise ValueError(f"{path.name} is not a JSON object")
+    saved = user.get("gpu") if isinstance(user.get("gpu"), dict) else {}
+    user["gpu"] = {**saved, name: value}
+    _write_user(path, user)
+
+
+def _migrate_saved_port(path, user):
+    user["port"] = DEFAULT_PORT
+    try:
+        _write_user(path, user)
+    except OSError:
+        print(f"Could not update {path.name}. Using port {DEFAULT_PORT} for this start. "
+              f"Set the saved port to {DEFAULT_PORT} to keep the change.", flush=True)
+    else:
+        print(f"Changed the saved NPC Forge port from {LEGACY_PORT} to {DEFAULT_PORT}. "
+              f"Port {LEGACY_PORT} is reserved for Voice Lab.", flush=True)
+
+
 def load(*, migrate_port=False):
     cfg = copy.deepcopy(DEFAULTS)
-    path = ROOT / "config.json"
+    path = config_file()
     port_override = os.environ.get("NPCGEN_PORT")
     if path.exists():
         user = json.loads(path.read_text("utf-8"))

@@ -3,12 +3,18 @@
 import http.client
 import ipaddress
 import json
+import threading
 import time
 from contextlib import closing
 from urllib.parse import urlsplit
 
 from . import fels_suite
-from .comfy import Cancelled, beat
+from .comfy import Cancelled, beat, tell
+
+ASK_EVERY = 3               # seconds between asking a busy Voice Lab or Altera again
+OUTSIDE_SECONDS = 10        # how long LM Studio's `lms unload --all` may take
+_TOLD = set()               # what this session has already said on a job line (see _tell_once)
+_TOLD_LOCK = threading.Lock()
 
 
 def local_origin(url):
@@ -63,7 +69,12 @@ def ask_voice_lab():
 
 
 def acquire_pictures(lock, alone, wait, cancel):
-    """Take the lock and leave it held. Cancel or a failed acquisition leaves no request behind."""
+    """Take the lock and leave it held. Cancel or a failed acquisition leaves no request behind.
+
+    With `alone` (One model at a time on), contract 8's steps: say so in alone.json, ask Voice Lab and Altera to unload
+    (again every ASK_EVERY seconds while one says it is busy, showing what it is doing), unload LM Studio's and Ollama's
+    models, then take the lock alone. A busy app keeps the wait going for as long as it says so; with nothing to wait for,
+    the wait ends after `wait` seconds. Cancel works throughout."""
     deadline = time.monotonic() + wait
     next_contact = 0
     unloaded = set()
@@ -74,20 +85,26 @@ def acquire_pictures(lock, alone, wait, cancel):
     def cancelled():
         return cancel is not None and cancel.is_set()
 
-    def contact(first=False):
-        nonlocal next_contact, waiting_on, outside_checked, requested
-        if cancelled() or (not first and time.monotonic() >= deadline):
-            return cancelled()
+    def over():
+        return cancelled() or time.monotonic() >= deadline
+
+    def contact():
+        nonlocal next_contact, waiting_on, outside_checked, requested, deadline
+        if cancelled():
+            return True
         if not alone or time.monotonic() < next_contact:
-            return False
-        next_contact = time.monotonic() + 1
+            return over()                       # (a due question is asked even past the deadline: a busy answer extends it)
+        next_contact = time.monotonic() + ASK_EVERY
         waiting_on = None
-        if lock.alone_wanted() is not None:
-            return False
+        pending = lock.alone_wanted()
+        if pending is not None and not requested:
+            beat(cancel, fels_suite.holder_sentence(pending))
+            return over()
         if not requested:
             requested = lock.want_alone("pictures")
             if not requested:
-                return False
+                return over()
+        freed = []
         for holder in lock.holders():
             if cancelled():
                 return True
@@ -98,14 +115,24 @@ def acquire_pictures(lock, alone, wait, cancel):
             name = fels_suite.short_name(holder["app"])
             if status == 200:
                 unloaded.add(key)
+                freed.append(name)
             elif status == 409 and answer.get("code") == "busy":
                 doing = answer.get("doing")
-                waiting_on = f"{name} is {doing}." if doing else f"{name} is busy."
-                beat(cancel, f"Making room on the GPU. {waiting_on}")
+                waiting_on = f"Waiting for {name}: {doing}" if doing else f"Waiting for {name} to finish"
+                deadline = max(deadline, time.monotonic() + wait)       # it is working: wait while it says so
         if not outside_checked and not cancelled():
             outside_checked = True
-            fels_suite.unload_outside(timeout=max(0.1, min(3, deadline - time.monotonic())))
-        return cancelled()
+            for entry in fels_suite.unload_outside(timeout=OUTSIDE_SECONDS):
+                if entry["done"]:
+                    freed.append(entry["program"])
+                elif entry["problem"]:
+                    _tell_once(cancel, "outside:" + entry["program"], entry["problem"])
+        if freed:
+            said = unloaded_sentence(freed)
+            if not _tell_once(cancel, "unloaded", said):
+                beat(cancel, said)
+        beat(cancel, waiting_on or "Making room on the GPU")
+        return over()
 
     if cancelled():
         raise Cancelled()
@@ -113,8 +140,8 @@ def acquire_pictures(lock, alone, wait, cancel):
         pending = lock.alone_wanted()
         beat(cancel, "Making room on the GPU" if alone and pending is None else
              fels_suite.holder_sentence(pending) if pending else "Waiting for the GPU")
-        contact(first=True)
-        if not cancelled() and lock.acquire("pictures", alone=alone, timeout=max(0, deadline - time.monotonic()), cancel=contact):
+        contact()
+        if not cancelled() and lock.acquire("pictures", alone=alone, timeout=None, cancel=contact):
             if cancelled():
                 raise Cancelled()
             beat(cancel)
@@ -122,9 +149,27 @@ def acquire_pictures(lock, alone, wait, cancel):
         if cancelled():
             raise Cancelled()
         holder = lock.alone_wanted() or next(iter(lock.holders()), None)
-        message = waiting_on or (fels_suite.holder_sentence(holder) if holder else "The GPU is in use.")
+        message = (waiting_on + ".") if waiting_on else (fels_suite.holder_sentence(holder) if holder else "The GPU is in use.")
         from .gpu import GpuBusy
         raise GpuBusy(f"{message} Wait for the running work to finish and retry the picture.", code="gpu_busy")
     except BaseException:
         lock.release()
         raise
+
+
+def unloaded_sentence(names):
+    """What the job line says after making room: "Unloaded LM Studio's model to make room (...)"."""
+    names = list(dict.fromkeys(names))
+    owners = names[0] + "'s" if len(names) == 1 else ", ".join(name + "'s" for name in names[:-1]) + " and " + names[-1] + "'s"
+    models = "model" if len(names) == 1 else "models"
+    return f"Unloaded {owners} {models} to make room (One model at a time; the switch is on the Models card)."
+
+
+def _tell_once(cancel, key, text):
+    """Leave `text` on the job's step the first time this session needs it. True when it was said now."""
+    with _TOLD_LOCK:
+        if key in _TOLD:
+            return False
+        _TOLD.add(key)
+    tell(cancel, text)
+    return True

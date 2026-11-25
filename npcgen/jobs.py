@@ -257,6 +257,9 @@ class JobSignal(threading.Event):
     def beat(self, note=None):
         self.job.beat(note)
 
+    def tell(self, note):
+        self.job.tell(note)
+
 
 class Job:
     def __init__(self, npc_id, npc_name, steps, options, target_type="npc", scene_id=None, item_id=None, creature_id=None):
@@ -293,6 +296,15 @@ class Job:
         self.version += 1
         if self.on_change:
             self.on_change()
+
+    def tell(self, note):
+        """Add a sentence to the running step's note, which stays when the step ends (what One model at a time unloaded)."""
+        with self.lock:
+            step = self.running_step
+            if step is None or not note:
+                return
+            step["note"] = f"{step.get('note') or ''} {note}".strip()
+        self.touch()
 
     def beat(self, note=None):
         """A sign of life from the running step: it restarts the watchdog's clock and stamps the step. `note` says what the step
@@ -840,6 +852,7 @@ class Jobs:
 
     def _run_job(self, job):
         epoch = getattr(threading.current_thread(), "epoch", self._epoch)       # (set by _worker; a test may call this on its own)
+        gpu.GATE.start_job()                                # a One model at a time change made while the last job ran applies now
         if job.target_type in ("scene", "item", "creature"):
             npc = None
         else:

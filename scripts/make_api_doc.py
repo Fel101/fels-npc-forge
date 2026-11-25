@@ -38,6 +38,13 @@ How to drive it from a game's own scripts, with the options that matter for a bu
 lock, with `app`, `name`, `pid`, `what`, `since` and `alone`. `suite_lock.alone` gives the request for exclusive use, with the
 same identity and timing fields, or `null`.
 
+**One model at a time.** `GET /api/gpu` also says `one_model_at_a_time` (the switch), `alone` (whether NPC Forge holds the
+GPU alone for pictures now) and `switch_applies` (`now`, or `next_job` while a job that started the other way runs).
+`PUT /api/gpu/settings` with `{"one_model_at_a_time": true|false}` turns the switch on or off and saves it in
+`config.json`'s `gpu` section. On, a picture first asks Voice Lab and Altera to unload (`POST /api/unload`), unloads LM
+Studio's and Ollama's models, and takes the suite lock alone; off, it holds the lock shared and unloads nothing of anyone
+else's. Only pictures are affected: work in Voice Lab and Altera shares the GPU either way.
+
 ## Character cards
 
 - `GET /api/npcs/<id>/card.png` returns the portrait with Character Card V3 in its `ccv3` chunk and V2 in its `chara` chunk.
@@ -54,6 +61,8 @@ same identity and timing fields, or `null`.
 
 ## Changes
 
+- **API 49.** One model at a time is a switch: `PUT /api/gpu/settings`, and `GET /api/gpu`'s `one_model_at_a_time`,
+  `alone` and `switch_applies`. A job's step note says what it unloaded to make room.
 - **API 48.** Saved characters export as PNG and CHARX, with a consent-aware Voice Lab file and Altera inbox handoff.
 - **API 47.** Voice Lab provides new speech through `GET /api/voice/lab` and the character's `/voice/lab` routes.
   Forge's local speech workers, model discovery and Drama studio routes are retired. Old voice records and packs remain readable.

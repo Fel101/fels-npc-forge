@@ -66,7 +66,7 @@ mimetypes.add_type("application/wasm", ".wasm")
 
 # Bump when web/app.js starts needing something an older server does not provide; the page compares it with its own
 # REQUIRED_API and switches the newer features off (with a banner) instead of crashing. A test keeps the two in sync.
-API_VERSION = 48             # 48: portable character cards (docs/api.md)
+API_VERSION = 49             # 49: One model at a time as a switch, PUT /api/gpu/settings (docs/api.md)
 
 DEFAULT_ASSETS = {"portrait": True, "sprite": True, "model_3d": False, "expressions": ["happy", "sad", "angry", "surprised"]}
 
@@ -2449,17 +2449,46 @@ def list_jobs(q, body):
 
 @route("GET", "/api/gpu")
 def gpu_check(q, body):
-    """Picture-job readiness and the suite GPU lock. Use `?lock=1` to read just the suite lock."""
+    """Picture-job readiness, One model at a time and the suite GPU lock. Use `?lock=1` to read just the lock and the switch."""
     suite_lock = fels_suite.gpu_status()
     for entry in [*suite_lock["holders"], suite_lock["alone"]]:
         if entry is not None:
             entry["name"] = fels_suite.short_name(entry["app"])
     if q.get("lock") == ["1"]:
-        return {"suite_lock": suite_lock}
+        return {"suite_lock": suite_lock, **_switch_state()}
     app = current_app()
     with app.jobs.lock:
         busy = app.jobs.current is not None
-    return {**gpu.check(app.comfy, forge_busy=busy), "suite_lock": suite_lock}
+    return {**gpu.check(app.comfy, forge_busy=busy), **_switch_state(), "suite_lock": suite_lock}
+
+
+def _switch_state():
+    """One model at a time as the page shows it: the switch, and whether Forge holds the GPU alone now."""
+    rule = gpu.status()
+    return {"one_model_at_a_time": rule["switch"], "alone": rule["alone"],
+            "switch_applies": "now" if rule["switch"] == rule["one_model_at_a_time"] else "next_job"}
+
+
+@route("PUT", "/api/gpu/settings")
+def gpu_settings(q, body):
+    """Turn One model at a time on or off: {"one_model_at_a_time": true|false}. Saved in config.json's "gpu" section. A job
+    that is running finishes as it started; the change applies from the next one."""
+    value = body.get("one_model_at_a_time")
+    if type(value) is not bool:
+        raise ApiError(400, "one_model_at_a_time must be true or false.")
+    try:
+        cfgmod.save_gpu_setting("one_model_at_a_time", value)
+    except (OSError, ValueError) as error:
+        raise ApiError(500, f"NPC Forge could not save the switch in config.json ({error}). Check that the NPC Forge folder "
+                            "can be written to, then try again.") from None
+    app = current_app()
+    app.cfg.setdefault("gpu", {})["one_model_at_a_time"] = value
+    with app.jobs.lock:
+        busy = app.jobs.current is not None or not app.jobs.queue.empty()
+        if gpu.GATE.switch(value, busy) and gpu.GATE.held_the_other_way():
+            # An idle Forge holding the GPU the old way lets go now, so another app need not wait for the idle unload.
+            threading.Thread(target=gpu.release_comfy, args=(app.comfy,), name="GPU switch", daemon=True).start()
+    return _switch_state()
 
 
 @route("POST", "/api/gpu/free-voice-lab")

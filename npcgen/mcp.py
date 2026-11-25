@@ -164,7 +164,8 @@ def forge_status(forge, args):
     features = {k: v for k, v in health.items() if k not in ("online", "version", "gpu", "missing", "engines_missing", "voice", "gpu_rule", "fels")}
     return {"version": config.get("version"), "url": forge.url, "comfyui_online": health.get("online"), "comfyui_version": health.get("version"),
             "gpu": health.get("gpu"), "missing_for_pictures": health.get("missing"), "engines_missing": health.get("engines_missing"),
-            "features": features, "queue": {"waiting_or_running": len(active), "jobs": len(jobs)}}
+            "features": features, "queue": {"waiting_or_running": len(active), "jobs": len(jobs)},
+            "gpu_lock": forge.request("GET", "/api/gpu?lock=1")}
 
 
 def forge_options(forge, args):
@@ -382,7 +383,7 @@ QUALITY = {"type": "string", "description": "draft, standard or high (forge_opti
 IDS = {"type": "array", "items": {"type": "string"}, "description": "Character ids."}
 
 TOOLS = [
-    ("forge_status", "Is NPC Forge ready: its version, whether ComfyUI answers, which model files each feature lacks, and the queue.",
+    ("forge_status", "Is NPC Forge ready: its version, whether ComfyUI answers, which model files each feature lacks, the queue, and the GPU: the suite lock and One model at a time (on: pictures first unload Voice Lab, Altera, LM Studio and Ollama).",
      _schema({}), forge_status),
     ("forge_options", "What NPC Forge knows: settings, art styles, genders, age groups, expressions, qualities, engines, export formats.",
      _schema({}), forge_options),

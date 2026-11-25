@@ -15,7 +15,7 @@ import { commercialBadge, licenceNote, openLicences, optionTag } from './licence
 // disagree. The server reports its api_version; if it is older than this page needs, features that depend on the
 // newer server are switched off and a banner says how to fix it (instead of crashing on a missing field).
 // Keep in sync with API_VERSION in server.py (a test checks this).
-const REQUIRED_API = 48;
+const REQUIRED_API = 49;
 
 // ---------- small components ---------------------------------------------------------------------------------
 const card = (title, ...kids) => h('section', { class: 'card' }, h('h3', {}, title), ...kids);
@@ -74,7 +74,7 @@ function renderStatus() {
       text += ' · one model at a time';
       title = [title, `On the GPU now: ${g.loaded || 'nothing from NPC Forge'}.`,
         g.last_switch ? `Last switch: ${g.last_switch.from || 'nothing'} → ${g.last_switch.to}, ${g.last_switch.seconds} s to unload and empty the card.` : '',
-        `Everything is unloaded before a different model loads, and ${Math.round((g.unload_idle_seconds ?? 120) / 60 * 10) / 10} min after the queue runs empty (config.json "gpu").`].filter(Boolean).join('\n');
+        `Everything is unloaded before a different model loads, and ${Math.round((g.unload_idle_seconds ?? 120) / 60 * 10) / 10} min after the queue runs empty. Turn this off with One model at a time on the Models card.`].filter(Boolean).join('\n');
     }
   }
   $('#status').replaceChildren(h('span', { class: `dot ${dot}` }), h('span', { title }, text));
@@ -101,39 +101,73 @@ async function refreshHealth() {
 const gpuTime = new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit' });
 let gpuSnapshot, gpuRefreshing = false;
 
-function renderGpuLight(lock) {
+// GET /api/gpu?lock=1: {suite_lock, one_model_at_a_time (the switch), alone, switch_applies}, or null while unreachable.
+let gpuRule = null;
+
+function renderGpuLight(answer, force = false) {
   const light = $('#gpuLight');
-  const snapshot = JSON.stringify(lock);
-  if (snapshot === gpuSnapshot || (!lock && light.hidden)) return;
+  const lock = answer?.suite_lock;
+  const snapshot = JSON.stringify(answer);
+  if ((snapshot === gpuSnapshot && !force) || (!lock && light.hidden)) return;
   gpuSnapshot = snapshot;
   light.hidden = false;
 
   const holders = lock?.holders || [];
-  const exclusive = holders.some(holder => holder.alone === true);
+  const exclusive = holders.find(holder => holder.alone === true);
   const request = exclusive ? null : lock?.alone;
   const state = !lock ? 'status unavailable' : exclusive ? 'alone' : request ? 'making room' : holders.length ? 'shared' : 'free';
   const dot = state === 'free' ? 'ok' : holders.length || request ? 'warn' : '';
   $('.dot', light).className = `dot ${dot}`;
-  $('#gpuLabel').textContent = `GPU ${state}`;
+  $('#gpuLabel').textContent = exclusive ? `${exclusive.name}, alone: ${exclusive.what || 'a model'}` : `GPU ${state}`;
 
   const line = (holder, mode) => {
     const since = Date.parse(holder.since);
     const time = Number.isFinite(since) ? ` · since ${gpuTime.format(since)}` : '';
-    return `${holder.name} · ${holder.what || 'a model'}${mode}${time}`;
+    return mode === 'alone' ? `${holder.name}, alone: ${holder.what || 'a model'}${time}` : `${holder.name} · ${holder.what || 'a model'}${mode}${time}`;
   };
-  const lines = holders.map(holder => line(holder, holder.alone ? ' · alone' : ''));
-  if (request) lines.unshift(line(request, ' · waiting for the GPU'));
+  const lines = holders.map(holder => line(holder, holder.alone ? 'alone' : ''));
+  if (request) lines.unshift(line(request, ' · making room on the GPU'));
   if (!lines.length) lines.push(lock ? 'The suite GPU lock is free.' : 'Reconnect to NPC Forge to check the GPU lock.');
   $('summary', light).title = lines.join('\n');
-  $('#gpuDetails').replaceChildren(...lines.map(text => h('p', {}, text)));
+  $('#gpuDetails').replaceChildren(...lines.map(text => h('p', {}, text)), answer ? oneModelSwitch() : '');
 }
 
 async function refreshGpuLight() {
   if (document.hidden || gpuRefreshing) return;
   gpuRefreshing = true;
-  try { renderGpuLight((await api('GET', '/api/gpu?lock=1')).suite_lock); }
-  catch { renderGpuLight(null); }
+  try { gpuRule = await api('GET', '/api/gpu?lock=1'); }
+  catch { gpuRule = null; }
   finally { gpuRefreshing = false; }
+  renderGpuLight(gpuRule);
+}
+
+/** One model at a time (contract 8): the same switch on the Models card and in the GPU light's popup. Saved in config.json. */
+function oneModelSwitch() {
+  const on = gpuRule?.one_model_at_a_time ?? S.health?.gpu_rule?.switch ?? S.health?.gpu_rule?.one_model_at_a_time ?? true;
+  const later = gpuRule?.switch_applies === 'next_job'
+    ? h('span', { class: 'hint', style: { display: 'block' } }, 'A job is running: it finishes as it started, and the change applies from the next one.') : null;
+  const box = h('input', { type: 'checkbox', checked: on, 'aria-label': 'One model at a time',
+    onchange: async event => {
+      const wanted = event.target.checked;
+      box.disabled = true;
+      try {
+        gpuRule = { ...(gpuRule || {}), ...await api('PUT', '/api/gpu/settings', { one_model_at_a_time: wanted }) };
+        toast(wanted ? 'One model at a time is on: pictures wait for an empty GPU.' : 'One model at a time is off: pictures share the GPU.', 'ok');
+      } catch (error) {
+        box.checked = !wanted;
+        toast(error.message, 'error');
+      } finally {
+        const place = box.closest('dialog, details');      // both copies are drawn again: keep the keyboard on this one
+        box.disabled = false;
+        renderGpuLight(gpuRule, true);
+        renderSettings();
+        place?.querySelector('.one-model input')?.focus();
+      }
+    } });
+  return h('label', { class: 'check one-model' }, box,
+    h('span', {}, h('span', { class: 'name' }, 'One model at a time'),
+      h('span', { class: 'hint', style: { display: 'block' } }, 'Before NPC Forge makes a picture, it asks Voice Lab, Altera, LM Studio and Ollama to unload their models, and they wait until it is done. Slower, but needs the least memory. Turn it off if your card has room for everything at once.'),
+      later));
 }
 
 // ---------- create view: sidebar -----------------------------------------------------------------------------------
@@ -399,6 +433,7 @@ function modelsSection() {
     v => { o.three_d_hunyuan_detail = v; saveRecipe(); rerenderSettings(); }, undefined, { 'aria-label': 'Hunyuan3D detail' }),
   selectedHunyuanDetail?.summary || '') : null;
   return h('div', { class: 'stack' },
+    oneModelSwitch(),
     picker('image', 'image_model', 'Image model'),
     picker('edit', 'edit_model', 'Edit model'),
     check('Let Mage-Flow draw when the chosen model cannot', fallsBack, v => { o.engine_fallback = v; saveRecipe(); rerenderSettings(); },
