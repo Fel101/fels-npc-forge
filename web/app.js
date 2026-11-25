@@ -10,6 +10,7 @@ import { createSceneController } from './scenes-view.js';
 import { createItemController } from './items-view.js';
 import { createCreatureController } from './creatures-view.js';
 import { commercialBadge, licenceNote, openLicences, optionTag } from './licences-view.js';
+import { openComfySetup } from './comfy-setup.js';
 
 // The page is read from disk on every request but the server is a long-running process, so after an update the two can
 // disagree. The server reports its api_version; if it is older than this page needs, features that depend on the
@@ -84,10 +85,12 @@ function renderStatus() {
     banner.textContent = 'This page is newer than the NPC Forge server that is running (it was started before the update), so newer features including Scenes are switched off. Close the server window and run start.bat again.';
   } else if (hl && !hl.online) {
     banner.className = 'banner'; banner.hidden = false;
-    banner.textContent = `Cannot reach ComfyUI at ${S.cfg.comfy_url}. Start ComfyUI and this page will pick it up automatically.`;
+    const words = `Cannot reach ComfyUI at ${S.cfg.comfy_url}. Start ComfyUI and this page will pick it up automatically. `;
+    if (banner.dataset.words !== words) { banner.dataset.words = words; banner.replaceChildren(words, setupButton()); }
   } else if (hl?.missing?.length && mageInUse()) {
     banner.className = 'banner warn'; banner.hidden = false;
-    banner.textContent = 'These Mage-Flow files were not found in ComfyUI: ' + hl.missing.join(', ');
+    const words = 'These Mage-Flow files were not found in ComfyUI: ' + hl.missing.join(', ') + ' ';
+    if (banner.dataset.words !== words) { banner.dataset.words = words; banner.replaceChildren(words, setupButton()); }
   } else banner.hidden = true;
 }
 
@@ -168,8 +171,12 @@ function yourPcBox() {
     names.length ? h('p', {}, `Best models for it: ${names.join(' and ')}. `, differs ? use : h('span', { class: 'hint' }, 'In use.')) : null,
     chosen.image_model === 'zimage' ? h('p', { class: 'hint' }, 'Z-Image Turbo pulls toward famous characters: check that its pictures look like yours.') : null,
     pc.needs_switch === true ? h('p', { class: 'hint' }, `${pc.need_engine ? label(...pc.need_engine.split(':')) : 'A picture'} needs ${pc.whole_card ? 'the whole card' : `about ${Math.round(pc.need_mb / 1024)} GB of this card`} to run at its usual speed: keep One model at a time on if Voice Lab or a chat model run beside NPC Forge.`)
-      : pc.needs_switch === false ? h('p', { class: 'hint' }, 'This card has room for a voice and a chat model beside the pictures: One model at a time can be off.') : null);
+      : pc.needs_switch === false ? h('p', { class: 'hint' }, 'This card has room for a voice and a chat model beside the pictures: One model at a time can be off.') : null,
+    h('p', {}, setupButton(), ' ', h('span', { class: 'hint' }, 'Puts in the ComfyUI model files each size of card needs.')));
 }
+
+/** Set up ComfyUI (web/comfy-setup.js): finds ComfyUI, lists what each tier needs and installs it after a yes. */
+const setupButton = () => btn('Set up ComfyUI…', 'download', safe(() => openComfySetup({ onChange: refreshHealth })), { cls: 'small' });
 
 /** One model at a time (contract 8): the same switch on the Models card and in the GPU light's popup. Saved in config.json. */
 function oneModelSwitch() {

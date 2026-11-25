@@ -31,8 +31,9 @@ checked on fewer characters than the rest; see [Status](#status-what-has-and-has
 - **Python 3.10 or newer**, and nothing else, for characters with their personalities and backstories, dialogue packs
   (JSON, Ink, Yarn Spinner), cast packs, scene scripts and the MCP server for AI agents. No graphics card.
 - **For pictures, animation and 3D: a graphics card and [ComfyUI](https://github.com/comfyanonymous/ComfyUI) 0.36 or
-  newer** at `http://127.0.0.1:8188`, with the model files listed under [Requirements](#requirements). What a card makes
-  depends on its memory:
+  newer** at `http://127.0.0.1:8188`, with the model files listed under [Requirements](#requirements). **Set up ComfyUI**
+  on the Models card puts them in for you after a yes, from pinned Hugging Face files ([docs/comfyui-setup.md](docs/comfyui-setup.md)).
+  What a card makes depends on its memory:
   - **About 16 GB:** portraits with Z-Image Turbo, full-body sprites and 3D models with Hunyuan3D 2.1; expressions
     slowly (about 7 times as long).
   - **About 24 GB:** the same, and portraits with Qwen-Image 2512.
@@ -49,7 +50,7 @@ checked on fewer characters than the rest; see [Status](#status-what-has-and-has
 
 ## Quick start
 
-1. Start ComfyUI and check it answers at `http://127.0.0.1:8188`.
+1. Start ComfyUI and check it answers at `http://127.0.0.1:8188`. Its model files can wait: step 5 puts them in.
 2. Get NPC Forge and install its few Python packages (Pillow, numpy, xatlas):
    ```bash
    git clone https://github.com/Fel101/fels-npc-forge.git
@@ -58,7 +59,10 @@ checked on fewer characters than the rest; see [Status](#status-what-has-and-has
    ```
 3. Optional: copy `config.example.json` to `config.json` to change the ComfyUI address, the port or the default engines.
 4. Start it: double-click `start.bat` (Windows), or run `python server.py --open`. The page opens at `http://127.0.0.1:8766`.
-5. On the **Create** page press **Roll NPC**, tick what to make (a portrait is a good first try) and press **Generate**.
+5. For pictures: open **Models and options** (top right) and press **Set up ComfyUI…** in the **Your PC** box. It picks
+   your card's size, ticks what that card makes and, after a yes, downloads the model files into ComfyUI (59 GB for a
+   16 GB card), with progress and Stop. Characters and dialogue need none of it.
+6. On the **Create** page press **Roll NPC**, tick what to make (a portrait is a good first try) and press **Generate**.
    The queue on the right shows each step; the finished character is in the **Library**.
 
 **AI agents:** Claude Code, Codex, opencode and other MCP clients can make characters and export them for a game through
@@ -75,6 +79,10 @@ The status line at the top of the page says whether ComfyUI answers and which mo
 says the same on the command line. The rest of this README is the reference.
 
 ## Requirements
+
+**Set up ComfyUI** on the Models card installs the model files below that each size of card needs, and NPC Forge's own
+ComfyUI nodes, after a yes: [docs/comfyui-setup.md](docs/comfyui-setup.md) has each file's source, size and pinned SHA-256
+(Qwen Image 2.1 and the Trellis2 node pack it leaves to you). To do it by hand:
 
 - A running ComfyUI (0.36 or newer) at `http://127.0.0.1:8188`.
 - The files of the default engines, Qwen-Image 2512 and Qwen-Image-Edit 2511 with their 4-step Lightning LoRAs (what they need on each size of card: [docs/hardware.md](docs/hardware.md)): `diffusion_models/qwen_image_2512_fp8_e4m3fn.safetensors`, `diffusion_models/Qwen-Image-Edit-2511-FP8_e4m3fn.safetensors`, `text_encoders/qwen_2.5_vl_7b_fp8_scaled.safetensors`, `vae/qwen_image_vae.safetensors`, `loras/Qwen-Image-Lightning-4steps-V2.0.safetensors` and `loras/Qwen-Image-Edit-2511-Lightning-4steps-V1.0-bf16.safetensors`. Without them a picture fails and names what is missing; to use the lighter Mage-Flow instead, set `"options": {"image_model": "mage", "edit_model": "mage", "engine_fallback": true}` in `config.json` (or pick it in Models).

@@ -23,6 +23,9 @@ Qwen-Image 2512 portraits, which came out black. The built-in Mage-Flow (its lic
 speed on all three. On every tier the pictures need the whole card to run at their usual speed, so the Your PC box
 suggests keeping One model at a time on.
 
+**Set up ComfyUI**, in the same box, ticks what a tier makes and installs its model files after a yes: 59.0 GB for 16 GB,
+81.1 GB for 24 GB and 90.4 GB for 32 GB ([comfyui-setup.md](comfyui-setup.md)).
+
 ## One model at a time
 
 The switch beside the Your PC box (and in the header GPU light's popup). On, before NPC Forge makes a picture it asks

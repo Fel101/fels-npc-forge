@@ -413,6 +413,35 @@ button.badge.licence-btn:hover { filter: brightness(1.12); }
 .licence-dot.warn { background: color-mix(in srgb, var(--warn) 20%, transparent); color: var(--warn); }
 .licence-dot.bad { background: color-mix(in srgb, var(--danger) 18%, transparent); color: var(--danger); }
 .licences { width: min(960px, calc(100vw - 32px)); }
+
+/* ---- Set up ComfyUI (web/comfy-setup.js): where ComfyUI is, what each card size needs, and the install with its progress ---- */
+.comfy-setup { width: min(900px, calc(100vw - 32px)); }
+.comfy-setup h3 { margin: 0 0 6px; }
+.comfy-setup .adv-group > p { margin: 4px 0 0; }
+.comfy-setup .notice { margin: 0; }
+.setup-part { border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; background: var(--panel-2); }
+.setup-part.ready { border-color: color-mix(in srgb, var(--ok) 45%, var(--border)); }
+.setup-part > p { margin: 6px 0 0; }
+.setup-part details { margin-top: 6px; }
+.setup-part summary { cursor: pointer; font-size: 12px; color: var(--muted); }
+.setup-state.ok { color: var(--ok); }
+.setup-files { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 6px; }
+.setup-files td { padding: 4px 6px; border-top: 1px solid var(--border); vertical-align: top; overflow-wrap: anywhere; }
+.tier-choice { display: flex; gap: 8px; flex-wrap: wrap; }
+.tier-choice label { display: flex; gap: 6px; align-items: center; padding: 5px 10px; border: 1px solid var(--border); border-radius: 999px; cursor: pointer; }
+.tier-choice label.on { border-color: var(--accent); background: var(--accent-soft); }
+.setup-foot { padding: 10px 22px 14px; border-top: 1px solid var(--border); }
+.setup-run { display: flex; flex-direction: column; gap: 6px; }
+.setup-run progress { width: 100%; height: 10px; accent-color: var(--accent); }
+.setup-run p { margin: 0; }
+.setup-steps { margin: 0; padding-left: 20px; font-size: 12px; max-height: 140px; overflow: auto; }
+.setup-steps .setup-done { color: var(--muted); }
+.setup-steps .setup-failed { color: var(--danger); }
+.setup-confirm { margin: 0; font-weight: 600; }
+.setup-confirm:focus { outline: none; }
+.notice.setup-result.done { background: color-mix(in srgb, var(--ok) 15%, var(--panel)); }
+.notice.setup-result.failed { background: color-mix(in srgb, var(--danger) 15%, var(--panel)); }
+.banner .btn { margin-left: 6px; vertical-align: middle; }
 .licence-model { border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; background: var(--panel-2); }
 .licence-model.focus { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
 .licence-model p { margin: 6px 0 0; font-size: 13px; }
