@@ -68,28 +68,9 @@ the existing deletion behavior; export/back up needed originals beforehand.
 New speech metadata explicitly labels `lip_sync.status: amplitude_fallback` and binds
 that mouth track to the delivered audio hash. Dialogue shows **Amplitude mouth track**.
 [Final-audio alignment and viseme timing](voice-lip-sync.md) now provides checked
-English timing data with fallback. Character-specific animation remains in the full
-goal; the amplitude track itself does not establish phonetic timing.
+English timing data with fallback. The amplitude track itself does not establish phonetic timing.
 
-## October 12 verification
+## Limits
 
-- 100 automated checks passed, with the legacy Chrome smoke excluded in favor of
-  in-app browser QA. Effects checks measure actual pitch/modulation/layer changes,
-  exact sample counts, bounded controls, applied cutoff receipts, dry restoration,
-  checksum failures, effect-only reuse, new synthesis for changed pronunciation,
-  scene pins and actual HTTP preview/save behavior.
-- Browser selected Creature, edited pitch, previewed paired audio, saved/reloaded
-  defaults, saved a dry performance override and previewed Robot. Desktop and
-  390-pixel mobile dialogs have no horizontal overflow. Screenshots:
-  `local/voice-workspace-qa-20261012/voice-effects-{desktop,mobile}.png`.
-- Real prior Chatterbox speech was copied to a fresh QA library and processed;
-  no new inference ran. Robot and Creature clips stayed at 24 kHz and 123,840 /
-  122,400 samples (5.16 / 5.10 seconds). Dry restoration was byte-identical and
-  repeated processing reproduced the same output. Source QA records stayed unchanged.
-- Two pinned scene lines were processed and rendered to a 1280×720, 140-frame,
-  25 fps MP4 with 5.6 seconds of AAC audio. Pins stayed fresh after a character
-  effect edit. Voice/scene ZIP delivery and original hashes were checked.
-  Final evidence: `local/voice-effects-real-20261012-164751-cd27a1/report.json`.
-
-Human listening remains pending. Tone tests verify DSP/routing, and real speech
-artifacts support human review; neither proves perceptual quality or aligned lip sync.
+Nobody but their maker has listened to the effects yet. The tests measure the processing; they do not show how it sounds,
+or that the lip sync still lines up.

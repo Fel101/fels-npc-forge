@@ -41,9 +41,3 @@ Choose an objective, location, story template and tone. **Suggest scene** create
 ## Verification
 
 `tests/test_scene_studio.py` and the Node check scripts cover legacy defaults, ensembles, validation, undo/recovery boundaries, immutable voice alternatives and approval staleness, camera/acting determinism, sound scheduling, exact mix ducking and pinned Items models. Existing scene/voice/server/web checks remain part of the regression run.
-
-`scripts/check_scene_studio_real.py` creates a copied library using retained real character models and speech, a local test crate in Items and generated audio test tones. Native QA exercised drag/rotation/walk placement, undo/redo/reload recovery, duplication and cast edits, actual generation/comparison/selection of three Qwen Custom Voice alternatives, native sound-file import and three independently configured tracks, proposal apply/undo, playback and MP4 capture. It never uses production scenes as fixtures.
-
-The retained report is `local/scene-studio-real-20261014-025745-756e0d/report.json`: 215 frames, 1280 × 720, 25 fps, 8.6 seconds; decoded video audio has zero-offset correlation 0.99989 with the expected mix. Model/sound/package hashes and 27 original source files passed verification. Four sampled shot frames were visually inspected. Browser mobile QA measured a 375-pixel client and scroll width under a 390-pixel viewport; screenshots live under `local/scene-studio-audit-20261014`.
-
-The fixture reuses retained bodies and speech. It proves pipeline behavior, not character identity or human approval of phonetic/acting quality. QA approval clicks occur only on copied test scenes.

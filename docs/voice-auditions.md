@@ -52,11 +52,3 @@ audio or reference files that have changed since capture.
 independent script dispatch, pronunciation, measured flags, human reviews,
 freshness and checksum-checked packages. API tests exercise validation and partial
 packages; the controller fixture checks submission and unsaved-setting guards.
-
-October 13 real evidence is retained under
-`local/voice-audition-real-20261013-175813-165f8b/`: seven real DramaBox clips
-(7.28–28.42 seconds), `audition.zip` and `report.json`. Every clip retained
-transcript-mismatch and amplitude-fallback flags. Recognized transcripts included
-extra fragments resembling the stage direction; the report preserves that evidence
-without treating it as a successful word check or a human listening verdict.
-Original source/reference hashes and saved disabled lip-sync settings were unchanged.

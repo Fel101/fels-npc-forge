@@ -24,12 +24,4 @@ Missing characters and missing 3D rigs block export. Other issues remain warning
 
 ## Verification
 
-The automated suite covers camera validation and compatibility, readiness levels, speech clocks including buffering and resume, and controller behavior for draft pause edits, seek/resume and stable beat reordering. The relevant regression suite passed 195 checks.
-
-`python scripts/check_scene_director_real.py` starts an isolated server with copied, retained real GLB and speech assets. It expects the retained October 12 voice-mesh QA library under `local`; it never replaces production scenes. Export its scene from the native browser, then run `python scripts/check_scene_director_real.py --verify QA_ROOT` to verify frame count, resolution, frame rate, audio timing, packaged voice hashes, all four camera settings and unchanged source assets. It retains sampled frames and a JSON report for visual inspection.
-
-This fixture verifies the scene pipeline. It does not assert that the reused body, portrait and voice depict the same identity, or certify phonetic quality.
-
-October 13 native QA used `local/scene-director-real-20261013-182947-ebdfef`: five beats, two retained voiced lines, four camera shots and a pause changed and saved through the UI to 1.3 seconds. The MP4 has 212 frames at 1280 × 720 and 25 fps. Its decoded audio matches the expected mix at zero offset (correlation 0.9993); both packaged speech hashes and 27 original asset hashes passed. All four sampled shots were visually inspected. The staged-source scene/web checks also passed against the committed stage module, with unrelated Body Designer edits excluded.
-
-Native browser QA retained desktop and mobile screenshots in `local/scene-director-audit-20261013`. At a 390-pixel viewport, document scroll width equals its 375-pixel client width; playback controls wrap, and the beat strip scrolls within the timeline. The temporary viewport override was reset. No browser warnings or errors were recorded.
+The automated suite covers camera validation and compatibility, readiness levels, speech clocks including buffering and resume, and controller behavior for draft pause edits, seek/resume and stable beat reordering.

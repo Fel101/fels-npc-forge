@@ -64,25 +64,11 @@ on seek. This is an explicit mapping recipe, not a packaged AnimBlueprint or an
 automatic skeletal importer. Unreal curve/audio imports were tested independently;
 this particular jaw adapter was executed in Godot and the Forge browser.
 
-## Retained verification
+## What was checked
 
-`scripts/check_voice_mesh_real.py --root local/voice-mesh-real-20261012-231710-14476b`
-uses two copied QA characters, existing real Ryan speech, and the copied Briar GLB.
-No TTS or production changes are made. The actual GLB has 1,503 vertices with nonzero
-jaw skin weights and no named facial morph targets. Godot loads the exported model
-and real WAV, checks all 169 stored sample poses, advances the audio clock, seeks,
-holds weights on pause and returns the jaw to neutral on stop. The native browser
-close-up changes from rest to open at audio time 1.02s (`OW`/`oh`).
-
-The browser exports the two-actor 5.2-second scene as 130 frames. The checker audits
-scene/voice package model and WAV hashes and compares decoded MP4 audio with the
-planned beat mix at zero offset. Evidence, WAVs, GLBs, packages, MP4 and screenshots
-remain under that ignored QA directory. QA portrait, body and prior male preset
-speech are intentionally separate fixtures; they do not establish character identity,
-human-rated voice quality or perceptually accurate phoneme boundaries.
-
-Regression: 160 selected voice/library/authoring/effects/alignment/game/scene/server/GPU
-checks passed; seven web checks passed again after the dialog resize fix. Browser
-measured 390/1440 CSS-pixel viewports with no horizontal dialog overflow. The mesh
-preview has its own resize observer, keeping the camera aspect correct as the
-viewport changes without editing the unrelated Stage3D file.
+`scripts/check_voice_mesh_real.py` uses copied characters, real speech and a rigged GLB with a jaw (1,503 vertices with jaw
+skin weights and no named facial morph targets). Godot loads the exported model and WAV, checks all 169 stored poses,
+advances the audio clock, seeks, holds the pose on pause and returns the jaw to rest on stop. In the page's close-up the mouth
+opens at 1.02 s (`OW`/`oh`). A two-character scene of 5.2 seconds exported as 130 frames, with its audio matching the planned
+mix. This shows the pipeline works; it does not show that a body, portrait and voice belong to one person, or that the mouth
+shapes are phonetically right.

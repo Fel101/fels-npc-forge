@@ -313,8 +313,6 @@ The **Scenes** tab makes a short exchange between two saved NPCs. Start from the
 
 Scenes are saved under `library/.npcforge-scenes/` and stay editable. With FFmpeg installed, **Render MP4 on CPU** exports a 720p, 25 fps video in widescreen or vertical format, up to 60 seconds. Rendering runs in its own CPU worker and can be cancelled without affecting character generation. Existing exports remain available after edits, with an outdated label when the script, audio, or source art changes. **Download scene package** includes the MP4, scene script, source details, voice licence notes, and `NOTICE.md`.
 
-The [scene maker plan](docs/scene-maker-plan.md) describes the design and release checks.
-
 ## Animation and export
 
 ```bash

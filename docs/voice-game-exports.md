@@ -42,12 +42,9 @@ imported SoundWave is an engine asset; retain the WAV beside JSON for reimport c
 The importer is deliberately executed by the game project's author, never by Forge
 or by opening a ZIP. It checks audio hash, CSV times and every weight against JSON.
 
-## Installed-engine verification on October 12, 2026
+## Tested with Godot and Unreal
 
-`python scripts/check_voice_game_exports_real.py` uses retained real CustomVoice
-speech/alignment and creates only ignored QA packs/projects. It changes no production
-characters, source WAVs, TTS environments, game projects or AMD pins. The primary
-passing report is `local/voice-game-export-real-20261012-213003-f5b480/report.json`.
+`python scripts/check_voice_game_exports_real.py` checks the exports in the game engines.
 
 - Godot **4.7.2 Mono**, headless with Dummy audio, loaded two 2.8/4.0-second aligned
   voice clips, one actual 2.8-second WAV in amplitude-fallback mode, and two pinned
@@ -58,18 +55,12 @@ passing report is `local/voice-game-export-real-20261012-213003-f5b480/report.js
 - Unreal **5.8.2** imported all five CurveTables and five SoundWaves in an isolated
   headless project. All 8,692 group/sample values and every interval midpoint matched
   Constant interpolation; imported sound duration agreed within one source sample.
-  A second import of the same asset was refused. Curve and audio assets are retained
-  under the QA Unreal project's Content folder for inspection.
-- Source NPC/scene JSON and WAV hashes, and delivered exported WAV hashes, were
-  unchanged. No TTS or alignment inference ran in this checker. Source records are
-  read; clip-specific settings are restored only in an in-memory export copy.
+  A second import of the same asset was refused.
 
 These checks prove serialization, engine imports and playback adapters. The mesh and
 atlas are synthetic API fixtures; they do not prove the appearance of any user's NPC,
 perceptual sync, manually accurate phoneme boundaries or MetaHuman compatibility.
 Existing Godot 4.6 projects retain their own executable and are not migrated.
-
-Regression checks: 146 passed with one legacy Chrome smoke deselected for in-app browser QA; 18 focused API/game-export/web checks passed after final UI/API additions. The real-engine checker then passed again after correcting Godot paused-audio pose handling.
 
 Actual character frame atlases and [3D mesh/jaw controls](voice-mesh-mouths.md) are
 now exported alongside these clips. The separate real-GLB check exercises the jaw

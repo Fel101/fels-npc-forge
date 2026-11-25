@@ -1,10 +1,9 @@
 # Final-audio alignment and viseme timing
 
-This first alignment milestone adds checked word timing, English phoneme timing,
-configurable visemes and a synchronized timing diagram. Character-specific mouth
-rigs, scene animation and Godot/Unreal mappings are still being integrated. Existing
-scene videos continue to use the amplitude mouth renderer; timing data in their
-packages does not mean those videos have acquired phonetic mouth shapes.
+Forge times each final WAV: checked word timing, English phoneme timing, configurable
+visemes and a synchronized timing diagram. Scene videos made before a clip was timed keep
+the amplitude mouth renderer; timing data in their packages does not give those videos
+phonetic mouth shapes.
 
 ## Workflow
 
@@ -153,30 +152,4 @@ checks and per-character phone mappings. The Lab's scene exporter supplied all
 30 cue files. Its package verifier flagged the SRT/VTT line mapping, so the
 comparison checked each timing file and source WAV against the manifest hashes.
 
-## October 12 evidence
-
-- The broad regression suite passed 143 checks, excluding one legacy Chrome smoke
-  in favor of in-app browser testing. Coverage includes interval/confidence/NaN
-  rejection, contractions, audio/config/transcript binding, preview snapshots,
-  final-effects routing, metadata-only updates, source preservation and media byte
-  ranges. Byte-range support fixed a real browser seekability failure.
-- Real prior CustomVoice speech produced checked 7/8 word intervals, 29/30 English
-  phone intervals and 169/241 frame samples at 60 fps for 2.8/4.0 seconds. Two real
-  scene clips also passed, including the `harbor is` / `harbour's` contraction.
-  Source NPC files and WAV bytes were preserved; no TTS inference ran in this check.
-- Wrong transcripts and a tone probe rejected alignment. A known-token phoneme
-  override used a separate dictionary and still passed. Actor/scene ZIPs bind their
-  timing JSON to delivered audio hashes; a pinned scene retains 60 fps after a
-  character switches to 30 fps.
-- `scripts/check_voice_alignment_real.py` retains reports, paired voice/scene
-  packages and `actor-*-timing-reference.mp4` diagrams for listening/timing review.
-  These diagrams are explicitly labelled separately from character-rig animation.
-- Browser verified save, metadata update, mapping edit/restore, playback and seeking
-  to `1.02 s → open / OW / oh` and `0.20 s → forge / F / FF`. Desktop and 390-pixel
-  mobile screenshots are retained in `local/voice-workspace-qa-20261012/` as
-  `lip-sync-timing-{desktop,mobile}.png`; mobile had no horizontal overflow.
-
-Current primary evidence is under `local/voice-alignment-real-20261012-180714-874a83/`.
-The ledger in `voice-studio-goal.md` preserves the remaining 3D target,
-capability and checkpoint-binding work. Game-engine mappings and installed-engine
-checks are described in [voice-game-exports.md](voice-game-exports.md). The full goal stays active.
+Game-engine mappings and the checks in Godot and Unreal are in [voice-game-exports.md](voice-game-exports.md).

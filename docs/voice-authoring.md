@@ -27,11 +27,11 @@ The presets use the controls actually forwarded by the current Forge adapters:
 | Breeze cloning | Temperature, acting direction, CFG when a nonempty acting direction is supplied. Plain cloning always uses CFG 1. |
 | Kokoro stock | Speed. No cloning or acting direction. |
 | Chatterbox Turbo | No parameter overrides or acting direction; supported sound tags still work. Its backend ignores CFG/exaggeration. |
-| VoxCPM2 | Guidance strength (CFG), whole-number inference steps; clone mood direction stays experimental. See the [Lab bridge workflow](voices.md). |
+| VoxCPM2 | Guidance strength (CFG), whole-number inference steps; clone mood direction stays experimental. See [Voices](voices.md). |
 | Qwen CustomVoice | Direct preset identity; acting direction, temperature, top-k, top-p, repetition penalty and maximum speech tokens. No reference conditioning. |
 | Chatterbox Original | English cloning; temperature, exaggeration, CFG weight, top-p, minimum probability and repetition penalty. No text direction, Turbo tags or native speed. |
-| DramaBox | Acting direction, CFG scale, STG scale and duration multiplier in its isolated LTX/Gemma runtime. Separate model-license conditions apply. |
-| Fish Drama 3 | Experimental inline direction/cues, temperature, top-k, top-p and maximum seconds. The shared production studio additionally manages speaker casts, seed and streamed auditions. Cloning/studio are CPU-only; no previous-take token editing. |
+| DramaBox | Retired in 1.1: its earlier takes still play. Its saved presets kept acting direction, CFG scale, STG scale and duration multiplier. |
+| Fish Drama 3 | Experimental inline direction/cues, temperature, top-k, top-p and maximum seconds. |
 
 Unsupported parameter overrides are rejected, including invalid/nonfinite numbers.
 Changing a character's speaking adapter may require revising its existing performance
@@ -90,30 +90,4 @@ or performances alter their synthesis. Their past settings cannot be reconstruct
 regenerating records a complete signature. No databases, recordings or model environments
 are migrated or upgraded automatically.
 
-This phase still uses the amplitude mouth-opening track. Word/phoneme alignment, visemes,
-vocal effects and additional Voice Lab adapters remain in the active full studio goal.
-
-## October 12 evidence
-
-- 67 Python checks passed across voice authoring, comparisons, API, library, voice,
-  scenes and JS syntax/controller tests; 1 legacy Chrome smoke excluded for in-app QA.
-- Browser created/saved a dictionary and performance, previewed altered synthesis text,
-  generated two candidates, retained/rated/favorited a three-candidate audition, assigned
-  a candidate, and saved/voiced a scene pin with a named performance. Desktop and mobile
-  studio layouts passed overflow checks. Screenshots are retained under
-  `local/voice-workspace-qa-20261012/voice-studio-{desktop,mobile}.png`, plus comparison
-  and scene-pin screenshots. These use isolated tone fixtures, not perceptual speech QA.
-- Real installed Qwen generated two 24 kHz dialogue clips (3.44 and 3.84 seconds) and
-  two scene lines from one shared reference with temperature 0.7 and `Aether` → `Ee ther`.
-  Changing one character's rule made its dialogue outdated while the pinned scene stayed
-  fresh. The two actor voice ZIPs and scene package passed authored/spoken-text, version
-  and freshness checks. Source production NPC JSON/reference bytes remained unchanged.
-- Real evidence is `local/voice-studio-real-20261012-141301-ecef01/report.json`. The scene
-  video is `library/.npcforge-scenes/scene-c09ab76174/render/bd190afa3a8c.mp4` there:
-  1280×720 H.264, 25 fps, 48 kHz AAC, 5.6 seconds; its 140-frame timeline and mouth tracks
-  match the speech clock. Human listening is pending; this does not prove word timing
-  or phoneme/viseme alignment.
-
-The production 8765 server remains available with the previous library milestone backend.
-These controls are capability-gated until its next normal restart loads `studio_schema: 1`.
-The current phase was exercised in isolated servers; no production voice assignments changed.
+Lip sync and effects have pages of their own: [lip sync](voice-lip-sync.md) and [effects](voice-effects.md).

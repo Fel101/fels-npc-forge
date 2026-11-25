@@ -32,7 +32,7 @@ artwork falls back to existing animation. Mouth edits leave speech fresh but inv
 scene video fingerprints. Restoring the original configuration restores its fingerprint.
 Saved card scenes use these mappings in browser playback and CPU MP4s; the timeline
 reports `viseme_frames`, `amplitude_frames` or `amplitude_fallback`. 3D stage scenes
-retain amplitude animation; mesh target integration remains in the active goal.
+use amplitude animation.
 
 Voice packs link `game/character-rigs/<kind>/rig.json` and PNG frames. Scene packs link
 per-character files under `game/characters/<id>/rigs/`. Metadata includes mappings,
@@ -42,22 +42,9 @@ builds an AnimatedSprite2D atlas from the exported PNGs. It uses dominant select
 use `weights_changed` for a custom weighted portrait crossfade. Unreal can import the
 PNGs as textures and select them using the artist mapping and exported curves.
 
-## Verification
+## What was checked
 
-154 broad checks passed; 36 focused API/scene/rig/web checks passed after restoration
-was added. They cover source preservation, hashes, regeneration, restoration, mapping
-bounds, amplitude/sprite behavior, independent voice signatures and video-only invalidation.
-
-Primary real evidence: `local/voice-character-rig-real-20261012-224957-969d8c/report.json`.
-Two existing NPC portraits/living images were copied into an isolated library and
-animated with retained real 2.8/4.0-second speech. Both 60-fps character MP4s, rest/open
-PNGs, voice ZIPs and a mapped-frame scene MP4/package are retained. Source NPC JSON,
-artwork and WAV hashes stayed unchanged; no TTS inference ran. Godot4.7.2 loaded the
-actual exported PNG atlas and verified alias-weight aggregation. General Godot/Unreal
-checks also passed in `local/voice-game-export-real-20261012-223808-ad3fef/report.json`.
-
-Browser QA imported, mapped, saved and restored a frame version. At 1.02 seconds the
-real character canvas and audio clock match `open / OW / oh`. Measured widths1440
-(desktop) and468 (mobile) had no horizontal dialog overflow. Screenshots are retained
-under `local/voice-character-rig-real-20261012-221020-4b756f/`. These are workflow/visual
-checks; human speaker-quality and physical phonetic-accuracy review remains pending.
+The automated checks cover keeping the originals, hashes, making a version again and restoring one, mapping limits, the
+amplitude fallback, and video-only changes. Two characters' portraits and living frames were animated with real speech;
+Godot 4.7.2 loaded the exported atlas, and at 1.02 seconds the character and the audio matched `open / OW / oh`. Nobody but
+their maker has yet judged how the voices sound or how exactly the mouths follow the sounds.
