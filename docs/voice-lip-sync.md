@@ -107,6 +107,52 @@ rendering now supports [mapped mouth frames](voice-character-mouths.md) and
 [Game playback files](voice-game-exports.md) provide
 verified Godot and Unreal adapters alongside the timing metadata.
 
+## Voice Lab comparison, November 24, 2026
+
+Ten English lines were rendered with each of three voices in an isolated Voice
+Lab at `de1d7f6`. Kokoro spoke as `af_heart` (American English) and `bm_george`
+(British English). Chatterbox Turbo spoke with a synthetic Qwen VoiceDesign
+reference. Each `POST /api/performance` kept a take. Its fetched WAV matched the
+kept audio and the original-take hash in the Lab's scene export. Forge's
+lip-sync preview ran at 30 fps on those same WAVs with blending off.
+
+The Lab's take API reports whether timings are present. The scene export
+provides the actual mouth cues. The Lab's word aligner used its own pinned
+environment. Kokoro's exported cues use the model's 25 ms phoneme timings.
+Chatterbox Turbo cues distribute each aligned word's time across its phonemes.
+
+The comparison grouped Forge's ARPABET phones into the Lab's eleven mouth
+shapes and merged consecutive cues of the same shape. It paired non-rest onsets
+of the same shape in order within 250 ms, maximizing matches and then minimizing
+their total distance. Unpaired cues and Forge amplitude fallbacks were excluded
+from the error statistics. One frame at 30 fps is 33.3 ms. The waveform plots
+showed speech bounds based on a −50 dBFS threshold alongside each mouth track.
+Absolute phone accuracy would require manually annotated boundaries.
+
+| Voice | Forge phonetic tracks | Lab mouth tracks | Matched onsets within one frame | Median onset gap |
+| --- | ---: | ---: | ---: | ---: |
+| Kokoro `af_heart` | 6/10 | 10/10 | 2/110 | 80 ms |
+| Kokoro `bm_george` | 7/10 | 10/10 | 1/131 | 85 ms |
+| Chatterbox Turbo | 7/10 | 10/10 | 28/130 | 70 ms |
+| **Total** | **20/30** | **30/30** | **31/371** | **79 ms** |
+
+Across the 20 comparable clips, 16 Forge onsets and 35 Lab onsets went unpaired.
+The 90th-percentile gap among matched cues was 130 ms. Forge fell back to
+amplitude for nine transcript mismatches and one rejected word-boundary fit.
+
+On the `af_heart` waveform for “Five bright lanterns flickered in the fog,”
+speech crossed the threshold at 0.320 s and ended at 2.340 s. Forge's first and
+last mouth cues bounded 0.250–2.380 s. The Lab's cues bounded 0.375–2.625 s and
+continued into trailing silence. The same late ending was visible for
+`bm_george` on “Wait here. I will be right back.” The Lab's Chatterbox Turbo
+starts were within 10 ms of the waveform threshold on all ten lines, although
+102 of its 130 matched interior or opening cues differed by over one frame.
+
+Forge keeps the CPU aligner to time the delivered WAV and apply the transcript
+checks and per-character phone mappings. The Lab's scene exporter supplied all
+30 cue files. Its package verifier flagged the SRT/VTT line mapping, so the
+comparison checked each timing file and source WAV against the manifest hashes.
+
 ## October 12 evidence
 
 - The broad regression suite passed 143 checks, excluding one legacy Chrome smoke

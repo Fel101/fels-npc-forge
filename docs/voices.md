@@ -39,6 +39,12 @@ viseme previews. **Download voice pack** includes current dialogue WAVs,
 See [game exports](voice-game-exports.md), [character rigs](voice-character-mouths.md)
 and [mesh mouths](voice-mesh-mouths.md).
 
+Forge keeps its separate CPU aligner for lip sync on the delivered WAV, including
+clips with effects applied. In a 30-take comparison, only 31 of 371 matched mouth
+cues from Voice Lab were within one frame at 30 fps of Forge's cues. Forge uses
+amplitude when its transcript and timing checks reject a clip. See the
+[timing comparison and installation guide](voice-lip-sync.md).
+
 Forge uses the local Voice Lab HTTP API. On this computer it finds the Lab through
 Fel's Studio's address file, or through the `VOICE_LAB_URL` override when set.
 Existing audio, exports and picture tools work while the Lab is closed.
