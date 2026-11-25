@@ -32,7 +32,7 @@ The switch beside the Your PC box (and in the header GPU light's popup). On, bef
 Voice Lab, Altera, LM Studio and Ollama to unload their models, and they wait until it is done. Off, pictures share the
 card with them. The Your PC box says whether your card is likely to need it: it compares what a picture needs (the room of
 the smallest card it ran on at its usual speed) plus about 8 GB for a small voice model and a chat model with the card. See
-the README, "One model on the GPU at a time".
+[models.md](models.md#one-model-on-the-gpu-at-a-time).
 
 ## The measurements
 

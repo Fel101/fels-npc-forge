@@ -9,7 +9,7 @@ and the next Install carries on from there. HF_ENDPOINT, as Hugging Face's own t
 Where ComfyUI is:
 - a ComfyUI running on this computer at the configured address says where its folders are (GET /internal/folder_paths, the
   folders of extra_model_paths.yaml included). A new file goes into the first folder it lists with the kind's own name
-  (models/diffusion_models, where the README says, rather than the older models/unet), and a file is there when it is in any
+  (models/diffusion_models, where docs/requirements.md says, rather than the older models/unet), and a file is there when it is in any
   folder it lists for that kind;
 - when none answers, the ComfyUI folder the person chose (config.json "comfy_folder"): its models\\<kind> folders.
 A ComfyUI on another computer gets nothing from here: its files must be put there.

@@ -2,6 +2,12 @@
 
 Scene Maker now combines visual staging, acting, moving cameras, alternative voice takes, sound tracks, Items props and an editable writing assistant. Existing scenes keep their cast, positions, speech and legacy camera framing until edited. Scene limits remain 20 beats and 60 seconds; ensembles can contain two to six characters.
 
+## Making a scene
+
+The **Scenes** tab makes a short exchange between two saved NPCs. Start from the Scenes tab, a cast pack, or a saved character. Add spoken lines, silent reactions, and pauses; choose each speaker, shot, mood, and expression. The preview uses existing portraits, sprites, and living portrait frames, with a still portrait fallback. A saved dialogue line can reuse its up-to-date WAV and mouth track. **Voice line** or **Voice missing lines** makes scene-owned speech in each character's selected voice through the normal voice job queue. Scene clips never alter character dialogue. Voice Lab speaks new scene lines in the assigned voices. Stored clips play without Voice Lab.
+
+Scenes are saved under `library/.npcforge-scenes/` and stay editable. With FFmpeg installed, **Render MP4 on CPU** exports a 720p, 25 fps video in widescreen or vertical format, up to 60 seconds. Rendering runs in its own CPU worker and can be cancelled without affecting character generation. Existing exports remain available after edits, with an outdated label when the script, audio, or source art changes. **Download scene package** includes the MP4, scene script, source details, voice licence notes, and `NOTICE.md`.
+
 ## Stage and cast
 
 Use **Visual staging** beside the preview. Its top-down map shows starting positions. Drag a character, or focus its marker and use arrow keys. Select a character to change its rotation in degrees. Select a script beat, choose **Walk destination**, then click or drag on the map to place that beat's destination. Selecting a different timeline beat updates the map's editing target.

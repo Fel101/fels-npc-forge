@@ -70,7 +70,7 @@ The full Python suite takes about 20 minutes. While you work, run just the files
 
 ## How the code is laid out
 
-`README.md` has the map (Layout). In short: `server.py` is the web server (standard library only), `npcgen/` holds everything
+[docs/files.md](docs/files.md) has the map (Layout). In short: `server.py` is the web server (standard library only), `npcgen/` holds everything
 else, `web/` is the page (plain JavaScript modules, no build step), `data/` holds the tables a roll draws from, and `docs/`
 explains each feature with what was measured.
 
@@ -86,5 +86,5 @@ Some habits the code follows:
 ## Adding a setting or an art style
 
 A setting is one file in `data/settings/`; an art style is an entry in `data/styles.json`. Both are re-read on every roll, so
-you can try one without restarting. `README.md` (Customising) lists every field. Please draw a few portraits with a new setting
+you can try one without restarting. [docs/customising.md](docs/customising.md) lists every field. Please draw a few portraits with a new setting
 or style before you send it, and say which engine you used.

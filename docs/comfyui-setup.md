@@ -12,8 +12,8 @@ not answering.
 - **ComfyUI is running on this computer** (at `comfy_url`, `http://127.0.0.1:8188` unless `config.json` says otherwise): it
   says where its folders are (`GET /internal/folder_paths`), the folders of `extra_model_paths.yaml` included. A file is
   there when it is in any folder ComfyUI lists for its kind. A new file goes into the first listed folder that has the kind's
-  own name (`models/diffusion_models`, not the older `models/unet` ComfyUI lists before it), so it lands where this README and
-  ComfyUI's own pages say. ComfyUI sees a new model file at once; there is nothing to restart.
+  own name (`models/diffusion_models`, not the older `models/unet` ComfyUI lists before it), so it lands where
+  [requirements.md](requirements.md) and ComfyUI's own pages say. ComfyUI sees a new model file at once; there is nothing to restart.
 - **ComfyUI is not running:** choose its folder with **Choose the ComfyUI folder…** (this computer's own folder picker), or
   type it under *Details*. It is the folder with ComfyUI's `models` and `custom_nodes` folders in it; for the portable ZIP,
   the folder it was unpacked into works too. The choice is kept in `config.json` as `"comfy_folder"`, and files go into its

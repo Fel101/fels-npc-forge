@@ -160,7 +160,7 @@ and `GET /api/items/<id>/export.zip`; the kinds come with `/api/config` (`items`
 ## What it needs
 
 ComfyUI with the Trellis2 nodes and Pixal3D's multi-view model (the ones the character chain uses), Blender for the game version, and
-for **Best quality pictures** Z-Image Turbo and Qwen-Image-Edit 2511 ([README](../README.md), Models). `/api/health` says what is missing (`items`); the tab itself does not show it.
+for **Best quality pictures** Z-Image Turbo and Qwen-Image-Edit 2511 ([models.md](models.md)). `/api/health` says what is missing (`items`); the tab itself does not show it.
 
 ## Limits
 
