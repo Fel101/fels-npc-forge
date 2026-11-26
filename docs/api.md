@@ -52,6 +52,8 @@ its pinned Hugging Face commit and copies NPC Forge's own nodes; without `"yes":
 
 ## Changes
 
+- **API 51.** Connected apps: `GET /api/suite/apps` says where Voice Lab and Altera answer, with their versions, how many
+  of the Lab's voices are ready, and whether Altera's inbox is there for Send to Altera.
 - **API 50.** Set up ComfyUI: `GET /api/comfy-setup`, and `POST /api/comfy-setup/install`, `/stop` and `/folder`.
 - **API 49.** One model at a time is a switch: `PUT /api/gpu/settings`, and `GET /api/gpu`'s `one_model_at_a_time`,
   `alone` and `switch_applies`. A job's step note says what it unloaded to make room. `GET /api/health` adds
@@ -65,7 +67,7 @@ its pinned Hugging Face commit and copies NPC Forge's own nodes; without `"yes":
   `GET /api/health?identity=1` to read just that object without waiting for the ComfyUI and tool checks.
 
 
-171 routes.
+172 routes.
 
 
 ## Server, settings and the queue
@@ -274,6 +276,7 @@ its pinned Hugging Face commit and copies NPC Forge's own nodes; without `"yes":
 
 | Method | Path | What it does |
 |---|---|---|
+| `GET` | `/api/suite/apps` | Connected apps (suite contract 14): Voice Lab and Altera where they answer, with their versions and addresses, or why they were not found; for Voice Lab, how many of its voices are ready; and whether Send to Altera has an inbox to use. |
 | `GET` | `/api/comfy-setup` | Where ComfyUI is, what each tier needs, what is there already and the install in progress. |
 | `POST` | `/api/comfy-setup/folder` | The ComfyUI folder Set up ComfyUI uses when ComfyUI is not running: {"folder": "D:/ComfyUI"}, {"pick": true} to choose it with this computer's own folder picker (refused when NPC Forge needs a password, as the picker would open on the server's screen), or {"folder": null} to forget it. |
 | `POST` | `/api/comfy-setup/install` | Install the parts in {"parts": ["image:zimage", ...], "yes": true}: check the files already there against their pinned SHA-256, download what is missing from its pinned Hugging Face commit, and copy NPC Forge's own nodes into custom_nodes. |

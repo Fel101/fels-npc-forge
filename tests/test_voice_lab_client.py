@@ -266,3 +266,25 @@ def test_forge_queues_a_consented_upload_to_voice_lab(forge_api, lab, monkeypatc
 def test_recording_destinations_are_local_http_origins(url):
     with pytest.raises(LabError, match="on this computer"):
         LabClient(url)
+
+
+def test_connected_apps_name_the_lab_its_ready_voices_and_an_altera_that_is_not_running(forge_api, lab, monkeypatch):
+    url, handlers, calls = lab
+    handlers.update({("GET", "/api/health"): (200, HEALTH),
+                     ("GET", "/api/voices"): (200, {"voices": [CAST, {**CAST, "name": "Still drafting", "ready": False}]})})
+    asked, real = [], fels_suite.ask_health
+    # Only the stand-in Lab answers, whatever else runs on this computer's suite ports.
+    monkeypatch.setattr(fels_suite, "ask_health", lambda address, timeout=2.0: (asked.append(address), real(address) if address == url else None)[1])
+    monkeypatch.delenv("ALTERA_URL", raising=False)
+    fels_suite.write_address("voice-lab", url, "1.0.0", 1, HEALTH["lab_id"])
+    answer = forge_api("GET", "/api/suite/apps")[1]
+    assert answer["apps"]["voice-lab"] == {"url": url, "version": "1.0.0", "notes": [], "voices_ready": 1}
+    assert answer["apps"]["altera"] == {"url": None, "version": None, "notes": [], "inbox": False}
+    assert {"http://127.0.0.1:8767", "http://127.0.0.1:5001"} <= set(asked) and answer["suite_problem"] is None
+
+    fels_suite.inbox_dir("altera", make=True)
+    handlers[("GET", "/api/health")] = 200, {"fels": {**HEALTH["fels"], "api": 2}}
+    answer = forge_api("GET", "/api/suite/apps")[1]
+    assert answer["apps"]["altera"]["inbox"] is True
+    lab_answer = answer["apps"]["voice-lab"]
+    assert lab_answer["voices_ready"] is None and any("Update Voice Lab" in note for note in lab_answer["notes"])

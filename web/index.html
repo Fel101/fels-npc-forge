@@ -36,6 +36,18 @@
       <p>A character generator for games. Roll a person, describe one in a sentence, or import a cast list, and get a data sheet,
         a portrait, expressions, a transparent full-body sprite, walk cycles and a model sheet, all drawn by
         <strong>Qwen-Image</strong> (or the built-in <strong>Mage-Flow</strong>, if you pick it) running in your own ComfyUI. Everything stays on this computer.</p>
+      <p class="suite-line"><strong>Part of Fel's Studio</strong>: four free apps that run on your own PC and work together.
+        <a href="https://github.com/Fel101/fels-voice-slate" target="_blank" rel="noopener">Voice Slate</a> records voices with consent,
+        <a href="https://github.com/Fel101/fels-voice-lab" target="_blank" rel="noopener">Voice Lab</a> designs and clones voices,
+        <a href="https://github.com/Fel101/fels-npc-forge" target="_blank" rel="noopener">NPC Forge</a> makes characters for games, and
+        <a href="https://github.com/Fel101/Altera" target="_blank" rel="noopener">Altera</a> lets you talk with them. Each one also works on its own.</p>
+      <h3 id="aboutAppsTitle">Connected apps</h3>
+      <ul class="about-apps" id="aboutApps" aria-labelledby="aboutAppsTitle" aria-live="polite"></ul>
+      <div class="about-update">
+        <button type="button" class="btn small" id="aboutAppsRefresh">Look again</button>
+        <span class="hint" id="aboutAppsStatus" role="status"></span>
+      </div>
+      <details id="aboutAppsNotes" hidden><summary>Details</summary><p class="hint about-apps-notes" id="aboutAppsNotesText"></p></details>
       <h3>Where things are</h3>
       <p>Characters are saved as plain folders of PNG files plus an <code>npc.json</code> in the <code>library</code> folder next to
         the app, so any engine or script can read them. The Library tab lists them; the Create tab makes new ones.</p>

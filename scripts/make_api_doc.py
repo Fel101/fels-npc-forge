@@ -69,6 +69,8 @@ its pinned Hugging Face commit and copies NPC Forge's own nodes; without `"yes":
 
 ## Changes
 
+- **API 51.** Connected apps: `GET /api/suite/apps` says where Voice Lab and Altera answer, with their versions, how many
+  of the Lab's voices are ready, and whether Altera's inbox is there for Send to Altera.
 - **API 50.** Set up ComfyUI: `GET /api/comfy-setup`, and `POST /api/comfy-setup/install`, `/stop` and `/folder`.
 - **API 49.** One model at a time is a switch: `PUT /api/gpu/settings`, and `GET /api/gpu`'s `one_model_at_a_time`,
   `alone` and `switch_applies`. A job's step note says what it unloaded to make room. `GET /api/health` adds

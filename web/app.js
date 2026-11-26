@@ -2077,7 +2077,48 @@ function openAbout() {
   $('#aboutMeta').textContent = `Version ${S.cfg.version || 'unknown'} · ComfyUI at ${S.cfg.comfy_url} · server API ${S.cfg.api_version || 1}`;
   $('#aboutLicences').hidden = !S.cfg.licences;                // (an older server has no licence list)
   loadUpdateState();
+  refreshConnectedApps();
   if (!dlg.open) dlg.showModal();
+}
+
+// ---------- Connected apps (About; suite contract 14): Voice Lab and Altera where they answer, and what NPC Forge does with them ----------
+const SUITE_PAGES = { 'voice-lab': 'https://github.com/Fel101/fels-voice-lab', altera: 'https://github.com/Fel101/Altera',
+  'voice-slate': 'https://github.com/Fel101/fels-voice-slate' };
+let appsRequest = null;
+
+function appLine(name, app, found, missing, page) {
+  if (app?.url) {
+    return h('li', {}, h('strong', {}, app.version ? `${name} ${app.version}` : `${name} (an older release)`), ' at ',
+      h('code', {}, app.url), `: ${found}`);
+  }
+  return h('li', {}, h('strong', {}, name), ` is not running. ${missing} `, h('a', { href: page, target: '_blank', rel: 'noopener' }, `Get ${name}`));
+}
+
+function refreshConnectedApps() {
+  if (appsRequest) return appsRequest;
+  $('#aboutAppsStatus').textContent = 'Looking for Voice Lab and Altera…';
+  appsRequest = api('GET', '/api/suite/apps').then(answer => {
+    const lab = answer.apps['voice-lab'], altera = answer.apps.altera, ready = lab?.voices_ready;
+    $('#aboutApps').replaceChildren(
+      appLine('Voice Lab', lab, ready == null ? 'your characters speak with its voices (the Voice card).'
+        : ready === 0 ? 'no voice is ready there yet. Make one in Voice Lab, or install a voice model there, and your characters can speak with it.'
+        : `${ready} ${ready === 1 ? 'voice is' : 'voices are'} ready for your characters (the Voice card).`,
+      'It gives your characters voices: designed ones, and ones cloned with consent. Start it, then press Look again.', SUITE_PAGES['voice-lab']),
+      appLine('Altera', altera, 'Export character card > Send to Altera hands it a character to talk with.',
+        altera?.inbox ? 'It lets you talk with your characters. Send to Altera still leaves a character in its inbox for when it starts.'
+          : 'It lets you talk with your characters. Start it once, and Send to Altera can hand them over.', SUITE_PAGES.altera),
+      h('li', {}, h('strong', {}, 'Voice Slate'), ' records voices with consent on this PC, and Voice Lab turns them into voices your characters can use. ',
+        h('a', { href: SUITE_PAGES['voice-slate'], target: '_blank', rel: 'noopener' }, 'Get Voice Slate')));
+    const notes = [answer.suite_problem, ...Object.values(answer.apps).flatMap(app => app.notes || [])].filter(Boolean);
+    $('#aboutAppsNotesText').textContent = notes.join('\n');
+    $('#aboutAppsNotes').hidden = !notes.length;
+    $('#aboutAppsStatus').textContent = '';
+  }).catch(() => {
+    $('#aboutApps').replaceChildren();
+    $('#aboutAppsNotes').hidden = true;
+    $('#aboutAppsStatus').textContent = 'Could not look for the other apps. Press Look again to try again.';
+  }).finally(() => { appsRequest = null; });
+  return appsRequest;
 }
 
 // ---------- updates (About > Check for updates / Update now; the update itself is scripts/update.py's, as update.bat's) ----------
@@ -2147,6 +2188,7 @@ async function showUpdateNotice() {
 }
 
 $('#aboutClose').addEventListener('click', () => $('#about').close());
+$('#aboutAppsRefresh').addEventListener('click', () => refreshConnectedApps());
 $('#aboutLicences').addEventListener('click', safe(async () => { $('#about').close(); await openLicences(); }));
 $('#settingsBtn').addEventListener('click', openSettings);
 $('#about').addEventListener('click', e => { if (e.target === e.currentTarget) e.currentTarget.close(); });     // a click on the backdrop

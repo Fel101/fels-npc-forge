@@ -390,6 +390,9 @@ select.facet.on { border-color: var(--accent); background: var(--accent-soft); }
 .about h3 { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-top: 6px; }
 .about code { font: 12px ui-monospace, SFMono-Regular, Consolas, monospace; background: var(--panel-2); padding: 1px 5px; border-radius: 4px; }
 .about-foot { display: flex; justify-content: flex-end; padding: 0 16px; }
+.about-apps { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; }
+.about-apps .hint { margin: 0; }
+.about-apps-notes { white-space: pre-line; overflow-wrap: anywhere; }
 .about-foot:empty { display: none; }
 
 /* ---- advanced options (web/advanced.js): the same dialog, wider, with a scrolling body and a fixed footer ---- */

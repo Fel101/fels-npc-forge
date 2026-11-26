@@ -68,7 +68,7 @@ mimetypes.add_type("image/svg+xml", ".svg")
 
 # Bump when web/app.js starts needing something an older server does not provide; the page compares it with its own
 # REQUIRED_API and switches the newer features off (with a banner) instead of crashing. A test keeps the two in sync.
-API_VERSION = 50             # 50: Set up ComfyUI, /api/comfy-setup (docs/api.md, docs/comfyui-setup.md)
+API_VERSION = 51             # 51: Connected apps, /api/suite/apps (docs/api.md)
 
 DEFAULT_ASSETS = {"portrait": True, "sprite": True, "model_3d": False, "expressions": ["happy", "sad", "angry", "surprised"]}
 
@@ -1236,6 +1236,28 @@ def voice_lab(q, body):
         return {"connected": True, "voices": lab.voices(), "url": lab.url}
     except LabError as error:
         return {"connected": False, "voices": [], "message": str(error)}
+
+
+@route("GET", "/api/suite/apps")
+def suite_apps(q, body):
+    """Connected apps (suite contract 14): Voice Lab and Altera where they answer, with their versions and addresses, or why
+    they were not found; for Voice Lab, how many of its voices are ready; and whether Send to Altera has an inbox to use."""
+    apps = {}
+    for app in ("voice-lab", "altera"):
+        found = fels_suite.find_app(app)
+        block = (found["health"] or {}).get("fels")
+        # "is not running" is said by the page in its own words; the other notes say what was tried.
+        apps[app] = {"url": found["url"], "version": block.get("version") if isinstance(block, dict) else None,
+                     "notes": found["notes"] if found["url"] else found["notes"][:-1]}
+    lab = apps["voice-lab"]
+    if lab["url"]:
+        try:
+            lab["voices_ready"] = sum(1 for voice in LabClient.discover(lab["url"]).voices() if voice.get("ready"))
+        except LabError as error:
+            lab["voices_ready"] = None
+            lab["notes"].append(str(error))
+    apps["altera"]["inbox"] = character_card.inbox_ready()
+    return {"apps": apps, "suite_problem": fels_suite.suite_dir_problem()}
 
 
 @route("PUT", "/api/npcs/([a-z0-9-]+)/voice/lab")
