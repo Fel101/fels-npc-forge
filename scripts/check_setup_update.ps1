@@ -42,8 +42,13 @@ $env:FELS_SUITE_DIR = Join-Path $Work 'suite'
 
 if (-not $Previous) {
   $download = Join-Path $Work 'previous'
+  # gh says "no assets to download" on stderr for a release without a Setup.exe. Windows PowerShell 5.1 would make that a
+  # stopping error here, so only the exit code is read.
+  $ErrorActionPreference = 'Continue'
   gh release download $previousTag --repo $repository --pattern 'FelsNPCForge-Setup-*.exe' --dir $download 2>$null
-  if (-not $LASTEXITCODE) { $Previous = (Get-Item "$download\FelsNPCForge-Setup-*.exe").FullName }
+  $found = -not $LASTEXITCODE
+  $ErrorActionPreference = 'Stop'
+  if ($found) { $Previous = (Get-Item "$download\FelsNPCForge-Setup-*.exe").FullName }
 }
 if ($Previous) {
   $old = Start-Process (Resolve-Path $Previous).Path -ArgumentList ($silent + "/LOG=`"$Work\previous-setup.log`"") -Wait -PassThru
@@ -55,7 +60,8 @@ if ($Previous) {
   if ($LASTEXITCODE) { throw "git archive could not pack $previousTag" }
   Expand-Archive -Path $zip -DestinationPath $forge
   Push-Location $forge
-  try { cmd /c "setup.bat < nul"; if ($LASTEXITCODE) { throw "$previousTag's setup.bat ended with exit code $LASTEXITCODE" } } finally { Pop-Location }
+  # .\ because cmd.exe skips the current folder where NoDefaultCurrentDirectoryInExePath is set.
+  try { cmd /c ".\setup.bat < nul"; if ($LASTEXITCODE) { throw "$previousTag's setup.bat ended with exit code $LASTEXITCODE" } } finally { Pop-Location }
 }
 
 function Start-Forge {
