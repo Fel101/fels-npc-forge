@@ -1,0 +1,142 @@
+"""Write a release's notes: that version's section of CHANGELOG.md, with the repository's own links made absolute at its tag.
+
+    python scripts/release_notes.py                            the notes for the version in npcgen/__init__.py
+    python scripts/release_notes.py 1.0.0                      the notes for another version
+    python scripts/release_notes.py --tag v1.1.0 --output notes.md
+
+A release's notes are shown on GitHub's release page, where a link such as [status](docs/status.md) leads nowhere, so each one
+is pointed at the file as it is at the tag. The release workflow (.github/workflows/release.yml) passes --tag, which also
+refuses a tag that is not "v" and the version, because update.bat refuses such a release. GitHub shows each line break of the
+notes as written, so a paragraph or a list item whose lines were wrapped is joined into one line. Exit status 1, with the
+reason, when the version has no section in the changelog, its heading has no date, or its section is empty.
+"""
+import argparse
+import datetime
+import posixpath
+import re
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from npcgen import __version__  # noqa: E402
+from npcgen.updates import REPOSITORY  # noqa: E402
+
+CHANGELOG = ROOT / "CHANGELOG.md"
+HEADING = re.compile(r"## (?P<version>\S+)(?: \((?P<date>[^)]*)\))?\s*")
+# An inline link or image whose target has no spaces, with an optional title. The changelog uses no other kind.
+LINK = re.compile(r"(?P<label>!?\[[^\]]*\])\((?P<target>[^)\s]+)(?P<title>\s+\"[^\"]*\")?\)")
+SCHEME = re.compile(r"[A-Za-z][A-Za-z0-9+.-]*:")
+# A line that starts a block of its own: a list item, a heading, a quote, a table row or a fence.
+BLOCK_START = re.compile(r"\s*(?:[-*+] |\d+\. |#|>|\||```)")
+
+
+class NotesError(Exception):
+    """The notes cannot be written; the message says why and what to change."""
+
+
+def check_version(version):
+    if not re.fullmatch(r"\d+\.\d+\.\d+", version):
+        raise NotesError(f"{version!r} is not a version such as 1.1.0: Check for updates reads only three plain numbers.")
+
+
+def check_tag(tag, version):
+    if tag != f"v{version}":
+        raise NotesError(f"The tag {tag} is not v{version}, the version in npcgen/__init__.py. update.bat refuses a release whose "
+                         "tag and version differ, so tag the commit that sets this version.")
+
+
+def section(text, version):
+    """The text under the version's heading, up to the next heading of the same level, without its blank edges."""
+    lines = text.splitlines()
+    found = [index for index, line in enumerate(lines) if (match := HEADING.fullmatch(line)) and match["version"] == version]
+    if not found:
+        raise NotesError(f'CHANGELOG.md has no section for {version}. Give it the heading "## {version} (YYYY-MM-DD)".')
+    if len(found) > 1:
+        raise NotesError(f"CHANGELOG.md has {len(found)} sections for {version}; keep one.")
+    start = found[0]
+    date = HEADING.fullmatch(lines[start])["date"]
+    if not date:
+        raise NotesError(f'The heading for {version} in CHANGELOG.md has no date. Write it as "## {version} (YYYY-MM-DD)".')
+    try:
+        if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", date):
+            raise ValueError
+        datetime.date.fromisoformat(date)
+    except ValueError:
+        raise NotesError(f"The heading for {version} in CHANGELOG.md has {date!r} for its date, not one such as 2026-11-20.") from None
+    end = next((index for index in range(start + 1, len(lines)) if lines[index].startswith("## ")), len(lines))
+    body = "\n".join(lines[start + 1:end]).strip("\n")
+    if not body.strip():
+        raise NotesError(f"The section for {version} in CHANGELOG.md is empty.")
+    return body + "\n"
+
+
+def unwrap(text):
+    """Join the wrapped lines of each paragraph and list item, since GitHub's release page shows every line break."""
+    joined, fenced = [], False
+    for line in text.splitlines():
+        if line.strip().startswith("```"):
+            fenced = not fenced
+            joined.append(line)
+            continue
+        continues = (not fenced and joined and joined[-1].strip() and line.strip() and not BLOCK_START.match(line)
+                     and not joined[-1].strip().startswith(("#", "|", "```")))
+        if continues:
+            joined[-1] = joined[-1].rstrip() + " " + line.strip()
+        else:
+            joined.append(line)
+    return "\n".join(joined) + "\n"
+
+
+def absolute_links(text, repository, tag):
+    """The text with every link into the repository pointed at the file as it is at the tag. A link to a heading of the
+    changelog itself points at CHANGELOG.md, and an image at the file's raw bytes so that it still shows."""
+
+    def point(match):
+        target = match["target"]
+        if SCHEME.match(target):
+            return match[0]
+        path, hash_, anchor = target.partition("#")
+        path = posixpath.normpath(path.lstrip("/")) if path else "CHANGELOG.md"
+        if path == ".." or path.startswith("../"):
+            raise NotesError(f"The link to {target} leads out of the repository.")
+        kind = "raw" if match["label"].startswith("!") else "blob"
+        return f"{match['label']}(https://github.com/{repository}/{kind}/{tag}/{path}{hash_}{anchor}{match['title'] or ''})"
+
+    return LINK.sub(point, text)
+
+
+def notes(version, *, changelog=CHANGELOG, repository=REPOSITORY, tag=None):
+    check_version(version)
+    tag = tag or f"v{version}"
+    check_tag(tag, version)
+    return absolute_links(unwrap(section(Path(changelog).read_text(encoding="utf-8"), version)), repository, tag)
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("version", nargs="?", default=__version__, help="default: the version in npcgen/__init__.py")
+    parser.add_argument("--tag", help="the tag being released; refused unless it is v and the version")
+    parser.add_argument("--output", type=Path, help="write the notes to this file (UTF-8) instead of standard output")
+    parser.add_argument("--changelog", type=Path, default=CHANGELOG, help=argparse.SUPPRESS)
+    parser.add_argument("--repository", default=REPOSITORY, help=argparse.SUPPRESS)
+    args = parser.parse_args(argv)
+    try:
+        text = notes(args.version, changelog=args.changelog, repository=args.repository, tag=args.tag)
+    except (NotesError, OSError) as exc:
+        print(exc, file=sys.stderr)
+        return 1
+    # Written whole after every check, so a refusal leaves no file behind, and in UTF-8 whatever the console's code page.
+    if args.output:
+        with open(args.output, "w", encoding="utf-8", newline="\n") as handle:
+            handle.write(text)
+    else:
+        sys.stdout.buffer.write(text.encode("utf-8"))
+        sys.stdout.buffer.flush()
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

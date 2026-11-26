@@ -2,7 +2,19 @@ name: tests
 
 on:
   push:
+    # Branches only: a pushed tag is checked by release.yml, which calls this workflow before it publishes.
+    branches: ['**']
   pull_request:
+  workflow_call:
+    inputs:
+      ref:
+        description: The commit to check, such as refs/tags/v1.1.0. Empty checks the caller's own commit.
+        type: string
+        required: false
+        default: ''
+
+permissions:
+  contents: read
 
 jobs:
   pytest:
@@ -14,6 +26,8 @@ jobs:
         python: ["3.10", "3.12"]
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
@@ -25,3 +39,20 @@ jobs:
           node-version: "22"
       # The page's own modules, run under Node (the *_real checks need a running NPC Forge and are not run here).
       - run: node --test scripts/check_scene_studio.mjs scripts/check_scene_history.mjs scripts/check_scene_director.mjs scripts/check_scene_motion.mjs scripts/check_voice_workspace.mjs
+  setup-exe:
+    # Setup.exe built from this commit and installed over the release before it, then uninstalled
+    # (scripts/build_installer.py, scripts/check_setup_update.ps1).
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+          # Setup.exe carries the file lists of the releases before it, read from their tags.
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build Setup.exe, the ZIP and SHA256SUMS
+        run: python scripts/build_installer.py --output "$env:RUNNER_TEMP\release"
+      - name: Install Setup.exe over the release before it, then uninstall it
+        run: ./scripts/check_setup_update.ps1 -Setup (Get-Item "$env:RUNNER_TEMP\release\FelsNPCForge-Setup-*.exe").FullName -Work "$env:RUNNER_TEMP\update" -Uninstall
