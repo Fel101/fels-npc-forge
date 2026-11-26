@@ -68,6 +68,8 @@ Voices come from [Fel's Voice Lab](https://github.com/Fel101/fels-voice-lab).
 
 ## What was measured
 
+- [Gallery](gallery.md): one rolled character in every art style, a living portrait, a 3D model, a walk cycle
+  and a Godot scene, with the model that made each and how long it took.
 - [Status](status.md): what has and has not been checked, and the known limits.
 - [Which models may be used for work you sell](licences.md).
 - [Animation: what was tried and what worked](animation.md), and [model sheets](model-sheet.md).

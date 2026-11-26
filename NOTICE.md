@@ -166,9 +166,12 @@ The Trellis2 generator also uses two small ComfyUI nodes of NPC Forge's own (`np
 ## Sample images
 
 The art-style samples in `web/styles/` (one invented character drawn in every style, shown by the style picker) were made
-with **Z-Image Turbo** (Apache-2.0) through NPC Forge's own portrait prompts, not with Mage-Flow. Any other sample images in
-this repository were generated with Mage-Flow; they are examples of the tool's output and carry the uncertainty described
-above. Do not treat any of them as licensed artwork.
+with **Z-Image Turbo** (Apache-2.0) through NPC Forge's own portrait prompts, not with Mage-Flow. The pictures in
+`docs/images/gallery/` and `docs/images/character.png` (one rolled character, made by NPC Forge for
+[the gallery](docs/gallery.md)) were drawn with **Qwen-Image 2512** and edited with **Qwen-Image-Edit 2511**, both
+Apache-2.0 with their Lightning LoRAs; the turning 3D model was made by **Pixal3D** (MIT), which reads Meta's DINOv3, whose
+licence adds conditions. The gallery says which model made each picture. They are examples of the tool's output, made with
+AI models; do not treat any of them as licensed artwork.
 
 ## 3D preview
 

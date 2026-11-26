@@ -11,10 +11,13 @@ models running in your own ComfyUI. There is no cloud and nothing to train.
 > [NPC Forge](https://github.com/Fel101/fels-npc-forge) makes characters for games, and [Altera](https://github.com/Fel101/Altera)
 > lets you talk with them. Each one also works on its own.
 
-[Quick start](#quick-start) · [What your PC can make](#what-your-pc-can-make) · [Documentation](docs/README.md) ·
-[Responsible use](docs/responsible-use.md)
+[Quick start](#quick-start) · [What your PC can make](#what-your-pc-can-make) · [Gallery](docs/gallery.md) ·
+[Documentation](docs/README.md) · [Responsible use](docs/responsible-use.md)
 
-![The Create page: settings, who, art style and what to make](docs/images/create.png)
+![One rolled character, Mirabel Millbrook, drawn in all 17 art styles](docs/images/gallery/styles.jpg)
+
+*One rolled character in all 17 art styles, drawn by Qwen-Image 2512 (Apache-2.0) on one PC. The
+[gallery](docs/gallery.md) has her walk cycle, living portrait, 3D model and a Godot scene, with the model that made each.*
 
 ## What it makes
 
@@ -32,7 +35,7 @@ models running in your own ComfyUI. There is no cloud and nothing to train.
 Voice Lab), **Scenes** (two to six characters acting out a scene) and **Creatures** (non-humanoid creatures for a game). They
 work, but have been checked on fewer characters than the rest: see [what has been checked](docs/status.md).
 
-![A finished character: portrait, full-body sprite, data sheet and model sheet](docs/images/character.png)
+![A finished character in NPC Forge: portrait, full-body sprite, data sheet and model sheet](docs/images/character.png)
 
 ## What your PC can make
 
