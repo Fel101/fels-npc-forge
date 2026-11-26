@@ -684,7 +684,21 @@ def card_options(q, body, npc_id):
     return {"altera_inbox": character_card.inbox_ready(), "cast_voice": cast_voice}
 
 
+def _free_gpu_for_voice_lab():
+    """A CHARX card's Cast voice carries a line Voice Lab speaks for it. With One model at a time, NPC Forge keeps ComfyUI's
+    models, and the GPU to itself, for gpu.unload_idle_seconds after a picture, and Voice Lab will not load a model meanwhile.
+    So when no job is running NPC Forge lets go first, as it does before it sends speech to Voice Lab (docs/models.md)."""
+    app = current_app()
+    with app.jobs.lock:
+        if app.jobs.current is not None or not app.jobs.queue.empty():
+            return
+    engines.release(app.comfy)
+    gpu.release_comfy(app.comfy)
+
+
 def _card_bytes(npc, form, *, include_voice=True, permission=False):
+    if form == "charx" and include_voice and (character_card.voice_selection(npc) or {}).get("identity_id"):
+        _free_gpu_for_voice_lab()
     try:
         return character_card.build(current_app().lib, npc, form, include_voice=include_voice, permission=permission)
     except LabError as error:

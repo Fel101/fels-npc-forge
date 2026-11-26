@@ -96,9 +96,15 @@ def test_character_card_endpoints_and_altera_inbox(api, monkeypatch, tmp_path):
         return b"test Lab persona bytes", voice
 
     monkeypatch.setattr(character_card, "_persona", export_persona)
+    # Voice Lab speaks the card's line, so an idle NPC Forge lets go of the GPU first (One model at a time keeps it after a
+    # picture); a card without the Cast voice leaves it be.
+    from npcgen import gpu
+    freed = []
+    monkeypatch.setattr(gpu, "release_comfy", freed.append)
+    assert api("GET", url + ".charx?voice=0", raw=True)[0] == 200 and freed == []
     consent = api("GET", url + "-options")[1]["cast_voice"]["consent_for"]
     status, raw = api("POST", url + ".charx", {"permission": True, "consent_for": consent}, raw=True)
-    assert status == 200
+    assert status == 200 and freed == [api.app.comfy]
     with zipfile.ZipFile(io.BytesIO(raw)) as archived:
         voice = json.loads(archived.read("card.json"))["data"]["extensions"]["fels"]["voice"]
         assert voice["cloned_from_person"] and archived.read(voice["file"][10:]) == b"test Lab persona bytes"
