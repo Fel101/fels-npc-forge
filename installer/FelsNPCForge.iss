@@ -307,7 +307,9 @@ begin
       WizardForm.AdjustLabelHeight(WizardForm.FinishedLabel);
       WizardForm.RunList.Top := WizardForm.FinishedLabel.Top + WizardForm.FinishedLabel.Height + ScaleY(12);
     end;
-    { Set up ComfyUI, under "Open NPC Forge now": ticked for a new install, not for an update. }
+    { Set up ComfyUI, under "Open NPC Forge now": ticked for a new install, not for an update. The list fills the page, so it
+      is made as tall as its one line first. }
+    WizardForm.RunList.Height := WizardForm.RunList.Items.Count * ScaleY(24);
     ComfyBox.Visible := SetUpOk and WizardForm.RunList.Visible;
     ComfyHint.Visible := ComfyBox.Visible;
     ComfyBox.Checked := InstalledVersion = '';

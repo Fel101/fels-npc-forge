@@ -59,7 +59,7 @@ OUTPUT = ROOT / "dist"
 STAGING_NAME = "staging"
 # What setup leaves in .venv beyond the files Setup.exe copies, so the folder page asks for enough space: measured from an
 # installed copy, rounded up.
-ENVIRONMENT_BYTES = 150 * 1024 * 1024
+ENVIRONMENT_BYTES = 100 * 1024 * 1024  # 79 MB on 2026-11-25
 ISCC_PLACES = (
     Path(os.environ.get("LOCALAPPDATA", "")) / "Programs" / "Inno Setup 6" / "ISCC.exe",
     Path(os.environ.get("ProgramFiles(x86)", r"C:\Program Files (x86)")) / "Inno Setup 6" / "ISCC.exe",
