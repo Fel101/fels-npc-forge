@@ -70,6 +70,29 @@ def test_a_shifted_expression_is_lined_up_before_it_is_blended():
     assert eye.mean() < 150                                       # the closed-eye line landed where the eye is
 
 
+def _closed_eye(out):
+    return np.asarray(out.convert("RGB"), np.int16)[209:214, 212:230].mean() < 150
+
+
+def test_an_expression_that_came_back_as_the_middle_of_the_portrait_is_put_back_where_it_was():
+    # Qwen-Image-Edit 2511 at standard quality: a 1024 portrait comes back as its middle 992 pixels, at the same scale
+    base = _portrait()
+    middle = _expression(base).crop((8, 8, 504, 504))
+    out, info = living.composite(base, middle)
+    assert info["shift"] == [0, 0] and _closed_eye(out)
+    frame, _ = living.align(base, middle)
+    a, b = np.asarray(base.convert("RGB"), np.int16), np.asarray(frame.convert("RGB"), np.int16)
+    assert np.abs(a[100:180, 100:400] - b[100:180, 100:400]).mean() < 8      # lined up: only the edit's noise differs
+
+
+def test_an_expression_that_came_back_as_the_whole_picture_at_another_size_is_scaled_back():
+    # Mage-Flow: the whole portrait, drawn at the edit's own size
+    base = _portrait()
+    smaller = _expression(base).resize((480, 480), Image.LANCZOS)
+    out, info = living.composite(base, smaller)
+    assert info["shift"] == [0, 0] and _closed_eye(out)
+
+
 def test_an_unchanged_frame_is_the_portrait():
     base = _portrait()
     out, info = living.composite(base, base.copy())

@@ -78,11 +78,32 @@ def _smooth(img):
                       dtype=np.float32)
 
 
+def _mismatch(base, frame, box):
+    """How different the two pictures are inside `box`, small and blurred (the measure face_centre uses)."""
+    return float(np.abs(_smooth(base.crop(box)) - _smooth(frame.crop(box))).mean())
+
+
+def _at_size(base, frame):
+    """The frame at the portrait's size. An edit that comes back at another size is one of two things, and they need opposite
+    handling: the whole picture drawn smaller or larger (Mage-Flow scales the portrait to the size it draws at), or the
+    middle of the picture at the portrait's own scale (Qwen-Image-Edit 2511 keeps the portrait's scale and draws only what its
+    canvas holds: a 1024-pixel portrait edited at standard quality comes back as its middle 992 pixels, measured on every
+    expression of a real character). Stretching a middle part moved her eyes and mouth by up to 16 pixels, so the blink and the
+    word were blended in beside the face. Both readings are tried, and the one that matches the portrait better is used."""
+    if frame.size == base.size:
+        return frame
+    scaled = frame.resize(base.size, Image.LANCZOS)
+    middle = base.copy()
+    left, top = (base.size[0] - frame.size[0]) // 2, (base.size[1] - frame.size[1]) // 2
+    middle.paste(frame, (left, top))
+    box = (max(0, left), max(0, top), min(base.size[0], left + frame.size[0]), min(base.size[1], top + frame.size[1]))
+    return middle if _mismatch(base, middle, box) < _mismatch(base, scaled, box) else scaled
+
+
 def align(base, frame):
     """The frame at the portrait's size and lined up with it. Returns (frame, [dy, dx])."""
     base, frame = base.convert("RGBA"), frame.convert("RGBA")
-    if frame.size != base.size:
-        frame = frame.resize(base.size, Image.LANCZOS)
+    frame = _at_size(base, frame)
     dy, dx = estimate_shift(base, frame)
     if dy or dx:
         moved = base.copy()                              # where the frame is moved away from an edge, the portrait shows
