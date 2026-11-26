@@ -73,13 +73,27 @@ def _lines(npc):
             or [row["text"] for row in generated[category]] for category in dialogue.CATEGORIES}
 
 
+def _looks(look):
+    # Worded as Forge's picture prompts word them, so "hazel" reads as "hazel eyes" to a chat app.
+    words = {key: str(look.get(key) or "").strip() for key in roll.APPEARANCE_TEXT}
+    parts = [text for text in (
+        words["build"] and f"{words['build']} build", words["skin_tone"] and f"{words['skin_tone']} skin", words["hair"],
+        words["eyes"] and f"{words['eyes']} eyes", words["facial_hair"], words["glasses"], words["distinguishing"],
+    ) if text]
+    if words["outfit"]:
+        parts.append(f"wearing {words['outfit']}" + (f", with {words['accessory']}" if words["accessory"] else ""))
+    elif words["accessory"]:
+        parts.append(f"with {words['accessory']}")
+    text = ", ".join(parts)
+    return text[:1].upper() + text[1:] + "." if text else ""
+
+
 def _card_text(npc, lines, licence):
     p = npc["profile"]
     name = " ".join(filter(None, (p.get("first_name"), p.get("last_name")))).strip() or "Unnamed character"
     identity = ", ".join(filter(None, (p.get("occupation"), p.get("race") or p.get("heritage"))))
     look = npc.get("appearance") or {}
-    appearance = look.get("extra") if npc.get("freeform") else ", ".join(
-        look[key] for key in ("build", "hair", "eyes", "distinguishing", "outfit") if look.get(key))
+    appearance = (look.get("extra") or "").strip() if npc.get("freeform") else _looks(look)
     description = "\n\n".join(filter(None, (p.get("bio"), f"{name} ({identity})." if identity else "", appearance)))
     traits = ", ".join(p.get("personality") or [])
     manner = [traits + "." if traits else ""]

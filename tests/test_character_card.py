@@ -101,6 +101,19 @@ def test_png_is_v3_with_v2_fallback_in_alteras_reader(character):
     assert old["spec"] == "v2" and "V2 copy" in old["creator_notes"] and old["name"] == normalized["name"]
 
 
+def test_description_words_the_look_as_forges_prompts_do(character):
+    lib, npc = character
+    npc["appearance"] = {"build": "slim", "skin_tone": "brown", "hair": "copper coily shoulder-length hair", "eyes": "hazel",
+                         "facial_hair": "", "glasses": "", "distinguishing": "a notched ear",
+                         "outfit": "a green hooded robe", "accessory": "a sprig of rosemary", "expression": "a calm smile"}
+    description = altera_reader.parse_png(character_card.build(lib, npc, "png"))[0]["description"]
+    assert description.endswith("\n\nSlim build, brown skin, copper coily shoulder-length hair, hazel eyes, a notched ear, "
+                                "wearing a green hooded robe, with a sprig of rosemary.")
+    npc.update(freeform=True, appearance={"extra": "  a tall woman in a long grey coat  ", "eyes": "grey"})
+    description = altera_reader.parse_png(character_card.build(lib, npc, "png"))[0]["description"]
+    assert description.endswith("\n\na tall woman in a long grey coat") and "grey eyes" not in description
+
+
 def test_charx_lists_every_asset_and_links_living_frames_to_exact_portrait(character):
     lib, npc = character
     card, files = _read_charx(character_card.build(lib, npc, "charx"))
