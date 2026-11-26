@@ -309,6 +309,8 @@ def test_the_voice_folders_are_named_only_after_an_update_from_1_0(tmp_path):
     record = {"state": "applied", "from": "1.0.0", "to": "1.1.0"}
     notes = upd.leftover_notes(tmp_path, record, measure=lambda folder: 3 * 10**9)
     assert len(notes) == 1 and "voice-models" in notes[0] and "3.0 GB" in notes[0] and "voice-envs" not in notes[0]
+    assert "(2 MB)" in upd.leftover_notes(tmp_path, record, measure=lambda folder: 2_400_000)[0]
+    assert "(under 1 MB)" in upd.leftover_notes(tmp_path, record, measure=lambda folder: 0)[0]
     assert upd.leftover_notes(tmp_path, {**record, "from": "1.1.0", "to": "1.2.0"}) == []
     assert upd.leftover_notes(tmp_path, {**record, "state": "undone"}) == []
 

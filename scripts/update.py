@@ -577,6 +577,13 @@ def folder_bytes(folder):
     return total
 
 
+def size_text(size):
+    """A folder's size for a note: GB from 1 GB up, else MB."""
+    if size >= 10**9:
+        return f"{size / 1e9:.1f} GB"
+    return f"{round(size / 1e6)} MB" if size >= 10**6 else "under 1 MB"
+
+
 def leftover_notes(root, record, *, measure=folder_bytes):
     """Notes for an update from a version before 1.1: the folders its voice engines used, which nothing uses now."""
     from_version = updates.parse_version(record.get("from"))
@@ -585,9 +592,9 @@ def leftover_notes(root, record, *, measure=folder_bytes):
     found = [name for name in VOICE_FOLDERS if (Path(root) / name).is_dir()]
     if not found:
         return []
-    size = sum(measure(Path(root) / name) for name in found) / 1e9
+    size = sum(measure(Path(root) / name) for name in found)
     shown = " and ".join(f"{name}{os.sep}" for name in found)
-    return [f"NPC Forge now speaks with Voice Lab's voices, so {shown} ({size:.1f} GB), where version {record['from']} kept its "
+    return [f"NPC Forge now speaks with Voice Lab's voices, so {shown} ({size_text(size)}), where version {record['from']} kept its "
             "own voice engines, are no longer used. Delete them when you no longer need them; the update left them in place."]
 
 
