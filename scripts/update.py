@@ -16,11 +16,18 @@ has, and leaves every other file alone. Your library, config.json, local\\ (your
 put the previous version back; a shipped file you had changed yourself is named at the end, and its copy is there.
 
 Once the files are in place, the new version's own update.py runs with --finish: it installs the Python packages again when
-requirements.txt changed, and leaves a note the page shows once.
+requirements.txt changed, removes the folders of dropped code that held nothing but Python's caches, and leaves a note the page
+shows once.
+
+Setup.exe of a newer version, run over an installed NPC Forge, is an update too. It removes the files the new version dropped,
+copies the new files and ends with --after-setup (installer/FelsNPCForge.iss). This records the update as "setup", keeps a copy
+of each dropped file, and finishes with the packages from Setup's own wheels. Setup keeps no copy of the files it replaced, so
+--undo refuses that update.
 
 Standard library only.
 """
 import argparse
+import hashlib
 import json
 import os
 import shutil
@@ -51,9 +58,15 @@ NOTES_LINES = 12
 APP_CLOSE_SECONDS = 120
 CLOSE_SECONDS = 10
 SCHEMA = 1
-PROTECTED_FOLDERS = {".git", "library", "local", "animations", "__pycache__", ".pytest_cache", ".ruff_cache"}
+# The file lists of the releases Setup.exe carries for --after-setup (scripts/build_installer.py writes them).
+SETUP_FILES_SCHEMA = 1
+# python: NPC Forge's own Python (Setup.exe, setup.bat); dist: release files built here (scripts/build_installer.py).
+PROTECTED_FOLDERS = {".git", "library", "local", "animations", "__pycache__", ".pytest_cache", ".ruff_cache", "python", "dist"}
 PROTECTED_FILES = {"config.json", ".env"}
 REQUIREMENTS = "requirements.txt"
+# Folders version 1.0 made for its own voice engines (scripts/install_voice.py). Voices come from Voice Lab since 1.1, so an
+# update from 1.0 says they can go; it never deletes them.
+VOICE_FOLDERS = ("voice-envs", "voice-models")
 NO_WINDOW = getattr(subprocess, "CREATE_NO_WINDOW", 0)
 NEW_CONSOLE = getattr(subprocess, "CREATE_NEW_CONSOLE", 0)
 
@@ -517,33 +530,101 @@ def venv_python(root):
     return None
 
 
-def finish(root, *, runner=subprocess.run, say=say):
+def only_caches(folder):
+    """Whether a folder holds nothing but Python's caches (__pycache__ folders of .pyc files), at any depth."""
+    for entry in Path(folder).iterdir():
+        if entry.is_symlink() or not entry.is_dir():
+            return False
+        if entry.name == "__pycache__":
+            if any(not item.is_file() or item.suffix != ".pyc" for item in entry.iterdir()):
+                return False
+        elif not only_caches(entry):
+            return False
+    return True
+
+
+def clear_leftovers(root, gone):
+    """Remove the folders of dropped files that now hold nothing but Python's caches, such as npcgen/voice/ after 1.0's voice
+    code went: a folder of .pyc files alone would still import as an empty package. Returns the folders removed, relative."""
+    root = Path(root).resolve()
+    removed = []
+    for path in sorted(gone):
+        if protected(path) or (root / path).exists():
+            continue
+        folder, top = (root / path).parent, None
+        while folder != root and folder.is_dir() and only_caches(folder):
+            top, folder = folder, folder.parent
+        if top is None:
+            continue
+        shown = top.relative_to(root).as_posix()
+        shutil.rmtree(top, ignore_errors=True)
+        removed.append(shown)
+        parent = top.parent
+        while parent != root and parent.is_dir() and not any(parent.iterdir()):
+            parent.rmdir()
+            parent = parent.parent
+    return removed
+
+
+def folder_bytes(folder):
+    total = 0
+    for base, _folders, files in os.walk(folder):
+        for name in files:
+            try:
+                total += os.path.getsize(os.path.join(base, name))
+            except OSError:
+                pass
+    return total
+
+
+def leftover_notes(root, record, *, measure=folder_bytes):
+    """Notes for an update from a version before 1.1: the folders its voice engines used, which nothing uses now."""
+    from_version = updates.parse_version(record.get("from"))
+    if record.get("state") != "applied" or from_version is None or from_version >= (1, 1, 0):
+        return []
+    found = [name for name in VOICE_FOLDERS if (Path(root) / name).is_dir()]
+    if not found:
+        return []
+    size = sum(measure(Path(root) / name) for name in found) / 1e9
+    shown = " and ".join(f"{name}{os.sep}" for name in found)
+    return [f"NPC Forge now speaks with Voice Lab's voices, so {shown} ({size:.1f} GB), where version {record['from']} kept its "
+            "own voice engines, are no longer used. Delete them when you no longer need them; the update left them in place."]
+
+
+def finish(root, *, runner=subprocess.run, say=say, wheels=None, problems=()):
     """The new version's last step (or, after --undo, the old version's): install the packages again when requirements.txt
-    changed, and leave the page a note."""
+    changed (from Setup's wheels when it gives them), clear folders of dropped code, and leave the page a note."""
     root = Path(root)
     record = read_record(root)
     if record is None or record.get("state") not in ("applied", "undone"):
         say("There is no finished update or undo to complete.")
         return 0
-    status, problems = 0, []
+    status, problems = 0, list(problems)
     if REQUIREMENTS in set(record.get("changed", [])):
-        python = venv_python(root)
-        if python is None:
+        if venv_python(root) is None:
             problems.append("requirements.txt changed. Install the packages it lists again: python -m pip install -r requirements.txt "
                             "(or run setup.bat, which makes the .venv folder start.bat uses).")
             say(fill(problems[-1]))
         else:
             say("The packages in requirements.txt changed: updating .venv (pip prints its own progress).")
-            code = runner([str(python), "-m", "pip", "install", "--no-input", "--disable-pip-version-check", "-r", str(root / REQUIREMENTS)],
+            code = runner([sys.executable, str(root / "scripts" / "setup_core.py"), *(["--wheels", str(wheels)] if wheels else [])],
                           cwd=root).returncode
             if code:
                 status = 1
-                problems.append(f"pip stopped with exit code {code}, so .venv may still have the old packages. Fix what its message "
-                                "says, then run update.bat --finish to try again.")
+                problems.append(f"Installing the packages stopped with exit code {code}, so .venv may still have the old ones. Fix "
+                                "what its message says, then run update.bat --finish to try again.")
                 say(fill(problems[-1]))
+    if record["state"] == "applied":
+        gone = record.get("changed") if record.get("method") == "git" else record.get("removed")
+        cleared = clear_leftovers(root, gone or [])
+        if cleared:
+            say(fill(f"Removed folders of code version {record['to']} dropped, which held only Python's caches: {names(cleared)}."))
+    notes = leftover_notes(root, record)
+    for note in notes:
+        say(fill(note))
     try:
         save_notice(root, {"state": "updated" if record["state"] == "applied" else "undone", "from": record["from"], "to": record["to"],
-                           "release_url": release_url(record.get("tag")), "problems": problems})
+                           "release_url": release_url(record.get("tag")), "problems": problems, "notes": notes})
     except OSError as exc:
         say(f"The note for NPC Forge's page could not be written ({exc}).")
     if record["state"] == "applied":
@@ -553,6 +634,88 @@ def finish(root, *, runner=subprocess.run, say=say):
     if record.get("yours"):
         say(fill(f"Your own copies of the files you had changed are in {shown_path(record.get('backup', FOLDER))}{os.sep}files: "
                  f"{names(record['yours'])}."))
+    return status
+
+
+def digest(path):
+    """A file's SHA-256, or None when it is not there."""
+    data = read_bytes(path)
+    return None if data is None else hashlib.sha256(data).hexdigest()
+
+
+def read_setup_files(path):
+    """The file lists Setup.exe carries: {"this": {path: SHA-256} of the version it installs, "releases": {version: {path:
+    SHA-256}} of each release up to it}."""
+    try:
+        lists = json.loads(Path(path).read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        raise UpdateStopped(f"Setup's list of the releases' files could not be read ({exc}).") from exc
+    if not isinstance(lists, dict) or lists.get("schema") != SETUP_FILES_SCHEMA:
+        raise UpdateStopped("Setup's list of the releases' files is not one this version can read.")
+    return lists
+
+
+def summary_text(root, record, kept):
+    """What Setup.exe's last page says after --after-setup: the update, then what the notice says (finish)."""
+    try:
+        notice = json.loads(notice_path(root).read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        notice = {}
+    paragraphs = [f"Updated from version {record['from']} to {record['to']}. Your characters, settings and extensions are as they were."]
+    paragraphs.extend(notice.get("problems") or [])
+    paragraphs.extend(notice.get("notes") or [])
+    if kept:
+        paragraphs.append(f"Version {record['to']} no longer has these files, which you had changed, so they were left: {names(kept)}.")
+    return "\n\n".join(paragraphs) + "\n"
+
+
+def after_setup(root, *, args, runner=subprocess.run, say=say):
+    """--after-setup: Setup.exe has copied this version over version `args.from_version` in this folder. Finish as update.bat
+    does once its files are in place: keep a copy of each dropped file (those [InstallDelete] removed too), leave files
+    changed here in place, and run finish with Setup's wheels. Its last page shows the summary (`args.summary`)."""
+    root = Path(root)
+    lists = read_setup_files(args.setup_files)
+    this, released = lists["this"], lists["releases"].get(args.from_version)
+    record = {"schema": SCHEMA, "from": args.from_version, "to": VERSION, "tag": f"v{VERSION}", "at": now_text(), "method": "setup",
+              "backup": f"{FOLDER}/{backup_name(args.from_version, VERSION)}", "yours": []}
+    removed, kept, problems = [], [], []
+    if released is None:
+        # A version that was never released, such as a build of your own: what it had is not known.
+        changed = [REQUIREMENTS]
+        problems.append(f"This Setup does not have the list of version {args.from_version}'s files, so any file that version had "
+                        f"and {VERSION} does not was left in place.")
+    else:
+        changed = sorted(path for path in set(this) | set(released) if this.get(path) != released.get(path) and not protected(path))
+        backup = root / record["backup"] / "files"
+        staged = Path(args.setup_files).with_name("retired")
+        for path in sorted(set(released) - set(this)):
+            if protected(path):
+                continue
+            local = digest(root / path)
+            if local is not None and local != released[path]:
+                kept.append(path)
+                continue
+            source = root / path if local is not None else staged / path
+            if local is None and digest(source) != released[path]:
+                continue                                                 # gone before Setup ran: nothing to keep
+            (backup / path).parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source, backup / path)
+            remove_file(root, path)
+            removed.append(path)
+    record.update({"changed": changed, "added": sorted(set(this) - set(released or {})),
+                   "replaced": sorted(path for path in set(this) & set(released or {}) if this[path] != released[path]),
+                   "removed": removed, "kept": kept, "state": "applied"})
+    save_record(root, record)
+    if removed:
+        say(f"Removed {len(removed)} file(s) version {VERSION} no longer has: {names(removed)}.")
+    if kept:
+        say(fill(f"Left in place because you had changed them, though version {VERSION} no longer has them: {names(kept)}."))
+    status = finish(root, runner=runner, say=say, wheels=args.wheels, problems=problems)
+    if args.summary:
+        try:
+            write_file(Path(args.summary), summary_text(root, record, kept).encode("ascii", "replace"))   # Setup reads plain text
+        except OSError as exc:
+            say(f"Setup's last page could not be given the summary ({exc}).")
     return status
 
 
@@ -568,6 +731,10 @@ def undo(root, *, args, runner=subprocess.run, processes=app_processes, ask=inpu
     record = read_record(root)
     if record is None or record.get("state") != "applied":
         raise UpdateStopped("There is no update to undo: update.bat --undo puts back the version the last update replaced, once.")
+    if record.get("method") == "setup":
+        raise UpdateStopped(f"Setup.exe made the last update, from {record['from']} to {record['to']}, and it keeps no copy of the files "
+                            f"it replaced, so update.bat cannot put version {record['from']} back. To go back, uninstall NPC Forge and "
+                            f"keep your library, then install version {record['from']} from {release_url(None)}.")
     running = processes(root)
     if running:
         raise UpdateStopped(running_problem(running))
@@ -737,6 +904,13 @@ def build_parser():
     action.add_argument("--undo", action="store_true", help="put back the version the last update replaced")
     action.add_argument("--finish", action="store_true", help=argparse.SUPPRESS)
     action.add_argument("--from-app", action="store_true", help=argparse.SUPPRESS)          # About > Update now
+    # Setup.exe over an installed NPC Forge (after_setup): the version that was there, Setup's file lists and wheels, and where
+    # its last page reads the summary.
+    action.add_argument("--after-setup", action="store_true", help=argparse.SUPPRESS)
+    parser.add_argument("--from", dest="from_version", help=argparse.SUPPRESS)
+    parser.add_argument("--setup-files", type=Path, help=argparse.SUPPRESS)
+    parser.add_argument("--wheels", type=Path, help=argparse.SUPPRESS)
+    parser.add_argument("--summary", type=Path, help=argparse.SUPPRESS)
     parser.add_argument("--reopen", action="store_true", help=argparse.SUPPRESS)
     parser.add_argument("--json", action="store_true", help=argparse.SUPPRESS)
     parser.add_argument("--dry-run", action="store_true", help="show the plan; change nothing")
@@ -759,7 +933,11 @@ def main(argv=None):
     args = parser.parse_args(argv)
     if args.json and not args.dry_run:
         parser.error("--json goes with --dry-run")
+    if args.after_setup and not (args.from_version and args.setup_files):
+        parser.error("--after-setup needs --from and --setup-files")
     try:
+        if args.after_setup:
+            return after_setup(ROOT, args=args)
         if args.finish:
             return finish(ROOT)
         if args.undo:

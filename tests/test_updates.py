@@ -154,9 +154,10 @@ def test_finish_installs_the_packages_again_when_requirements_changed_and_leaves
     upd.save_record(root, {"schema": 1, "state": "applied", "from": "1.0.0", "to": "9.0.0", "tag": "v9.0.0", "changed": ["requirements.txt"]})
     ran = []
     assert upd.finish(root, runner=lambda command, cwd=None: (ran.append(command), types.SimpleNamespace(returncode=0))[1], say=lambda t="": None) == 0
-    assert ran and ran[0][:4] == [str(python), "-m", "pip", "install"]
+    # scripts/setup_core.py brings .venv up to requirements.txt (tests/test_setup_kit.py); finish only starts it.
+    assert ran == [[sys.executable, str(root / "scripts" / "setup_core.py")]]
     notice = json.loads(upd.notice_path(root).read_text("utf-8"))
-    assert notice["state"] == "updated" and notice["to"] == "9.0.0" and notice["problems"] == []
+    assert notice["state"] == "updated" and notice["to"] == "9.0.0" and notice["problems"] == [] and notice["notes"] == []
 
 
 def test_a_dry_run_changes_nothing_and_reports_the_plan_for_the_page(tmp_path):

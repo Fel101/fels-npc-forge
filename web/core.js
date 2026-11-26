@@ -55,10 +55,10 @@ export function setPath(object, path, value) {
 }
 export const debounce = (fn, ms) => { let timer; return (...args) => { clearTimeout(timer); timer = setTimeout(() => fn(...args), ms); }; };
 
-export function toast(message, kind = 'info') {
+export function toast(message, kind = 'info', ms = kind === 'error' ? 9000 : 4000) {
   const item = h('div', { class: `toast ${kind}`, role: 'status' }, message);
   $('#toasts').append(item);
-  setTimeout(() => item.remove(), kind === 'error' ? 9000 : 4000);
+  setTimeout(() => item.remove(), ms);
 }
 
 export async function api(method, path, body) {

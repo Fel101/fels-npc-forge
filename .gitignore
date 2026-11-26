@@ -9,3 +9,7 @@ voice-models/
 animations/
 .venv/
 .ruff_cache/
+# NPC Forge's own Python (setup.bat, Setup.exe) and the release files scripts/build_installer.py makes
+/python/
+/python.partial/
+/dist/

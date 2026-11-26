@@ -2140,7 +2140,9 @@ async function showUpdateNotice() {
     : notice.state === 'undone' ? `NPC Forge is back to version ${notice.from}.`
     : notice.state === 'current' ? notice.message || 'NPC Forge is up to date.'
     : `The update did not happen: ${notice.message || 'see the update window.'}`;
-  toast(text + ((notice.problems || []).length ? ' ' + notice.problems.join(' ') : ''), notice.state === 'failed' || (notice.problems || []).length ? 'error' : 'info');
+  const more = [...(notice.problems || []), ...(notice.notes || [])];
+  toast(text + (more.length ? ' ' + more.join(' ') : ''), notice.state === 'failed' || (notice.problems || []).length ? 'error' : 'info',
+    more.length ? 15000 : undefined);
   await api('DELETE', '/api/update/notice').catch(() => {});
 }
 
@@ -2181,6 +2183,13 @@ async function init() {
   if (jobs.some(isActive)) startPolling();
   loadExtensionUi();
   loadUpdateState().then(showUpdateNotice).catch(() => { /* the page works without it */ });
+  // Setup.exe's last page can open NPC Forge at Set up ComfyUI (start.bat --setup-comfyui).
+  if (location.hash === SETUP_COMFYUI_HASH) {
+    history.replaceState(null, '', location.pathname + location.search);
+    openComfySetup({ onChange: refreshHealth }).catch(e => toast(e.message, 'error'));
+  }
 }
+
+const SETUP_COMFYUI_HASH = '#setup-comfyui';
 
 init().catch(e => { document.body.replaceChildren(h('pre', { style: { padding: '24px' } }, 'The NPC Forge page could not start: ' + e.message)); });

@@ -3046,7 +3046,9 @@ def main():
         auth = " · HTTP Basic authentication enabled (user: npcforge)" if server.require_auth else ""
         print(f"NPC Forge running at {url}  (ComfyUI: {cfg['comfy_url']}, library: {cfg['library_path']}){auth}", flush=True)
         if "--open" in sys.argv:
-            browser = threading.Timer(0.8, lambda: webbrowser.open(url))
+            # --setup-comfyui (Setup.exe's last page, through start.bat) opens the page at Set up ComfyUI.
+            page = url + ("#setup-comfyui" if "--setup-comfyui" in sys.argv else "")
+            browser = threading.Timer(0.8, lambda: webbrowser.open(page))
             browser.daemon = True
             browser.start()
         _UPDATE["server"] = server

@@ -1,4 +1,8 @@
-"""Windows launcher: reuse a responsive server or explain a stalled one before starting."""
+"""Windows launcher: reuse a responsive server or explain a stalled one before starting.
+
+    start.bat                    open NPC Forge, starting it when it is not running
+    start.bat --setup-comfyui    the same, at Set up ComfyUI (Setup.exe's last page offers it)
+"""
 import json
 import os
 import pathlib
@@ -31,12 +35,16 @@ def _listener(port):
         return None
 
 
-def _open_existing(url, health):
+SETUP_COMFYUI = "--setup-comfyui"
+
+
+def _open_existing(url, health, setup_comfyui=False):
     if not isinstance(health.get("fels"), dict):
         print(f"An older NPC Forge (1.0) is running at {url}. Opening it. Close it and run start.bat to use the new copy.")
+        setup_comfyui = False                                  # 1.0 has no Set up ComfyUI
     else:
         print(f"NPC Forge is already running. Opening {url}")
-    webbrowser.open(url)
+    webbrowser.open(url + ("#setup-comfyui" if setup_comfyui else ""))
     return 0
 
 
@@ -56,7 +64,8 @@ def _owns_listener(owner, port):
             and "server.py" in (owner.get("command") or "").lower())
 
 
-def main():
+def main(argv=None):
+    setup_comfyui = SETUP_COMFYUI in (sys.argv[1:] if argv is None else argv)
     print("Checking for a running NPC Forge. Press Ctrl+C to cancel.", flush=True)
     cfg = config.load(migrate_port=True)
     port = int(cfg["port"])
@@ -65,7 +74,7 @@ def main():
     health = ask_identity(url, token)
     app = fels_suite.identify(health)
     if app == config.APP_ID:
-        return _open_existing(url, health)
+        return _open_existing(url, health, setup_comfyui)
     if health is not None:
         return _port_in_use(port, fels_suite.short_name(app) if app else "another program")
 
@@ -76,7 +85,7 @@ def main():
         health = ask_identity(url, token)
         app = fels_suite.identify(health)
         if app == config.APP_ID:
-            return _open_existing(url, health)
+            return _open_existing(url, health, setup_comfyui)
         if health is not None:
             return _port_in_use(port, fels_suite.short_name(app) if app else "another program")
         pid = int(owner["pid"])
@@ -102,7 +111,7 @@ def main():
         if old_app == "voice-lab":
             print(f"Voice Lab is running on port {config.LEGACY_PORT}. NPC Forge will use port {port}.")
     print("Starting NPC Forge...")
-    return subprocess.call([sys.executable, str(ROOT / "server.py"), "--open"], cwd=ROOT)
+    return subprocess.call([sys.executable, str(ROOT / "server.py"), "--open", *([SETUP_COMFYUI] if setup_comfyui else [])], cwd=ROOT)
 
 
 if __name__ == "__main__":
