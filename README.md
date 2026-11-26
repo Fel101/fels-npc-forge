@@ -65,31 +65,41 @@ Altera, LM Studio and Ollama unload their models and wait. Turn it off if your c
 
 ## Quick start
 
-You need **Python 3.10 or newer**, and for pictures a graphics card and ComfyUI 0.36 or newer. Optional: **Blender 5**
-(skeletons, clean-up and game models), **FFmpeg** (scene videos) and **Godot 4** (to try the exports).
-[Requirements](docs/requirements.md) has the details.
+For pictures you need a graphics card and ComfyUI 0.36 or newer. Optional: **Blender 5** (skeletons, clean-up and game
+models), **FFmpeg** (scene videos) and **Godot 4** (to try the exports). [Requirements](docs/requirements.md) has the details.
 
-1. Start ComfyUI and check it answers at `http://127.0.0.1:8188`. Its model files can wait: step 5 puts them in.
-2. Get NPC Forge and install its few Python packages (Pillow, numpy, xatlas):
+1. Start ComfyUI and check it answers at `http://127.0.0.1:8188`. Its model files can wait: step 3 puts them in.
+2. Get NPC Forge. On Windows, download `FelsNPCForge-Setup-<version>.exe` (39 MB) from the
+   [newest release](https://github.com/Fel101/fels-npc-forge/releases/latest) and run it. It is not signed, so Windows
+   SmartScreen warns about it: press **More info**, then **Run anyway**. It installs for you alone, with no administrator
+   prompt and no internet, into `%LOCALAPPDATA%\FelsNPCForge`, with a Python of its own, and adds **Fel's NPC Forge** to
+   the Start menu. Its last page opens NPC Forge at **Set up ComfyUI**. You can also install by hand:
    ```bash
-   git clone https://github.com/Fel101/fels-npc-forge.git
+   git clone https://github.com/Fel101/fels-npc-forge.git   # or unpack the release's FelsNPCForge-<version>.zip
    cd fels-npc-forge
-   setup.bat          # Windows; on Linux or macOS: ./setup.sh
+   setup.bat          # Windows; on Linux or macOS: ./setup.sh (Python 3.10 or newer)
    ```
-3. Optional: copy `config.example.json` to `config.json` to change the ComfyUI address, the port or the default engines.
-4. Start it: double-click `start.bat` (Windows), or run `python server.py --open`. The page opens at `http://127.0.0.1:8766`.
-5. For pictures: open **Models and options** (top right) and press **Set up ComfyUI…** in the **Your PC** box. It picks
-   your card's size, ticks what that card makes and, after a yes, downloads the model files into ComfyUI (59 GB for a
-   16 GB card), with progress and Stop ([comfyui-setup.md](docs/comfyui-setup.md)). Characters and dialogue need none of it.
-6. On the **Create** page press **Roll NPC**, tick what to make (a portrait is a good first try) and press **Generate**.
+   `setup.bat` uses this PC's Python 3.10 or newer, or fetches a Python of NPC Forge's own when there is none. Then
+   double-click `start.bat`, or run `python server.py --open`. The page opens at `http://127.0.0.1:8766`.
+3. For pictures: **Set up ComfyUI** (in the **Your PC** box of **Models and options**, top right) picks your card's size,
+   ticks what that card makes and, after a yes, downloads the model files into ComfyUI (59 GB for a 16 GB card), with
+   progress and Stop ([comfyui-setup.md](docs/comfyui-setup.md)). Characters and dialogue need none of it.
+4. On the **Create** page press **Roll NPC**, tick what to make (a portrait is a good first try) and press **Generate**.
    The queue on the right shows each step; the finished character is in the **Library**.
 
-The status line at the top of the page says whether ComfyUI answers and which model files it lacks.
+The status line at the top of the page says whether ComfyUI answers and which model files it lacks. To change the ComfyUI
+address, the port or the default engines, copy `config.example.json` to `config.json` in NPC Forge's folder.
+
+**Checking a download:** each release's `SHA256SUMS` lists the SHA-256 of Setup.exe and the ZIP
+(`Get-FileHash FelsNPCForge-Setup-<version>.exe` in PowerShell shows the file's), and GitHub attests that the release
+workflow built all three from the tagged code: `gh attestation verify FelsNPCForge-Setup-<version>.exe --repo
+Fel101/fels-npc-forge`.
 
 **Updating:** *About* > **Check for updates** asks GitHub for a newer release (only when you press it), and **Update now**
 shows what will change, updates NPC Forge and starts it again. `update.bat` (`./update.sh` on Linux or macOS) does the same
-from a closed NPC Forge, and `update.bat --undo` puts back the version before. Your library, `config.json`, `local` folder and
-`.venv` are never touched ([more](docs/requirements.md#updating)).
+from a closed NPC Forge, and `update.bat --undo` puts back the version before. A newer Setup.exe run over NPC Forge's folder
+updates it too. Your library, `config.json`, `local` folder and `.venv` are never touched
+([more](docs/requirements.md#updating)).
 
 ## Works with the other apps
 
@@ -109,7 +119,8 @@ Each app of Fel's Studio works on its own. Together:
   [HTTP API](docs/api.md) ([game-clients.md](docs/game-clients.md)).
 
 The apps find each other on this computer through Fel's Studio's address files and talk over their local HTTP APIs; none reads
-another's folders. Voice Lab uses port 8765, NPC Forge 8766 and Altera 8767.
+another's folders. Voice Lab uses port 8765, NPC Forge 8766 and Altera 8767. *About* > **Connected apps** shows which of
+them NPC Forge found, with their versions, and how to start the others.
 
 ## Licences, in short
 

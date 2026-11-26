@@ -1,0 +1,46 @@
+name: Hardware report
+description: Tell us what NPC Forge made on your graphics card, so others know what to expect.
+title: "Hardware report: "
+labels: ["hardware report"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        What each size of graphics card makes was measured on one AMD Radeon AI PRO R9700 (32 GB), with the smaller sizes
+        made by holding part of it ([docs/hardware.md](https://github.com/Fel101/fels-npc-forge/blob/main/docs/hardware.md)).
+        A report from a real 16 or 24 GB card, or from NVIDIA, helps most, whether things worked or not.
+
+        Use rolled characters only: no pictures of real people.
+  - type: input
+    id: card
+    attributes:
+      label: Graphics card and its memory
+      placeholder: "GeForce RTX 4080 16 GB"
+    validations:
+      required: true
+  - type: input
+    id: system
+    attributes:
+      label: Windows (or other system), driver, ComfyUI version and NPC Forge version
+      placeholder: "Windows 11 24H2, driver 581.x, ComfyUI 0.37, NPC Forge 1.1.0"
+    validations:
+      required: true
+  - type: dropdown
+    id: switch
+    attributes:
+      label: One model at a time
+      options:
+        - On (the default)
+        - Off
+    validations:
+      required: true
+  - type: textarea
+    id: result
+    attributes:
+      label: What it made, and how long it took
+      description: >-
+        For each thing you tried (a portrait with Z-Image Turbo or Qwen-Image 2512, expressions, a sprite, a model sheet, a
+        walk cycle, a 3D model), the quality setting, how long it took, and whether the picture looked right. For a failure,
+        the step that failed and its message.
+    validations:
+      required: true

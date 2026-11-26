@@ -1,0 +1,76 @@
+name: Bug report
+description: Something does not work the way it should
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting this.
+
+        **Please do not attach pictures or voices of real people, your `config.json`, or anything private.** Describe the
+        problem instead, or use a rolled character. Remove personal folder names from anything you paste.
+
+        For a security problem, do not open an issue: see the Security policy.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Roll a character in the Fantasy setting
+        2. Tick Portrait and press Generate
+        3. ...
+  - type: textarea
+    id: messages
+    attributes:
+      label: Messages
+      description: |
+        The message on the page or in the queue, and the last lines of NPC Forge's window (the console that start.bat opens).
+        For a job that failed, the step that failed and what it says.
+      render: text
+  - type: input
+    id: version
+    attributes:
+      label: NPC Forge version
+      description: Shown at the top of About.
+      placeholder: "1.1.0"
+    validations:
+      required: true
+  - type: dropdown
+    id: install
+    attributes:
+      label: How it was installed
+      options:
+        - Setup.exe
+        - The release ZIP and setup.bat
+        - git clone
+        - Linux or macOS (setup.sh)
+    validations:
+      required: true
+  - type: input
+    id: system
+    attributes:
+      label: Windows (or other system) and graphics card
+      placeholder: "Windows 11 24H2, Radeon AI PRO R9700 32 GB, ComfyUI 0.37"
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: What were you doing?
+      options:
+        - Rolling or editing a character
+        - Portraits, expressions or sprites
+        - Walk cycles, animation or model sheets
+        - 3D models, skeletons or items
+        - Voices (Voice Lab)
+        - Exports or character cards
+        - Set up ComfyUI
+        - Installing, starting or updating
+        - Something else

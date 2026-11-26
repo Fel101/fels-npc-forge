@@ -30,3 +30,28 @@ What it does not protect against:
   only calls them. Install them from sources you trust.
 - **What the models make.** Pictures, voices and 3D models are made by the models you install. Check their licences
   (`NOTICE.md`, and **Licences of every model** in the app) and never clone a real person's voice without their permission.
+
+## Updates and downloads
+
+**Check for updates** and `update.bat` contact GitHub only when you start them. The check asks `api.github.com` for the
+newest release; the request names NPC Forge's version and nothing about you or your library. `update.bat` (and **Update
+now**, which runs it) takes files only from github.com over HTTPS, refuses a release whose `npcgen/__init__.py` does not
+match its tag, and keeps a copy of everything it replaces. Setup.exe installs for your Windows account alone and asks for no
+administrator rights. Releases are not signed, so an update trusts this GitHub repository just as the first download did.
+
+From 1.1.0 each release carries `FelsNPCForge-Setup-<version>.exe`, `FelsNPCForge-<version>.zip` and `SHA256SUMS`, which the
+release workflow builds from the release's tag, with a
+[GitHub attestation](https://docs.github.com/actions/security-for-github-actions/using-artifact-attestations) that records
+which workflow run built them. In PowerShell, in the folder you downloaded them to:
+
+```powershell
+Get-FileHash .\FelsNPCForge-Setup-*.exe -Algorithm SHA256
+Get-Content .\SHA256SUMS
+```
+
+The two hashes must be the same. With the [GitHub CLI](https://cli.github.com/),
+`gh attestation verify FelsNPCForge-Setup-<version>.exe --repo Fel101/fels-npc-forge`, with the file's own name, checks that
+this repository's release workflow built the file. Setup.exe is not signed, so Windows SmartScreen warns before it runs; the
+hash and the attestation are how to check it. The workflow makes the same checks before anyone can download the files: it
+makes each release as a draft, downloads its files on a computer that did not build them, checks the hashes and
+attestations, and installs that Setup.exe over the release before it. Only then is the release published.

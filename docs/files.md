@@ -46,6 +46,19 @@ npcgen/marks.py        a sheet's marks as skin marks         data/marks.json    
 npcgen/cli.py          python -m npcgen                      tests/              pytest suite
 ```
 
+The release kit (CONTRIBUTING.md, "Making a release"):
+
+```
+installer/FelsNPCForge.iss         Setup.exe (Inno Setup)    scripts/build_installer.py   Setup.exe, the release ZIP, SHA256SUMS
+scripts/setup_core.py              .venv and its packages    scripts/get_python.ps1       NPC Forge's own Python (data/python_runtime.json)
+scripts/update.py                  update.bat, --undo, Setup's --after-setup             scripts/uninstall_forge.py   what uninstalling removes
+scripts/release_notes.py           a release's notes         scripts/check_release_files.py   a draft's files, before publishing
+scripts/check_setup_update.ps1     Setup.exe over the release before it                  scripts/make_icon.py         web/icon.ico from web/icon.svg
+```
+
+Setup.exe and `setup.bat` add `python\` (NPC Forge's own Python, when it has one) and `.venv\`; a build writes to `dist\`. Updates
+never touch either.
+
 ```bash
 python -m pytest        # automated suite; GPU visual review is documented separately
 ```

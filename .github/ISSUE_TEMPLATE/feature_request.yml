@@ -1,0 +1,40 @@
+name: Feature request
+description: Tell us what you make and what would help
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for the suggestion. NPC Forge makes fictional characters for games, on your own PC. Requests that would
+        imitate real people, use a voice or photo without permission, remove the AI labels, or add tracking will not be
+        accepted (see docs/responsible-use.md).
+  - type: dropdown
+    id: project
+    attributes:
+      label: What are you making?
+      options:
+        - A 2D game
+        - A 3D game
+        - A tabletop or role-playing game
+        - Characters for a chat app
+        - Concept art or a cast list
+        - Something else
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do?
+      description: Describe the step that is difficult first, then the idea.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would you like it to do?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Anything you have tried instead?
