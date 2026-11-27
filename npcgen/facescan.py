@@ -23,7 +23,7 @@ import time
 import numpy as np
 from PIL import Image
 
-from . import gpu, headgraft, rig3d
+from . import atomic, gpu, headgraft, rig3d
 from .comfy import Cancelled, ComfyError, LockBusy
 from .library import now
 
@@ -163,7 +163,7 @@ class FaceScans:
         if kept and kept[0] == key:
             return kept[1]
         try:
-            scan = json.loads(path.read_text("utf-8"))
+            scan = json.loads(atomic.read_text(path))
         except (OSError, ValueError):
             return None
         with self._lock:

@@ -3,6 +3,7 @@ import json
 import struct
 import threading
 import time
+from pathlib import Path
 
 import pytest
 from facefit_support import make_scan
@@ -102,6 +103,29 @@ def test_a_scan_is_made_kept_with_the_character_and_not_made_again(lib):
     finish(faces, npc_id)
     assert len(finder.calls) == 2
     faces.close()
+
+
+def test_a_saved_scan_is_read_again_after_a_sharing_violation(lib, monkeypatch):
+    npc_id = make_npc(lib)
+    faces = faces_with(lib, Finder())
+    faces.request(npc_id)
+    finish(faces, npc_id)
+    faces.close()
+
+    scan_path = lib.resolve(npc_id, facescan.CACHE_FILE)
+    read_text = Path.read_text
+    blocked = False
+
+    def read(path, *args, **kwargs):
+        nonlocal blocked
+        if path == scan_path and not blocked:
+            blocked = True
+            raise PermissionError("scan being replaced")
+        return read_text(path, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", read)
+    status = faces_with(lib, Finder()).status(npc_id)
+    assert blocked and status["state"] == "done" and status["scan"]["source"] == "sdpose"
 
 
 def test_a_new_model_makes_the_old_scan_useless(lib):

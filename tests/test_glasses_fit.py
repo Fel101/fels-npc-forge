@@ -175,9 +175,9 @@ def api(tmp_path):
     app.close()
 
 
-def scanned(api, npc_id):
+def scanned(api, npc_id, *, force=False):
     """Ask for the face and wait for it, the way the page does."""
-    status, state = api("POST", f"/api/npcs/{npc_id}/face/scan")
+    status, state = api("POST", f"/api/npcs/{npc_id}/face/scan", {"force": force})
     assert status == 200
     deadline = time.monotonic() + 20
     while state["state"] in ("queued", "running") and time.monotonic() < deadline:
@@ -193,9 +193,8 @@ def test_a_characters_face_is_scanned_on_request_and_kept(api):
     done = scanned(api, npc_id)
     assert done["state"] == "done" and done["scan"]["source"] == "sdpose" and "grid" not in json.dumps(done)
     assert api("POST", f"/api/npcs/{npc_id}/face/scan")[1]["state"] == "done" and len(api.scans) == 1            # kept: not scanned again
-    assert api("POST", f"/api/npcs/{npc_id}/face/scan", {"force": True})[0] == 200
-    scanned_again = api("GET", f"/api/npcs/{npc_id}/face")[1]
-    assert scanned_again["scan"] is not None
+    scanned_again = scanned(api, npc_id, force=True)
+    assert scanned_again["state"] == "done" and scanned_again["scan"] is not None and len(api.scans) == 2
     assert api("DELETE", f"/api/npcs/{npc_id}/face/scan")[0] == 200
 
 

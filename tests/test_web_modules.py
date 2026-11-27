@@ -136,14 +136,18 @@ def test_browser_loads_modules_and_renders_create_view(tmp_path):
     thread.start()
     try:
         url = f"http://127.0.0.1:{httpd.server_address[1]}/"
-        browser = subprocess.run(
-            [chrome, "--headless=new", "--disable-gpu", "--no-sandbox", "--no-first-run",
-             f"--user-data-dir={tmp_path / 'chrome-profile'}", "--virtual-time-budget=5000", "--dump-dom", url],
-            capture_output=True, text=True, timeout=40,
-        )
-        assert browser.returncode == 0, browser.stderr[-2000:]
-        assert 'id="sidebar"' in browser.stdout and 'id="sheet"' in browser.stdout
-        assert "The NPC Forge page could not start" not in browser.stdout
+        dom_path, log_path = tmp_path / "chrome-dom.html", tmp_path / "chrome-stderr.log"
+        # A Chrome child can hold the output pipes open after the browser process exits on Windows.
+        with dom_path.open("wb") as dom_output, log_path.open("wb") as errors:
+            browser = subprocess.run(
+                [chrome, "--headless=new", "--disable-gpu", "--no-sandbox", "--no-first-run", "--disable-background-networking",
+                 f"--user-data-dir={tmp_path / 'chrome-profile'}", "--timeout=30000", "--virtual-time-budget=5000", "--dump-dom", url],
+                stdout=dom_output, stderr=errors, timeout=60,
+            )
+        assert browser.returncode == 0, log_path.read_text("utf-8", errors="replace")[-2000:]
+        dom = dom_path.read_text("utf-8")
+        assert 'id="sidebar"' in dom and 'id="sheet"' in dom
+        assert "The NPC Forge page could not start" not in dom
     finally:
         httpd.shutdown()
         httpd.server_close()
