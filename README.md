@@ -19,6 +19,8 @@ models running in your own ComfyUI. There is no cloud and nothing to train.
 *One rolled character in all 17 art styles, drawn by Qwen-Image 2512 (Apache-2.0) on one PC. The
 [gallery](docs/gallery.md) has her walk cycle, living portrait, 3D model and a Godot scene, with the model that made each.*
 
+See the [Library screenshots](docs/gallery.md#the-library) for a collection that reached 876 character entries.
+
 ## What it makes
 
 | | |

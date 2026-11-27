@@ -1,12 +1,12 @@
 # Gallery
 
-Everything on this page was made by NPC Forge on one PC (an AMD Radeon AI PRO R9700 with 32 GB), from one rolled
-character: nobody real, and no picture drawn from a photo. Each picture says which model made it. All of them use models
-whose licences allow commercial use, except the 3D model, whose licence adds conditions ([licences.md](licences.md)).
+The Mirabel demos were made by NPC Forge on one PC (an AMD Radeon AI PRO R9700 with 32 GB) from one rolled fictional
+character. Each demo names the model that made it. The models used in these demos allow commercial use, with additional
+conditions for the 3D model ([licences.md](licences.md)).
 
-The pictures here are made smaller for this page, and they do not carry the AI labels that Forge writes into its own files
-([responsible-use.md](responsible-use.md#label-what-you-make)), so this page says it instead: they were all made with AI
-models.
+The demo images were resized for this page. They were made with AI models, as labelled in the original Forge files
+([responsible-use.md](responsible-use.md#label-what-you-make)). The [Library screenshots](#the-library) show a larger
+collection from a separate run of the app.
 
 ## One character in every art style
 
@@ -38,14 +38,13 @@ The turn was rendered in Blender from the GLB as Forge saved it, without any cle
 
 ![Mirabel walking in four directions in 16-bit pixel art](images/gallery/walk.gif)
 
-The walk is in 16-bit pixel art. Her portrait and full-body sprite were drawn again in that style, then a four-frame walk
-facing down, right and up, every frame an edit of the sprite by **Qwen-Image-Edit 2511** (Apache-2.0); the left walk is
-the right one mirrored. The walk took six minutes. The GIF shows the frames of the Godot export below (128 pixels, shown
-twice the size) at the clip's own five frames a second.
+The walk is in 16-bit pixel art. Her portrait and full-body sprite were drawn again in that style, followed by a four-frame
+walk facing down, right and up using **Qwen-Image-Edit 2511** (Apache-2.0). Forge mirrors the right walk for the left view.
+The GIF shows the frames of the Godot export below (128 pixels, shown twice the size) at the clip's own five frames a second.
 
-Forge flagged the side view, and it is right: in pixel art a walk is drawn from words rather than from a posed figure,
-and her feet hardly come together between steps (stride contrast 1.1; Forge flags anything under 1.35), so seen from the side
-she glides a little. [Animation](animation.md#which-styles-get-the-puppet) explains why pixel art is drawn from words.
+Forge flagged the original side view because Mirabel kept her feet apart through the whole cycle. The generator kept her
+landing poses and redrew both passing poses with one boot planted and the other lifted. Stride contrast in the exported side
+view rose from 1.12 to 3.30. Forge flags values under 1.35. See [how Forge draws a walk](animation.md#which-styles-get-the-puppet).
 
 ## In Godot
 
@@ -56,8 +55,8 @@ The same walk, exported with the **Godot 4** preset (a PNG strip for each direct
 short script that walks her round the path and plays the animation that faces the way she goes, and a second one that
 draws the garden. Godot's Movie Maker recorded it at ten frames a second.
 
-The export is 128 pixels with 48 colours (`colors=48` on the export link). At the default 24 her skin came out olive:
-pixel-art frames share one palette for the whole clip, so the colours never shimmer, and her green robe took most of it.
+The export uses 128-pixel frames and 48 colours (`colors=48` on the export link). All the pixel-art frames share one
+palette so colours stay consistent through the clip.
 
 ## The page
 
@@ -66,23 +65,33 @@ pixel-art frames share one palette for the whole clip, so the colours never shim
 Mirabel open in the Library, in the anime style the living portrait and the 3D model were made from: the portrait by
 Qwen-Image 2512, the sprite and the model sheet by Qwen-Image-Edit 2511.
 
+## The Library
+
+Three screenshots of the NPC Forge Library on November 22, 2026. The largest collection shown has 876 character entries.
+Each card shows its style, available assets and licence status.
+
+![Fantasy character sprites in a Library with 876 entries](images/gallery/library-fantasy.webp)
+
+![The Library with realistic portraits, fantasy characters and science-fiction characters](images/gallery/library-portraits.webp)
+
+![The Library with chibi characters, manga, stylized 3D characters and pixel-art portraits](images/gallery/library-styles.webp)
+
 ## How these were made
 
-- A copy of NPC Forge with a library of its own, on the same PC as ComfyUI 0.37, through the [HTTP API](api.md): one
-  saved character, then one request for each picture or set, as the page sends them.
+- The original demos ran in a copy of NPC Forge with its own library and ComfyUI 0.37, using the [HTTP API](api.md).
+  The two passing poses in the updated walk were redrawn with ComfyUI 0.46.2 on the same PC.
 - One model on the card at a time, standard quality throughout. No picture was touched up afterwards; FFmpeg put the GIFs
   together and Blender rendered the turn.
 - What did not work the first time:
   - The walk was first drawn in the anime style, from a posed figure. In the stride frames her robe turned into leggings,
     and Forge flagged frames that missed their pose, so the walk was drawn again in pixel art.
-  - The pixel walk was re-rolled once, to try for a better side view. The re-roll came out worse (the front view's legs
-    barely moved, and bits of the background stayed at her feet), so the first walk is the one shown.
+  - The first pixel walk slid in profile. A full re-roll also weakened the front view and left bits of background at her
+    feet. The current gallery uses the original walk with two passing poses redrawn by Forge.
   - Once, ComfyUI stopped answering while a reference view was drawing. Retry ran the job again from that step and kept
     everything already drawn.
   - The living portrait's blink and talking frames first showed nothing. Qwen-Image-Edit 2511 returns an expression as the
     middle 992 pixels of the 1,024-pixel portrait, and Forge stretched it back, which moved her eyes and mouth by up to
     16 pixels. Forge now puts such a frame back in the middle; the living portrait was assembled again from the same
     edits, with nothing drawn again.
-  - The export's default palette, as above.
 
 [Back to the documentation](README.md)
