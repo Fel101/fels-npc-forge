@@ -62,8 +62,8 @@ built-in Mage-Flow engine runs on 16 GB at its usual speed, but Microsoft releas
 [licence note](docs/licences.md) before you use it for work you sell.
 
 **One model at a time** is on by default. Before drawing, Forge waits for Voice Lab and Altera to finish their current
-work and release the GPU. If you also enable **Allow unloading LM Studio and Ollama models**, Forge requests those
-unloads after the Studio apps release the GPU. See [Models](docs/models.md#one-model-on-the-gpu-at-a-time).
+work and release the GPU, then unloads LM Studio's and Ollama's models. Turn off **Allow unloading LM Studio and Ollama
+models** to keep those loaded. See [Models](docs/models.md#one-model-on-the-gpu-at-a-time).
 
 ## Quick start
 

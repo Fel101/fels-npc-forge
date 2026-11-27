@@ -113,8 +113,17 @@ def test_another_program_on_the_card_is_waited_for_then_named(gate, monkeypatch)
     foreign_pid = os.getpid() + 100000
     monkeypatch.setattr(gpu, "_processes", lambda: [{"pid": foreign_pid, "adapter": "a", "mb": 20000}])
     monkeypatch.setattr(gpu, "_process_name", lambda pid: "LM Studio.exe")
-    with pytest.raises(gpu.GpuBusy, match=r"Another program is using the GPU: LM Studio.exe \(19.5 GB\)"):
+    with pytest.raises(gpu.GpuBusy, match=r"Another program is using the GPU: LM Studio.exe \(19.5 GB\)") as refused:
         gate.claim(("voice", "qwen"), lambda: None, comfy=FakeCard())
+    assert "Allow unloading" not in str(refused.value)
+    # With unloading LM Studio and Ollama turned off, the refusal names the switch that would have freed the card.
+    gate.settings["unload_external_models"] = False
+    with pytest.raises(gpu.GpuBusy, match=r"turn on Allow unloading LM Studio and Ollama models on the Models card"):
+        gate.claim(("voice", "qwen"), lambda: None, comfy=FakeCard())
+    monkeypatch.setattr(gpu, "_process_name", lambda pid: "Game.exe")              # a game is not a chat model
+    with pytest.raises(gpu.GpuBusy) as refused:
+        gate.claim(("voice", "qwen"), lambda: None, comfy=FakeCard())
+    assert "Allow unloading" not in str(refused.value)
 
 
 def test_comfyuis_own_process_must_really_give_its_memory_back(gate, monkeypatch):
@@ -230,7 +239,7 @@ def test_picture_residency_shares_or_waits_for_voice_lab(tmp_path, monkeypatch, 
             holders = {row["app"]: row["alone"] for row in fels_suite.gpu_holders()}
             if exclusive:
                 assert holders == {"npc-forge": True}
-                assert len(contacts) == 2 and not outside
+                assert len(contacts) == 2 and len(outside) == 1             # LM Studio and Ollama, after the lock
                 assert any("Waiting for Voice Lab: speaking a scene" in (message or "") for message in messages)
                 assert told == ["Unloaded Voice Lab's model to make room (One model at a time; the switch is on the Models card)."]
             else:

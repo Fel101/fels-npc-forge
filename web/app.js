@@ -217,7 +217,7 @@ function gpuSwitch(key, title, checked, help, later = null) {
 
 function oneModelSwitch() {
   const on = gpuRule?.one_model_at_a_time ?? S.health?.gpu_rule?.switch ?? S.health?.gpu_rule?.one_model_at_a_time ?? true;
-  const external = gpuRule?.unload_external_models ?? S.health?.gpu_rule?.unload_external_models ?? false;
+  const external = gpuRule?.unload_external_models ?? S.health?.gpu_rule?.unload_external_models ?? true;
   const later = gpuRule?.switch_applies === 'next_job'
     ? h('span', { class: 'hint', style: { display: 'block' } }, 'The next picture job will use this setting.') : null;
   return h('div', {},

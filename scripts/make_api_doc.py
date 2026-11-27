@@ -38,12 +38,15 @@ How to drive it from a game's own scripts, with the options that matter for a bu
 lock, with `app`, `name`, `pid`, `what`, `since` and `alone`. `suite_lock.alone` gives the request for exclusive use, with the
 same identity and timing fields, or `null`.
 
-**One model at a time.** `GET /api/gpu` also says `one_model_at_a_time` (the switch), `alone` (whether NPC Forge holds the
-GPU alone for pictures now) and `switch_applies` (`now`, or `next_job` while a job that started the other way runs).
-`PUT /api/gpu/settings` with `{"one_model_at_a_time": true|false}` turns the switch on or off and saves it in
-`config.json`'s `gpu` section. On, a picture first asks Voice Lab and Altera to unload (`POST /api/unload`), unloads LM
-Studio's and Ollama's models, and takes the suite lock alone; off, it holds the lock shared and unloads nothing of anyone
-else's. Only pictures are affected: work in Voice Lab and Altera shares the GPU either way.
+**One model at a time.** `GET /api/gpu` also says `one_model_at_a_time` (the switch), `unload_external_models` (whether
+the switch also unloads LM Studio's and Ollama's models), `alone` (whether NPC Forge holds the GPU alone for pictures now)
+and `switch_applies` (`now`, or `next_job` while a job that started the other way runs). `PUT /api/gpu/settings` with one
+of `{"one_model_at_a_time": true|false}` or `{"unload_external_models": true|false}` changes that setting and saves it in
+`config.json`'s `gpu` section; a body with both, or neither, is refused with 400. With the switch on, a picture first asks
+Voice Lab and Altera to unload (`POST /api/unload`), waits while either says it is busy, takes the suite lock alone and
+then, with `unload_external_models` on (the default), unloads LM Studio's and Ollama's models. Off, it holds the lock
+shared and unloads nothing of anyone else's. Only pictures are affected: work in Voice Lab and Altera shares the GPU
+either way.
 
 **Set up ComfyUI** ([comfyui-setup.md](comfyui-setup.md)). `GET /api/comfy-setup` says where ComfyUI is (`comfy`), the
 tier and what each tier ticks (`tiers`), and every part (an engine such as `image:zimage`) with its files, NPC Forge's nodes,

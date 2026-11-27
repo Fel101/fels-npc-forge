@@ -11,7 +11,7 @@
     "engine_fallback": false
   },
   "library": {"trash_days": 30, "picture_history": 6, "model_history": 2},
-  "gpu": {"one_model_at_a_time": true, "idle_vram_mb": 2048, "wait_seconds": 90, "unload_idle_seconds": 120},
+  "gpu": {"one_model_at_a_time": true, "unload_external_models": true, "idle_vram_mb": 2048, "wait_seconds": 90, "unload_idle_seconds": 120},
   "_blender": "Blender is found in C:\\Program Files\\Blender Foundation or on the PATH; name it here if it is elsewhere.",
   "blender": ""
 }

@@ -39,10 +39,12 @@ the Apache-2.0 pair the default (it is the default now), and how to keep the lis
 **One model at a time** is a switch on the Models card (Models & options) and in the
 header GPU light's popup, on by default. Before NPC Forge makes a picture, it waits
 for Voice Lab and Altera to finish their work and release the GPU. While an app is
-busy the queue shows what it is doing, and you can cancel. If you also turn on
-**Allow unloading LM Studio and Ollama models**, Forge takes the GPU lock alone
-before requesting those unloads. The permission starts off and is saved as
-`gpu.unload_external_models`. Forge checks ComfyUI and Windows' per-process memory
+busy the queue shows what it is doing, and you can cancel. Once Forge holds the
+GPU lock alone, it unloads LM Studio's and Ollama's models, so a chat reply is
+never cut off. **Allow unloading LM Studio and Ollama models**, under the switch,
+is on by default and saved as `gpu.unload_external_models`. Turn it off to keep
+their models loaded: a picture then waits for the card to empty, and stops with
+a message that names the program if it does not. Forge checks ComfyUI and Windows' per-process memory
 before loading the model. The first time Forge unloads
 another app's model, the job says so. Only pictures are affected: Voice Lab and a
 chat in Altera share the GPU either way. The header GPU light shows who holds the

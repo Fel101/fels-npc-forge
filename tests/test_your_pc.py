@@ -282,10 +282,7 @@ def test_the_switch_on_unloads_the_lab_lm_studio_and_ollama_first_and_holds_the_
         lab.load()
         base, comfy, app = forge(32, switch=True, snapshot=lambda: (lab.unloads, list(outside.lm_studio), list(outside.ollama)))
         settings = call(base, "GET", "/api/gpu?lock=1")[1]
-        assert settings["one_model_at_a_time"] is True and settings["unload_external_models"] is False
-        status, settings = call(base, "PUT", "/api/gpu/settings", {"unload_external_models": True})
-        assert status == 200 and settings["unload_external_models"] is True
-        assert json.loads(config.CONFIG_FILE.read_text("utf-8"))["gpu"]["unload_external_models"] is True
+        assert settings["one_model_at_a_time"] is True and settings["unload_external_models"] is True   # both on by default
         comfy.finish.clear()                                          # the picture runs until the checks below are done
         job_id, _ = portrait(base, {"image_model": "zimage"})
         assert comfy.running.wait(20)

@@ -14,8 +14,10 @@ import urllib.parse
 from . import fels_suite, gpumem, suite_gpu
 from .comfy import Cancelled, ComfyError, beat
 
-DEFAULTS = {"one_model_at_a_time": True, "idle_vram_mb": 2048, "other_process_mb": 1536, "wait_seconds": 90,
-            "unload_idle_seconds": 120}
+DEFAULTS = {"one_model_at_a_time": True, "unload_external_models": True, "idle_vram_mb": 2048, "other_process_mb": 1536,
+            "wait_seconds": 90, "unload_idle_seconds": 120}
+# The programs that hold a local chat model (LM Studio, its llama-server, Ollama): the ones unload_outside() frees.
+CHAT_PROGRAMS = re.compile(r"llama-server|lm ?studio|^lms(\.exe)?$|ollama", re.I)
 MODEL_SUFFIXES = (".safetensors", ".ckpt", ".pt", ".pth", ".bin", ".gguf", ".sft")
 LOADER_INPUTS = {"Trellis2LoadModel": ("modelname",)}    # loaders that name their model without a file suffix (their pack finds the files)
 
@@ -77,7 +79,8 @@ class Gate:
         conf = (cfg or {}).get("gpu") or {}
         s = dict(DEFAULTS)
         s["one_model_at_a_time"] = bool(conf.get("one_model_at_a_time", DEFAULTS["one_model_at_a_time"]))
-        s["unload_external_models"] = conf.get("unload_external_models") is True
+        # On unless config.json says false: Altera leaves freeing its chat model to a suite Forge (contract 8).
+        s["unload_external_models"] = conf.get("unload_external_models", DEFAULTS["unload_external_models"]) is not False
         for name in ("idle_vram_mb", "other_process_mb", "wait_seconds", "unload_idle_seconds"):
             try:
                 s[name] = max(0, float(conf.get(name, DEFAULTS[name])))
@@ -118,7 +121,7 @@ class Gate:
     def status(self):
         lock = self._picture_lock
         return {"one_model_at_a_time": self.strict, "switch": self.strict if self._next is None else self._next,
-                "unload_external_models": self.settings.get("unload_external_models", False),
+                "unload_external_models": self.settings.get("unload_external_models", True),
                 "alone": bool(lock is not None and lock.alone),
                 "loaded": describe(self.holder()) if self.holder() else None,
                 "last_switch": self.last_switch, "unload_idle_seconds": self.settings["unload_idle_seconds"]}
@@ -151,7 +154,7 @@ class Gate:
                 return
             lock = fels_suite.GpuLock("npc-forge")
             suite_gpu.acquire_pictures(lock, self.strict, self.settings["wait_seconds"], cancel,
-                                       allow_external_unload=lambda: self.settings.get("unload_external_models", False))
+                                       allow_external_unload=lambda: self.settings.get("unload_external_models", True))
             self._picture_lock, self._picture_endpoint = lock, comfy.operation_lock
         try:
             self.claim(("comfy", graph_models(graph)), comfy=comfy, cancel=cancel)
@@ -284,7 +287,8 @@ class Gate:
             held = ", ".join(f"{name} ({mb / 1024:.1f} GB)" for name, mb in others)
             return GpuBusy(f"Another program is using the GPU: {held}{on}. {describe(key).capitalize()} was not started "
                            "(one model on the GPU at a time). Close it or unload its model (LM Studio, a voice app, "
-                           "another NPC Forge...) and try again." + _card_note(look), code="gpu_busy",
+                           "another NPC Forge...) and try again." + _unload_note(self.settings, others) + _card_note(look),
+                           code="gpu_busy",
                            holders=[{"name": name, "mb": mb} for name, mb in others], device=device)
         used = look["used_mb"] or 0
         return GpuBusy(f"ComfyUI still holds {used / 1024:.1f} GB of GPU memory{on} {wait:.0f} s after it was told to unload "
@@ -433,6 +437,14 @@ def _cache_only(look, limit):
     reading, held = look.get("reading_mb"), look.get("comfy_mb")
     return bool((look.get("stats") or {}).get("dynamic_vram")) and reading is not None and held is not None \
         and reading <= limit < held
+
+
+def _unload_note(settings, others):
+    """When a chat model holds the card and unloading LM Studio and Ollama is turned off: the switch that would free it."""
+    if not settings.get("unload_external_models", True) and any(CHAT_PROGRAMS.search(name) for name, _mb in others):
+        return (" To let NPC Forge unload LM Studio's and Ollama's models itself, turn on Allow unloading LM Studio and "
+                "Ollama models on the Models card.")
+    return ""
 
 
 def _held_advice(look, limit):
