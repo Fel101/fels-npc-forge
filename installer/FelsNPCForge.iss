@@ -4,7 +4,7 @@
 ;
 ; It installs for the current user, with no administrator prompt: NPC Forge keeps its library in its own folder, so it cannot
 ; live in Program Files. After copying, it makes .venv from the wheels it carries, so NPC Forge starts with no internet. The
-; picture models come afterwards, from Set up ComfyUI, which the last page offers to open.
+; picture models are optional and set up from Add a portrait.
 ;
 ; Over an installed NPC Forge it is an update, as update.bat's: it says "update from X to Y", refuses an older version over a
 ; newer one and waits for NPC Forge to close (the installed copy's own update.py checks, with its own Python), and after
@@ -55,7 +55,7 @@ SetupLogging=yes
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Messages]
-DiskSpaceMBLabel=NPC Forge and its Python packages need at least [mb] MB. The picture models go into ComfyUI afterwards, from Set up ComfyUI, and need much more: about 59 GB for a 16 GB graphics card, 81 GB for 24 GB and 90 GB for 32 GB.
+DiskSpaceMBLabel=NPC Forge and its Python packages need at least [mb] MB.
 
 [Tasks]
 Name: "desktopicon"; Description: "Put a shortcut on the &desktop"; Flags: unchecked
@@ -75,28 +75,17 @@ Name: "{userprograms}\{#AppName}"; Filename: "{app}\start.bat"; WorkingDir: "{ap
 Name: "{userdesktop}\{#AppName}"; Filename: "{app}\start.bat"; WorkingDir: "{app}"; IconFilename: "{app}\web\icon.ico"; Comment: "Characters for your game, made on your own PC"; Tasks: desktopicon
 
 [Run]
-Filename: "{app}\start.bat"; Parameters: "{code:StartArguments}"; WorkingDir: "{app}"; Description: "Open NPC Forge now"; Flags: postinstall nowait skipifsilent shellexec; Check: SetUpWorked
+Filename: "{app}\start.bat"; WorkingDir: "{app}"; Description: "Open NPC Forge now"; Flags: postinstall nowait skipifsilent shellexec; Check: SetUpWorked
 
 [Code]
 var
   SetUpOk: Boolean;
   { The version of NPC Forge in the chosen folder before Setup copies anything, or '' when there is none. }
   InstalledVersion: String;
-  { The last page's offer of Set up ComfyUI, and the line under it. }
-  ComfyBox: TNewCheckBox;
-  ComfyHint: TNewStaticText;
 
 function SetUpWorked: Boolean;
 begin
   Result := SetUpOk;
-end;
-
-{ start.bat's arguments for "Open NPC Forge now": at Set up ComfyUI when the box under it is ticked. }
-function StartArguments(Param: String): String;
-begin
-  Result := '';
-  if (ComfyBox <> nil) and ComfyBox.Visible and ComfyBox.Checked then
-    Result := '--setup-comfyui';
 end;
 
 { The OneDrive folder that holds Folder, or ''. The same rule as scripts\setup_core.py's onedrive_folder, with its variables. }
@@ -217,25 +206,6 @@ begin
       'To use {#AppVersion} anyway, uninstall NPC Forge first and keep your library, then run this Setup again.';
 end;
 
-procedure InitializeWizard;
-begin
-  { Room for the line about the models under the folder box. }
-  WizardForm.DiskSpaceLabel.WordWrap := True;
-  WizardForm.DiskSpaceLabel.Top := WizardForm.DiskSpaceLabel.Top - ScaleY(26);
-  WizardForm.DiskSpaceLabel.Height := WizardForm.DiskSpaceLabel.Height + ScaleY(26);
-  ComfyBox := TNewCheckBox.Create(WizardForm);
-  ComfyBox.Parent := WizardForm.FinishedPage;
-  ComfyBox.Caption := 'Then set up ComfyUI and the picture models';
-  ComfyBox.Visible := False;
-  ComfyHint := TNewStaticText.Create(WizardForm);
-  ComfyHint.Parent := WizardForm.FinishedPage;
-  ComfyHint.AutoSize := False;
-  ComfyHint.WordWrap := True;
-  ComfyHint.Caption := 'NPC Forge opens Set up ComfyUI, which finds ComfyUI and lists the models your graphics card can run. ' +
-    'Nothing downloads until you choose Install there.';
-  ComfyHint.Visible := False;
-end;
-
 function NextButtonClick(CurPageID: Integer): Boolean;
 var
   Sync, Refusal: String;
@@ -307,19 +277,6 @@ begin
       WizardForm.AdjustLabelHeight(WizardForm.FinishedLabel);
       WizardForm.RunList.Top := WizardForm.FinishedLabel.Top + WizardForm.FinishedLabel.Height + ScaleY(12);
     end;
-    { Set up ComfyUI, under "Open NPC Forge now": ticked for a new install, not for an update. The list fills the page, so it
-      is made as tall as its one line first. }
-    WizardForm.RunList.Height := WizardForm.RunList.Items.Count * ScaleY(24);
-    ComfyBox.Visible := SetUpOk and WizardForm.RunList.Visible;
-    ComfyHint.Visible := ComfyBox.Visible;
-    ComfyBox.Checked := InstalledVersion = '';
-    ComfyBox.Left := WizardForm.RunList.Left + ScaleX(20);
-    ComfyBox.Width := WizardForm.FinishedLabel.Width - ScaleX(20);
-    ComfyBox.Top := WizardForm.RunList.Top + WizardForm.RunList.Height + ScaleY(4);
-    ComfyHint.Left := ComfyBox.Left + ScaleX(18);
-    ComfyHint.Width := ComfyBox.Width - ScaleX(18);
-    ComfyHint.Top := ComfyBox.Top + ComfyBox.Height + ScaleY(2);
-    ComfyHint.Height := ScaleY(44);
   end;
 end;
 

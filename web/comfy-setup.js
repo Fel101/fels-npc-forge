@@ -26,8 +26,10 @@ const plural = (n, one, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 const view = { status: null, tier: null, ticked: new Set(), confirm: false, timer: null, onChange: null, busy: false };
 
 /** Open the dialog. `onChange` runs after an install put something in (the page then reads ComfyUI's lists again). */
-export async function openComfySetup({ onChange } = {}) {
+export async function openComfySetup({ onChange, portrait, status } = {}) {
   view.onChange = onChange || view.onChange;
+  if (view.portrait && !portrait) view.status = null;
+  view.portrait = portrait;
   let dlg = $('#comfySetup');
   if (!dlg) {
     dlg = h('dialog', { id: 'comfySetup', class: 'about advanced comfy-setup', 'aria-labelledby': 'comfySetupTitle',
@@ -36,14 +38,23 @@ export async function openComfySetup({ onChange } = {}) {
   }
   dlg.replaceChildren(h('div', { class: 'about-body' }, h('h2', { id: 'comfySetupTitle' }, 'Set up ComfyUI'), h('p', { class: 'hint' }, 'Looking for ComfyUI…')));
   if (!dlg.open) dlg.showModal();
-  await load();
+  if (portrait && status) {
+    view.status = status;
+    view.tier = status.tier;
+    view.ticked = new Set([portrait]);
+    view.confirm = false;
+    paint();
+    if (ACTIVE.has(status.install?.state)) startPolling();
+  } else {
+    await load();
+  }
 }
 
 async function load() {
   const status = await api('GET', '/api/comfy-setup');
   const first = !view.status;
   view.status = status;
-  if (first || !view.tier) {
+  if (first || (!view.tier && !view.portrait)) {
     view.tier = status.tier;
     view.ticked = new Set(status.tier ? status.tiers[status.tier] : []);
   }
@@ -63,8 +74,10 @@ function paint() {
   dlg.replaceChildren(
     h('div', { class: 'about-body' },
       h('div', { class: 'about-head' },
-        h('div', { class: 'grow' }, h('h2', { id: 'comfySetupTitle' }, 'Set up ComfyUI'),
-          h('p', { class: 'hint' }, 'NPC Forge draws its pictures and 3D models in ComfyUI. This puts in the model files each size of graphics card needs, from the Hugging Face pages listed under each part.')),
+        h('div', { class: 'grow' }, h('h2', { id: 'comfySetupTitle' }, view.portrait ? 'Add a portrait' : 'Set up ComfyUI'),
+          h('p', { class: 'hint' }, view.portrait
+            ? 'Portraits need ComfyUI and a compatible graphics card. Z-Image Turbo was tested on a card with 16 GB of dedicated memory. The portrait model below is selected and shows its estimated download.'
+            : 'NPC Forge draws its pictures and 3D models in ComfyUI. This puts in the model files each size of graphics card needs, from the Hugging Face pages listed under each part.')),
         btn('Close', '', () => dlg.close(), { cls: 'small ghost' })),
       whereSection(s),
       tierSection(s),

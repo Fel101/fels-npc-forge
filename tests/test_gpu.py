@@ -230,7 +230,7 @@ def test_picture_residency_shares_or_waits_for_voice_lab(tmp_path, monkeypatch, 
             holders = {row["app"]: row["alone"] for row in fels_suite.gpu_holders()}
             if exclusive:
                 assert holders == {"npc-forge": True}
-                assert len(contacts) == 2 and len(outside) == 1
+                assert len(contacts) == 2 and not outside
                 assert any("Waiting for Voice Lab: speaking a scene" in (message or "") for message in messages)
                 assert told == ["Unloaded Voice Lab's model to make room (One model at a time; the switch is on the Models card)."]
             else:
@@ -291,13 +291,13 @@ def test_a_busy_app_keeps_the_wait_going_and_a_missing_lms_is_said_once(tmp_path
                         lambda **kwargs: [{"program": "LM Studio", "models": ["chat"], "done": False, "problem": problem}])
     try:
         started = time.monotonic()
-        suite_gpu.acquire_pictures(forge, True, 0.3, cancel)           # the busy Lab outlasts the 0.3 s wait
+        suite_gpu.acquire_pictures(forge, True, 0.3, cancel, allow_external_unload=lambda: True)
         assert forge.held and forge.alone and time.monotonic() - started > 0.6
         assert "Waiting for Voice Lab: speaking a scene, 12 of 40 lines" in beats
         assert told == [problem, suite_gpu.unloaded_sentence(["Voice Lab"])]
         forge.release()
         assert lab.acquire("Kokoro 82M", timeout=0)
-        suite_gpu.acquire_pictures(forge, True, 0.3, cancel)           # once a session: the job line says nothing more
+        suite_gpu.acquire_pictures(forge, True, 0.3, cancel, allow_external_unload=lambda: True)
         assert forge.held and told == [problem, suite_gpu.unloaded_sentence(["Voice Lab"])]
     finally:
         forge.release()

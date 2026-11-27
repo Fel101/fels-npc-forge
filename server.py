@@ -2511,28 +2511,33 @@ def _switch_state():
     """One model at a time as the page shows it: the switch, and whether Forge holds the GPU alone now."""
     rule = gpu.status()
     return {"one_model_at_a_time": rule["switch"], "alone": rule["alone"],
+            "unload_external_models": rule["unload_external_models"],
             "switch_applies": "now" if rule["switch"] == rule["one_model_at_a_time"] else "next_job"}
 
 
 @route("PUT", "/api/gpu/settings")
 def gpu_settings(q, body):
-    """Turn One model at a time on or off: {"one_model_at_a_time": true|false}. Saved in config.json's "gpu" section. A job
-    that is running finishes as it started; the change applies from the next one."""
-    value = body.get("one_model_at_a_time")
+    """Save the suite coordination switch or the separate permission to unload external programs."""
+    key = next(iter(body)) if isinstance(body, dict) and len(body) == 1 else None
+    if key not in {"one_model_at_a_time", "unload_external_models"}:
+        raise ApiError(400, "Choose one GPU setting to change.")
+    value = body[key]
     if type(value) is not bool:
-        raise ApiError(400, "one_model_at_a_time must be true or false.")
+        raise ApiError(400, f"{key} must be true or false.")
+    app = current_app()
     try:
-        cfgmod.save_gpu_setting("one_model_at_a_time", value)
+        with app.jobs.lock:
+            cfgmod.save_gpu_setting(key, value)
+            app.cfg.setdefault("gpu", {})[key] = value
+            if key == "unload_external_models":
+                gpu.GATE.settings[key] = value
+            else:
+                busy = app.jobs.current is not None or not app.jobs.queue.empty()
+                if gpu.GATE.switch(value, busy) and gpu.GATE.held_the_other_way():
+                    threading.Thread(target=gpu.release_comfy, args=(app.comfy,), name="GPU switch", daemon=True).start()
     except (OSError, ValueError) as error:
         raise ApiError(500, f"NPC Forge could not save the switch in config.json ({error}). Check that the NPC Forge folder "
                             "can be written to, then try again.") from None
-    app = current_app()
-    app.cfg.setdefault("gpu", {})["one_model_at_a_time"] = value
-    with app.jobs.lock:
-        busy = app.jobs.current is not None or not app.jobs.queue.empty()
-        if gpu.GATE.switch(value, busy) and gpu.GATE.held_the_other_way():
-            # An idle Forge holding the GPU the old way lets go now, so another app need not wait for the idle unload.
-            threading.Thread(target=gpu.release_comfy, args=(app.comfy,), name="GPU switch", daemon=True).start()
     return _switch_state()
 
 

@@ -68,19 +68,20 @@ def ask_voice_lab():
     return 200, {"message": "Voice Lab has released the GPU."}
 
 
-def acquire_pictures(lock, alone, wait, cancel):
+def acquire_pictures(lock, alone, wait, cancel, *, allow_external_unload=None):
     """Take the lock and leave it held. Cancel or a failed acquisition leaves no request behind.
 
     With `alone` (One model at a time on), contract 8's steps: say so in alone.json, ask Voice Lab and Altera to unload
-    (again every ASK_EVERY seconds while one says it is busy, showing what it is doing), unload LM Studio's and Ollama's
-    models, then take the lock alone. A busy app keeps the wait going for as long as it says so; with nothing to wait for,
+    (again every ASK_EVERY seconds while one says it is busy, showing what it is doing) and take the lock alone.
+    With explicit permission, unload LM Studio and Ollama after taking the exclusive lock. A busy app keeps the wait
+    going for as long as it says so; with nothing to wait for,
     the wait ends after `wait` seconds. Cancel works throughout."""
     deadline = time.monotonic() + wait
     next_contact = 0
     unloaded = set()
     waiting_on = None
-    outside_checked = False
     requested = False
+    freed = []
 
     def cancelled():
         return cancel is not None and cancel.is_set()
@@ -89,7 +90,7 @@ def acquire_pictures(lock, alone, wait, cancel):
         return cancelled() or time.monotonic() >= deadline
 
     def contact():
-        nonlocal next_contact, waiting_on, outside_checked, requested, deadline
+        nonlocal next_contact, waiting_on, requested, deadline
         if cancelled():
             return True
         if not alone or time.monotonic() < next_contact:
@@ -104,7 +105,6 @@ def acquire_pictures(lock, alone, wait, cancel):
             requested = lock.want_alone("pictures")
             if not requested:
                 return over()
-        freed = []
         for holder in lock.holders():
             if cancelled():
                 return True
@@ -120,17 +120,6 @@ def acquire_pictures(lock, alone, wait, cancel):
                 doing = answer.get("doing")
                 waiting_on = f"Waiting for {name}: {doing}" if doing else f"Waiting for {name} to finish"
                 deadline = max(deadline, time.monotonic() + wait)       # it is working: wait while it says so
-        if not outside_checked and not cancelled():
-            outside_checked = True
-            for entry in fels_suite.unload_outside(timeout=OUTSIDE_SECONDS):
-                if entry["done"]:
-                    freed.append(entry["program"])
-                elif entry["problem"]:
-                    _tell_once(cancel, "outside:" + entry["program"], entry["problem"])
-        if freed:
-            said = unloaded_sentence(freed)
-            if not _tell_once(cancel, "unloaded", said):
-                beat(cancel, said)
         beat(cancel, waiting_on or "Making room on the GPU")
         return over()
 
@@ -144,6 +133,18 @@ def acquire_pictures(lock, alone, wait, cancel):
         if not cancelled() and lock.acquire("pictures", alone=alone, timeout=None, cancel=contact):
             if cancelled():
                 raise Cancelled()
+            if alone and allow_external_unload is not None and allow_external_unload():
+                for entry in fels_suite.unload_outside(timeout=OUTSIDE_SECONDS):
+                    if entry["done"]:
+                        freed.append(entry["program"])
+                    elif entry["problem"]:
+                        _tell_once(cancel, "outside:" + entry["program"], entry["problem"])
+            if cancelled():
+                raise Cancelled()
+            if freed:
+                said = unloaded_sentence(freed)
+                if not _tell_once(cancel, "unloaded", said):
+                    beat(cancel, said)
             beat(cancel)
             return
         if cancelled():

@@ -77,6 +77,7 @@ class Gate:
         conf = (cfg or {}).get("gpu") or {}
         s = dict(DEFAULTS)
         s["one_model_at_a_time"] = bool(conf.get("one_model_at_a_time", DEFAULTS["one_model_at_a_time"]))
+        s["unload_external_models"] = conf.get("unload_external_models") is True
         for name in ("idle_vram_mb", "other_process_mb", "wait_seconds", "unload_idle_seconds"):
             try:
                 s[name] = max(0, float(conf.get(name, DEFAULTS[name])))
@@ -117,6 +118,7 @@ class Gate:
     def status(self):
         lock = self._picture_lock
         return {"one_model_at_a_time": self.strict, "switch": self.strict if self._next is None else self._next,
+                "unload_external_models": self.settings.get("unload_external_models", False),
                 "alone": bool(lock is not None and lock.alone),
                 "loaded": describe(self.holder()) if self.holder() else None,
                 "last_switch": self.last_switch, "unload_idle_seconds": self.settings["unload_idle_seconds"]}
@@ -148,7 +150,8 @@ class Gate:
             if stats is None or stats.get("cpu"):
                 return
             lock = fels_suite.GpuLock("npc-forge")
-            suite_gpu.acquire_pictures(lock, self.strict, self.settings["wait_seconds"], cancel)
+            suite_gpu.acquire_pictures(lock, self.strict, self.settings["wait_seconds"], cancel,
+                                       allow_external_unload=lambda: self.settings.get("unload_external_models", False))
             self._picture_lock, self._picture_endpoint = lock, comfy.operation_lock
         try:
             self.claim(("comfy", graph_models(graph)), comfy=comfy, cancel=cancel)

@@ -4,8 +4,8 @@ NPC Forge draws its pictures and 3D models in [ComfyUI](https://www.comfy.org/do
 model files each size of graphics card needs, so nobody has to copy them into ComfyUI's folders by hand. Characters,
 personalities, dialogue packs, cast packs and the MCP server need none of this.
 
-Open it from the **Your PC** box on the Models card (**Set up ComfyUI…**), or from the banner the page shows while ComfyUI is
-not answering.
+Choose **Add a portrait** on the character sheet to check what that portrait needs. For other models, open
+**Set up ComfyUI…** in the **Your PC** box on the Models card.
 
 ## Where ComfyUI is
 

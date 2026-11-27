@@ -80,7 +80,7 @@ its pinned Hugging Face commit and copies NPC Forge's own nodes; without `"yes":
 | `POST` | `/api/manner` | Suggest how a character talks and comes across, from their traits: {setting, traits: [...]} -> {speech, demeanor}. |
 | `GET` | `/api/jobs` | The queue: every job with its steps, status and `code`. |
 | `GET` | `/api/gpu` | Picture-job readiness, One model at a time and the suite GPU lock. |
-| `PUT` | `/api/gpu/settings` | Turn One model at a time on or off: {"one_model_at_a_time": true\|false}. |
+| `PUT` | `/api/gpu/settings` | Save the suite coordination switch or the separate permission to unload external programs. |
 | `POST` | `/api/gpu/free-voice-lab` | Ask the current Voice Lab GPU holder to unload after the user requests it in the picture queue. |
 | `POST` | `/api/jobs/cancel-all` | Stop every queued and running job. |
 | `POST` | `/api/jobs/{job}/cancel` | Stop one job. |

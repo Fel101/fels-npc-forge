@@ -236,9 +236,9 @@ def test_after_copying_it_finishes_an_update_and_sets_up_venv_from_its_wheels():
     assert "scripts\\setup_core.py') + '\" --wheels \"'" in SCRIPT and "function GetCustomSetupExitCode" in SCRIPT
 
 
-def test_its_last_page_offers_set_up_comfyui_through_start_bat():
-    assert 'Filename: "{app}\\start.bat"; Parameters: "{code:StartArguments}"' in SCRIPT
-    assert f"Result := '{start.SETUP_COMFYUI}'" in SCRIPT and "ComfyBox.Checked := InstalledVersion = '';" in SCRIPT
+def test_its_last_page_opens_the_normal_character_workflow():
+    assert 'Filename: "{app}\\start.bat"; WorkingDir:' in SCRIPT
+    assert "--setup-comfyui" not in SCRIPT
     assert "start.py %*" in (ROOT / "start.bat").read_text(encoding="utf-8")
     assert '"#setup-comfyui"' in (ROOT / "server.py").read_text(encoding="utf-8")
     assert "'#setup-comfyui'" in (ROOT / "web" / "app.js").read_text(encoding="utf-8")

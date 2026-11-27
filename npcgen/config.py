@@ -34,7 +34,8 @@ DEFAULTS = {
     # One model on the GPU at a time (npcgen/gpu.py): before a different model loads (Mage-Flow to Mage-Flow-Edit, a picture
     # to a voice...), everything is unloaded and the card must read at most idle_vram_mb in use within wait_seconds.
     # Slower (models reload more often) but the GPU is never shared. false = the older, faster sharing rules.
-    "gpu": {"one_model_at_a_time": True, "idle_vram_mb": 2048, "wait_seconds": 90, "unload_idle_seconds": 120},
+    "gpu": {"one_model_at_a_time": True, "unload_external_models": False, "idle_vram_mb": 2048,
+            "wait_seconds": 90, "unload_idle_seconds": 120},
     # What a request that does not name an option gets, over the built-in defaults (npcgen/service.py default_options). The built-in
     # defaults draw with Qwen-Image 2512 and edit with Qwen-Image-Edit 2511 (both Apache-2.0) and, since 2026-10-13, do not let Mage-Flow
     # draw a picture those cannot ("engine_fallback": false: it fails with the reason). A PC without the Qwen files, or one that wants the

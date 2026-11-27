@@ -281,7 +281,11 @@ def test_the_switch_on_unloads_the_lab_lm_studio_and_ollama_first_and_holds_the_
         assert fels_suite.write_address("voice-lab", servers[0].url, "1.0.0", 1, "stand-in")
         lab.load()
         base, comfy, app = forge(32, switch=True, snapshot=lambda: (lab.unloads, list(outside.lm_studio), list(outside.ollama)))
-        assert call(base, "GET", "/api/gpu?lock=1")[1]["one_model_at_a_time"] is True
+        settings = call(base, "GET", "/api/gpu?lock=1")[1]
+        assert settings["one_model_at_a_time"] is True and settings["unload_external_models"] is False
+        status, settings = call(base, "PUT", "/api/gpu/settings", {"unload_external_models": True})
+        assert status == 200 and settings["unload_external_models"] is True
+        assert json.loads(config.CONFIG_FILE.read_text("utf-8"))["gpu"]["unload_external_models"] is True
         comfy.finish.clear()                                          # the picture runs until the checks below are done
         job_id, _ = portrait(base, {"image_model": "zimage"})
         assert comfy.running.wait(20)
@@ -305,6 +309,65 @@ def test_the_switch_on_unloads_the_lab_lm_studio_and_ollama_first_and_holds_the_
         for one in servers:
             one.shutdown()
             one.server_close()
+
+
+@pytest.mark.parametrize("external,cancelled", [(True, False), (False, False), (True, True)])
+def test_altera_chat_finishes_before_external_unload(tmp_path, monkeypatch, external, cancelled):
+    monkeypatch.setenv("FELS_SUITE_DIR", str(tmp_path))
+    monkeypatch.setattr(suite_gpu, "ASK_EVERY", 0)
+    monkeypatch.setattr(suite_gpu, "_TOLD", set())
+    chat = fels_suite.GpuLock("altera")
+    pictures = fels_suite.GpuLock("npc-forge")
+    assert chat.acquire("a chat reply", timeout=0)
+    busy = threading.Event()
+    reply_finished = threading.Event()
+    cancel = threading.Event()
+    calls = []
+
+    def contact(holder):
+        assert holder["app"] == "altera"
+        if reply_finished.is_set():
+            chat.release()
+            calls.append("released")
+            return 200, {}
+        calls.append("busy")
+        busy.set()
+        return 409, {"code": "busy", "doing": "generating an LM Studio reply"}
+
+    def unload(**kwargs):
+        calls.append("external unload")
+        return []
+
+    def acquire():
+        try:
+            suite_gpu.acquire_pictures(pictures, True, 2, cancel, allow_external_unload=lambda: external)
+            calls.append("picture")
+        except suite_gpu.Cancelled:
+            calls.append("cancelled")
+        finally:
+            pictures.release()
+
+    monkeypatch.setattr(suite_gpu, "unload_holder", contact)
+    monkeypatch.setattr(fels_suite, "unload_outside", unload)
+    thread = threading.Thread(target=acquire, daemon=True)
+    thread.start()
+    try:
+        assert busy.wait(2)
+        assert "external unload" not in calls
+        assert fels_suite.GpuLock("voice-lab").alone_wanted()["app"] == "npc-forge"
+        (cancel if cancelled else reply_finished).set()
+        thread.join(5)
+        assert not thread.is_alive()
+        assert fels_suite.GpuLock("voice-lab").alone_wanted() is None
+        after_busy = [call for call in calls if call != "busy"]
+        if cancelled:
+            assert after_busy == ["cancelled"] and chat.held
+        else:
+            assert after_busy == ["released", *(["external unload"] if external else []), "picture"]
+    finally:
+        cancel.set()
+        thread.join(5)
+        chat.release()
 
 
 def test_the_switch_off_shares_the_card_and_unloads_nothing(forge, monkeypatch):

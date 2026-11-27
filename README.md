@@ -61,21 +61,20 @@ Z-Image Turbo, which the 16 GB size starts with, pulls towards famous characters
 built-in Mage-Flow engine runs on 16 GB at its usual speed, but Microsoft released it for research only, so read its
 [licence note](docs/licences.md) before you use it for work you sell.
 
-**One model at a time**, on by default, gives a picture the graphics card to itself: before NPC Forge draws, Voice Lab,
-Altera, LM Studio and Ollama unload their models and wait. Turn it off if your card has room for everything
-([models.md](docs/models.md#one-model-on-the-gpu-at-a-time)).
+**One model at a time** is on by default. Before drawing, Forge waits for Voice Lab and Altera to finish their current
+work and release the GPU. If you also enable **Allow unloading LM Studio and Ollama models**, Forge requests those
+unloads after the Studio apps release the GPU. See [Models](docs/models.md#one-model-on-the-gpu-at-a-time).
 
 ## Quick start
 
-For pictures you need a graphics card and ComfyUI 0.36 or newer. Optional: **Blender 5** (skeletons, clean-up and game
-models), **FFmpeg** (scene videos) and **Godot 4** (to try the exports). [Requirements](docs/requirements.md) has the details.
+Character sheets run on the CPU. For pictures you need a graphics card and ComfyUI 0.36 or newer.
+[Requirements](docs/requirements.md) lists the tools for exporting and working with the assets.
 
-1. Start ComfyUI and check it answers at `http://127.0.0.1:8188`. Its model files can wait: step 3 puts them in.
-2. Get NPC Forge. On Windows, download `FelsNPCForge-Setup-<version>.exe` (39 MB) from the
+1. Get NPC Forge. On Windows, download `FelsNPCForge-Setup-<version>.exe` (39 MB) from the
    [newest release](https://github.com/Fel101/fels-npc-forge/releases/latest) and run it. It is not signed, so Windows
    SmartScreen warns about it: press **More info**, then **Run anyway**. It installs for you alone, with no administrator
    prompt and no internet, into `%LOCALAPPDATA%\FelsNPCForge`, with a Python of its own, and adds **Fel's NPC Forge** to
-   the Start menu. Its last page opens NPC Forge at **Set up ComfyUI**. You can also install by hand:
+   the Start menu. You can also install by hand:
    ```bash
    git clone https://github.com/Fel101/fels-npc-forge.git   # or unpack the release's FelsNPCForge-<version>.zip
    cd fels-npc-forge
@@ -83,11 +82,11 @@ models), **FFmpeg** (scene videos) and **Godot 4** (to try the exports). [Requir
    ```
    `setup.bat` uses this PC's Python 3.10 or newer, or fetches a Python of NPC Forge's own when there is none. Then
    double-click `start.bat`, or run `python server.py --open`. The page opens at `http://127.0.0.1:8766`.
-3. For pictures: **Set up ComfyUI** (in the **Your PC** box of **Models and options**, top right) picks your card's size,
+2. Choose **Roll NPC**, then **Save** to put your first character sheet in the Library.
+3. To make a picture, choose **Add a portrait** on the character sheet. **Set up ComfyUI** shows the GPU and model download
+   for that portrait. The **Your PC** box of **Models and options** also picks your card's size,
    ticks what that card makes and, after a yes, downloads the model files into ComfyUI (59 GB for a 16 GB card), with
    progress and Stop ([comfyui-setup.md](docs/comfyui-setup.md)). Characters and dialogue need none of it.
-4. On the **Create** page press **Roll NPC**, tick what to make (a portrait is a good first try) and press **Generate**.
-   The queue on the right shows each step; the finished character is in the **Library**.
 
 The status line at the top of the page says whether ComfyUI answers and which model files it lacks. To change the ComfyUI
 address, the port or the default engines, copy `config.example.json` to `config.json` in NPC Forge's folder.

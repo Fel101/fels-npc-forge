@@ -192,17 +192,13 @@ function yourPcBox() {
 const setupButton = () => btn('Set up ComfyUI…', 'download', safe(() => openComfySetup({ onChange: refreshHealth })), { cls: 'small' });
 
 /** One model at a time (contract 8): the same switch on the Models card and in the GPU light's popup. Saved in config.json. */
-function oneModelSwitch() {
-  const on = gpuRule?.one_model_at_a_time ?? S.health?.gpu_rule?.switch ?? S.health?.gpu_rule?.one_model_at_a_time ?? true;
-  const later = gpuRule?.switch_applies === 'next_job'
-    ? h('span', { class: 'hint', style: { display: 'block' } }, 'A job is running: it finishes as it started, and the change applies from the next one.') : null;
-  const box = h('input', { type: 'checkbox', checked: on, 'aria-label': 'One model at a time',
+function gpuSwitch(key, title, checked, help, later = null) {
+  const box = h('input', { type: 'checkbox', name: key, checked, 'aria-label': title,
     onchange: async event => {
       const wanted = event.target.checked;
       box.disabled = true;
       try {
-        gpuRule = { ...(gpuRule || {}), ...await api('PUT', '/api/gpu/settings', { one_model_at_a_time: wanted }) };
-        toast(wanted ? 'One model at a time is on: pictures wait for an empty GPU.' : 'One model at a time is off: pictures share the GPU.', 'ok');
+        gpuRule = { ...(gpuRule || {}), ...await api('PUT', '/api/gpu/settings', { [key]: wanted }) };
       } catch (error) {
         box.checked = !wanted;
         toast(error.message, 'error');
@@ -211,13 +207,24 @@ function oneModelSwitch() {
         box.disabled = false;
         renderGpuLight(gpuRule, true);
         renderSettings();
-        place?.querySelector('.one-model input')?.focus();
+        place?.querySelector(`input[name="${key}"]`)?.focus();
       }
     } });
   return h('label', { class: 'check one-model' }, box,
-    h('span', {}, h('span', { class: 'name' }, 'One model at a time'),
-      h('span', { class: 'hint', style: { display: 'block' } }, 'Before NPC Forge makes a picture, it asks Voice Lab, Altera, LM Studio and Ollama to unload their models, and they wait until it is done. Slower, but needs the least memory. Turn it off if your card has room for everything at once.'),
-      later));
+    h('span', {}, h('span', { class: 'name' }, title),
+      h('span', { class: 'hint', style: { display: 'block' } }, help), later));
+}
+
+function oneModelSwitch() {
+  const on = gpuRule?.one_model_at_a_time ?? S.health?.gpu_rule?.switch ?? S.health?.gpu_rule?.one_model_at_a_time ?? true;
+  const external = gpuRule?.unload_external_models ?? S.health?.gpu_rule?.unload_external_models ?? false;
+  const later = gpuRule?.switch_applies === 'next_job'
+    ? h('span', { class: 'hint', style: { display: 'block' } }, 'The next picture job will use this setting.') : null;
+  return h('div', {},
+    gpuSwitch('one_model_at_a_time', 'One model at a time', on,
+      'Before making a picture, Forge waits for Voice Lab and Altera to finish their current work and release the GPU.', later),
+    gpuSwitch('unload_external_models', 'Allow unloading LM Studio and Ollama models', external,
+      'With One model at a time on, Forge can unload models in LM Studio and Ollama after the Studio apps release the GPU.'));
 }
 
 // ---------- create view: sidebar -----------------------------------------------------------------------------------
@@ -571,8 +578,8 @@ function renderSheet() {
   const box = $('#sheet'); if (!box) return;
   const npc = S.draft;
   if (!npc) {
-    box.replaceChildren(h('div', { class: 'empty' }, h('h2', {}, 'No NPC yet'),
-      h('p', {}, 'Roll a character and change anything you like. The character sheet needs no graphics card. Pictures, sprites and generated 3D models need ComfyUI.'),
+    box.replaceChildren(h('div', { class: 'empty' }, h('h2', {}, 'Make a character sheet'),
+      h('p', {}, 'Roll a character, edit their details, then save them to your Library. You can do all three on a CPU with no extra downloads.'),
       btn('Roll NPC', 'dice', safe(rollNpc), { cls: 'primary' })));
     return;
   }
@@ -580,7 +587,7 @@ function renderSheet() {
     h('div', {}, h('h2', { id: 'sheet-title' }), h('div', { class: 'meta', id: 'sheet-meta' })),
     h('div', { class: 'actions' },
       btn('Roll again', 'dice', safe(rollNpc), { title: 'Re-roll every field that is not locked' }),
-      btn('Save', 'save', safe(saveDraft), { title: 'Save this NPC to the library' }),
+      btn('Save', 'save', safe(saveDraft), { cls: 'primary', title: 'Save this NPC to the library' }),
       npc.id && btn('Export character card', 'download', safe(() => {
         if (S.dirty || S.dialogueDirty) throw new Error('Save your character and any dialogue edits before exporting its card.');
         return openCharacterCard(npc);
@@ -589,7 +596,7 @@ function renderSheet() {
         { title: 'Start a scene with this NPC', disabled: S.outdated || S.dirty || S.dialogueDirty }),
       npc.id && S.health?.body_3d?.bases?.length > 0 && btn('Body options', null, jumpToBody,
         { title: 'Go to the body options in the 3D model card' }),
-      btn('Generate', 'zap', safe(() => generateDraft()), { cls: 'primary' }),
+      btn('Generate', 'zap', safe(() => generateDraft())),
       npc.id && btn('', 'trash', safe(deleteDraft), { cls: 'icon danger', title: 'Delete this NPC' })));
 
   const prompts = h('details', { class: 'card', id: 'prompts', open: S.promptsOpen, ontoggle: e => { S.promptsOpen = e.target.open; refreshPrompts(); } },
@@ -776,13 +783,26 @@ function versionsList(npc, slot, title, meta, versions, saved) {
     })));
 }
 
+async function addPortrait() {
+  const option = S.recipe.options.image_model;
+  const engine = `image:${option && option !== 'auto' ? option : S.cfg.defaults.options.image_model || 'zimage'}`;
+  const setup = await api('GET', '/api/comfy-setup');
+  const part = setup.parts.find(item => item.id === engine);
+  if (setup.comfy.how === 'running' && (!part || part.ready)) {
+    return generateDraft({ portrait: true, sprite: false, expressions: [] });
+  }
+  return openComfySetup({ onChange: refreshHealth, portrait: part?.id || 'image:zimage', status: setup });
+}
+
 function assetTile({ cls, title, kind, key, meta, busy, checker }) {
   const npc = S.draft, saved = !!npc.id;
   const slot = pictureSlot(kind, key);
   const versions = npc.assets?.candidates?.[slot] || [];
   const frame = h('div', { class: 'frame' + (checker && meta?.transparent ? ' checker' : '') + (busy ? ' busy' : ''), dataset: busy ? { busy } : {} },
     meta ? h('img', { src: assetUrl(meta.file, meta.created), alt: title, draggable: false })
-      : h('div', { class: 'placeholder' }, saved ? 'Not generated yet' : 'Save or generate to create images'));
+      : h('div', { class: 'placeholder' }, kind === 'portrait'
+        ? btn('Add a portrait', 'plus', safe(addPortrait), { cls: 'small', disabled: !!busy || S.outdated })
+        : saved ? 'Not generated yet' : 'Save or generate to create images'));
   const caption = [];
   if (meta) {
     caption.push(h('span', { class: 'cap' }, [meta.size?.join('×'), meta.transparent ? 'transparent' : null, kind === 'sprite' ? (meta.mode === 'match' ? 'from portrait' : 'independent') : null,
@@ -798,7 +818,7 @@ function assetTile({ cls, title, kind, key, meta, busy, checker }) {
   return h('div', { class: `tile ${cls}` },
     h('div', { class: 'title' }, h('span', {}, title),
       h('div', { class: 'row' },
-        saved && btn('', 'refresh', safe(() => regen(kind, key)), { cls: 'small icon ghost', title: meta ? 'Regenerate with a new seed' : 'Generate' }),
+        saved && (meta || kind !== 'portrait') && btn('', 'refresh', safe(() => regen(kind, key)), { cls: 'small icon ghost', title: meta ? 'Regenerate with a new seed' : 'Generate' }),
         meta && h('a', { class: 'btn small icon ghost', href: assetUrl(meta.file, meta.created), download: file, title: 'Download PNG', 'aria-label': 'Download PNG' }, icon('download')),
         meta && saved && kind !== 'sheet' && btn('', 'trash', safe(() => removeAsset(kind, key)), { cls: 'small icon ghost danger', title: 'Delete this image' }))),
     frame, caption.length ? h('div', { class: 'foot' }, caption) : null,
