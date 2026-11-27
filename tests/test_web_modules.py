@@ -2,6 +2,7 @@ import re
 import shutil
 import subprocess
 import threading
+import time
 from pathlib import Path
 
 import pytest
@@ -117,7 +118,18 @@ def test_page_loads_the_entrypoint_as_a_module():
     assert '<script type="module" src="/app.js"></script>' in page
 
 
-def test_browser_loads_modules_and_renders_create_view(tmp_path):
+CREATE_VIEW_PROBE = b"""<script>(() => {
+  const createView = () => document.querySelector('#sidebar') && document.querySelector('#sheet');
+  const observer = new MutationObserver(() => {
+    if (!createView()) return;
+    observer.disconnect();
+    setTimeout(() => { if (createView()) fetch('/__test_create_view_ready'); }, 0);
+  });
+  observer.observe(document.getElementById('view'), { childList: true });
+})();</script>"""
+
+
+def test_browser_loads_modules_and_renders_create_view(tmp_path, monkeypatch):
     chrome = shutil.which("chrome") or shutil.which("google-chrome") or shutil.which("chromium")
     if not chrome:
         installed = Path("C:/Program Files/Google/Chrome/Application/chrome.exe")
@@ -129,6 +141,19 @@ def test_browser_loads_modules_and_renders_create_view(tmp_path):
     import server
     from npcgen.config import DEFAULTS
 
+    ready = threading.Event()
+    static_response = server.static_response
+
+    def response_with_probe(path):
+        if path == "/__test_create_view_ready":
+            ready.set()
+            return server.Raw(b"", "text/plain", status=204)
+        response = static_response(path)
+        if path == "/":
+            response.body = response.body.replace(b"</body>", CREATE_VIEW_PROBE + b"</body>", 1)
+        return response
+
+    monkeypatch.setattr(server, "static_response", response_with_probe)
     cfg = copy.deepcopy(DEFAULTS)
     cfg.update(library_path=tmp_path / "library", comfy_url="http://127.0.0.1:9")
     httpd = server.create_server(("127.0.0.1", 0), server.App(cfg))
@@ -136,18 +161,21 @@ def test_browser_loads_modules_and_renders_create_view(tmp_path):
     thread.start()
     try:
         url = f"http://127.0.0.1:{httpd.server_address[1]}/"
-        dom_path, log_path = tmp_path / "chrome-dom.html", tmp_path / "chrome-stderr.log"
-        # A Chrome child can hold the output pipes open after the browser process exits on Windows.
-        with dom_path.open("wb") as dom_output, log_path.open("wb") as errors:
-            browser = subprocess.run(
+        log_path = tmp_path / "chrome-stderr.log"
+        with log_path.open("wb") as errors:
+            browser = subprocess.Popen(
                 [chrome, "--headless=new", "--disable-gpu", "--no-sandbox", "--no-first-run", "--disable-background-networking",
-                 f"--user-data-dir={tmp_path / 'chrome-profile'}", "--timeout=30000", "--virtual-time-budget=5000", "--dump-dom", url],
-                stdout=dom_output, stderr=errors, timeout=60,
+                 f"--user-data-dir={tmp_path / 'chrome-profile'}", url],
+                stdout=subprocess.DEVNULL, stderr=errors,
             )
-        assert browser.returncode == 0, log_path.read_text("utf-8", errors="replace")[-2000:]
-        dom = dom_path.read_text("utf-8")
-        assert 'id="sidebar"' in dom and 'id="sheet"' in dom
-        assert "The NPC Forge page could not start" not in dom
+            try:
+                deadline = time.monotonic() + 90
+                while browser.poll() is None and time.monotonic() < deadline and not ready.wait(0.25):
+                    pass
+            finally:
+                browser.kill()
+                browser.wait(timeout=10)
+        assert ready.is_set(), "Chrome did not render the Create view.\n" + log_path.read_text("utf-8", errors="replace")[-2000:]
     finally:
         httpd.shutdown()
         httpd.server_close()
