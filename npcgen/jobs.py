@@ -1001,21 +1001,28 @@ class Jobs:
             time.sleep(self.watch_every)
             if self.closed:
                 return
-            with self.lock:
-                current = self.current
-            if current is None:
-                continue
-            job, step = current
+            self._check_watchdog()
+
+    def _check_watchdog(self):
+        with self.lock:
+            if self.current is None:
+                return
+            job, step = self.current
             clock = time.monotonic()
-            if job.cancel.is_set():
-                if job.cancel_at is not None and clock - job.cancel_at > self.cancel_grace:
-                    self._abandon(job, step)
-            elif clock - job.alive_at > self.stall_seconds:
-                with self.lock:
-                    if self.current is current and not job.cancel.is_set():
-                        job.cancel_reason, job.cancel_at = "stalled", clock
-                        job.cancel.set()
-                job.touch()
+            cancelled = job.cancel.is_set()
+            if cancelled:
+                if job.cancel_at is None or clock - job.cancel_at <= self.cancel_grace:
+                    return
+            else:
+                # Use the same lock as Job.beat so a new heartbeat cannot be missed before cancellation.
+                if clock - job.alive_at <= self.stall_seconds:
+                    return
+                job.cancel_reason, job.cancel_at = "stalled", clock
+                job.cancel.set()
+        if cancelled:
+            self._abandon(job, step)
+        else:
+            job.touch()
 
     def _abandon(self, job, step):
         with self.lock:

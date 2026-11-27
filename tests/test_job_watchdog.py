@@ -10,6 +10,7 @@ from types import SimpleNamespace
 import pytest
 
 from npcgen import engines, gpu
+from npcgen import jobs as jobs_module
 from npcgen.comfy import Cancelled, ComfyError
 from npcgen.jobs import STALLED, Job, Jobs
 from npcgen.library import Library
@@ -286,11 +287,17 @@ def test_a_silent_step_that_also_ignores_the_stop_is_given_up_on(tmp_path, monke
 
 
 def test_a_step_that_keeps_showing_signs_of_life_is_never_called_stalled(tmp_path, monkeypatch):
+    clock = 100.0
+    monkeypatch.setattr(jobs_module, "time", SimpleNamespace(monotonic=lambda: clock, time=time.time, sleep=time.sleep))
+    monkeypatch.setattr(Jobs, "_watch", lambda self: None)         # run the checks at known intervals below
+
     def run_step(self, job, step):
-        end = time.monotonic() + 1.5                            # longer than the stall limit
-        while time.monotonic() < end:
+        nonlocal clock
+        for _ in range(5):
+            clock += 0.3                                         # half the stall limit, with 1.5 s elapsed overall
+            self._check_watchdog()
+            assert not job.cancel.is_set()
             job.cancel.beat()
-            time.sleep(0.05)
 
     jobs = make_jobs(tmp_path, monkeypatch, run_step, stall_minutes=0.01)
     try:
