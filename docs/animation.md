@@ -133,9 +133,12 @@ colours matched to the standing view, one step of about 0.8 s (5 fps for 4 frame
 (lowest as a foot lands, highest as the legs pass, about 1% of the height) put back after the frames are aligned, because
 aligning gives every frame the same height and so flattens it.
 
-The report has new checks. **Stride contrast** (side views) is the widest step over the narrowest across the cycle: a real walk
-alternates a long stride with feet together. The original text-driven walks measured 1.08 to 1.22 (a slide); the pose-guided
-walks that read as walking measured 1.49 to 2.56; it is flagged below 1.35. **Frames that missed their pose** are listed by number.
+**Stride contrast** (side views) compares the narrower landing pose with the wider passing pose. Both steps need feet
+that come together between landings. Forge flags the clip below 1.35 and lists any frames that missed their pose.
+For 16-bit pixel-art side views with Qwen-Image-Edit 2511, Forge also redraws a passing frame that misses this check,
+using the preceding landing pose and the standing side view, and asking the model to lift a single boot. Forge keeps
+a redraw when the legs moved, the step narrowed enough, and the side profile still matches. Each passing frame can get
+up to two extra draws. If a redraw fails, the original frame and its stride warning remain available.
 
 ### Which styles get the puppet
 

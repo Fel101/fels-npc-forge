@@ -186,6 +186,14 @@ def test_stride_contrast_separates_a_walk_from_a_slide():
     assert anim.stride_contrast(walking) > 2.5 > anim.STRIDE_CONTRAST_LIMIT > anim.stride_contrast(sliding) == pytest.approx(1.0)
 
 
+@pytest.mark.parametrize("count", [4, 8])
+def test_stride_contrast_requires_both_passing_poses(count):
+    walking = [puppet_and_cut(n)[1] for n in pose.WALK_CYCLES[count]]
+    assert anim.stride_contrast(walking) > anim.STRIDE_CONTRAST_LIMIT
+    walking[pose.WALK_CYCLES[count].index("passing_b")] = walking[0]
+    assert anim.stride_contrast(walking) < anim.STRIDE_CONTRAST_LIMIT
+
+
 def test_run_phase_similarity_catches_a_repeated_two_pose_cycle():
     contact = puppet_and_cut("contact_a")[1]
     passing = puppet_and_cut("passing_a")[1]
@@ -370,7 +378,7 @@ def test_a_walk_that_slides_is_flagged_even_when_every_frame_fits(world, data):
         lib.write_asset(npc_id, f"animations/walk/raw/right_{i}.png", png(on_magenta(contact)))
     animator.assemble(job, lib.get(npc_id), data, "walk")
     flags = lib.get(npc_id)["assets"]["animations"]["walk"]["report"]["flags"]
-    assert any("never come together and apart" in f for f in flags)
+    assert any("feet stay too far apart during a passing step" in f for f in flags)
 
 
 def test_the_stride_band_accepts_what_looked_right_and_rejects_what_did_not():
@@ -482,8 +490,40 @@ def test_a_walk_made_of_words_is_still_bobbed_paced_and_flagged_when_it_slides(w
     assert meta["fps"] == 5.0
     boxes = [anim.figure_box(Image.open(lib.resolve(npc_id, rel)).convert("RGBA")) for rel in meta["files"]["right"]]
     assert len({b[3] for b in boxes}) == 1 and boxes[0][1] > boxes[1][1]           # the step's up-and-down comes back for every walk
-    assert any("never come together and apart" in f for f in meta["report"]["flags"])
-    assert not any("did not come out in the pose" in f for f in meta["report"]["flags"])      # words have no pose to miss
+    assert any("feet stay too far apart during a passing step" in f for f in meta["report"]["flags"])
+    assert not any("did not come out in the pose" in f for f in meta["report"]["flags"])
+
+
+@pytest.mark.parametrize("redraw_result", ["narrow", "wide", "error"])
+def test_qwen_pixel_walk_redraws_only_the_failed_passing_frames(world, data, monkeypatch, redraw_result):
+    lib, npc_id, make = world
+    lib.update(npc_id, lambda n: n.update(style="pixel"))
+    _, animator, job = make([])
+    job.options["edit_model"] = "qwen2511"
+    calls = []
+
+    def edit(job, refs, prompt, seed, steps, size):
+        calls.append((refs, prompt["positive"], seed))
+        redraw = "walk_contact_right" in refs[0]
+        if redraw and redraw_result == "error":
+            raise anim.ComfyError("model timed out")
+        redraw_works = redraw_result == "narrow"
+        phase = "passing_b" if redraw and redraw_works else "contact_a"
+        guide = pose.paint(pose.POSES[phase], "side", PALETTE, size=tuple(size),
+                           height=anim.GUIDE_HEIGHT, floor=anim.GUIDE_FLOOR)
+        return png(on_magenta(guide)), engines.EDIT_ENGINES["qwen2511"]["label"]
+
+    monkeypatch.setattr(animator, "_edit", edit)
+    animator.make_direction(job, {}, lib.get(npc_id), data, "walk", "right", 100)
+    assert len(calls) == 4 + 2 * (anim.PASSING_REDRAWS if redraw_result == "wide" else 1)
+    assert all(len(refs) == 2 for refs, _, _ in calls[:4])
+    assert all("walk_contact_right" in refs[0] and "anim_view_right" in refs[1] for refs, _, _ in calls[4:])
+    animation = lib.get(npc_id)["assets"]["animations"]["walk"]
+    scores = animation["directions"]["right"]["scores"]
+    assert [s["frame"] for s in scores if s.get("passing_redraw")] == ([1, 3] if redraw_result == "narrow" else [])
+    animator.assemble(job, lib.get(npc_id), data, "walk")
+    report = lib.get(npc_id)["assets"]["animations"]["walk"]["report"]
+    assert (report["directions"]["right"]["stride_contrast"] >= anim.STRIDE_CONTRAST_LIMIT) == (redraw_result == "narrow")
 
 
 def test_an_eight_frame_walk_goes_through_the_whole_path(world, data):

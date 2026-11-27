@@ -31,8 +31,9 @@ STATIC_LEG_VARIATION = 0.12   # below this the legs barely moved between frames 
 HEAD_DRIFT_LIMIT = 0.85       # below this the head/hair changed shape between frames (stable looks measured 0.98, drifting 0.89)
 STATIC_LEG_VARIATION_FRONT_BACK = 0.05   # a guided walk seen from the front or back: the legs differ less there (static copies of the sprite
                                           # measured 0.03, good steps 0.06-0.11)
-STRIDE_CONTRAST_LIMIT = 1.35  # side views: the widest step over the narrowest. The original text-driven walks (one stride four times)
-                              # measured 1.08-1.22; pose-guided walks that read as walking 1.49-2.56
+STRIDE_CONTRAST_LIMIT = 1.35  # side views: both passing poses must be narrower than the landing poses
+PASSING_REDRAWS = 2
+PASSING_HEAD_TOLERANCE = 0.10  # disallow a bigger loss of head similarity when replacing one frame
 RUN_PHASE_SIMILARITY_LIMIT = 0.65  # both opposite run phases in two failed GPU trials exceeded this leg-silhouette overlap
 
 # Pose-guided frames (see pose.py). The puppet stands 84% of the picture high with its feet at 93%. Measured on drawn frames: side
@@ -207,10 +208,12 @@ def guided_score(full, puppet, view, canonical):
 
 
 def stride_contrast(frames):
-    """Side views: the widest step over the narrowest, across a cycle's frames. A walk alternates a long stride (a foot
-    landing) with feet close together (passing), so about 3 is healthy; near 1 is a figure sliding along in one stance."""
+    """Compare the narrower landing to the wider passing pose, so one good step cannot hide a bad one."""
+    cycle = pose.WALK_CYCLES[len(frames)]
     spreads = [foot_spread(_alpha_mask(f)) for f in frames]
-    return max(spreads) / max(min(spreads), 0.02)
+    landing = min(width for name, width in zip(cycle, spreads) if name.startswith("contact_"))
+    passing = max(width for name, width in zip(cycle, spreads) if name.startswith("passing_"))
+    return landing / max(passing, 0.02)
 
 
 def run_phase_similarity(frames):
@@ -406,6 +409,20 @@ def frame_prompt(anim, clip_id, direction, index, count, style, key, freeform=Fa
             "negative": prompts._edit_negative(style)}
 
 
+def passing_frame_prompt(direction, style, key, freeform=False):
+    """Advance a drawn landing pose into a passing pose while retaining its sprite design."""
+    return {
+        "positive": (
+            "Edit the 16-bit pixel-art character in the first image. "
+            f"Keep the exact same side profile facing {direction}, face, hair, headwear, clothing, accessories, proportions and pixel palette. "
+            "Change the legs to the passing pose: the leg that was forward stands straight directly below the hips, bearing the weight, "
+            "and the other knee bends so that boot is lifted off the ground right next to the standing boot. "
+            f"Both boots are directly under the hips, close together. Keep the entire character head to toe, {_tail(style, key, freeform)}"
+        ),
+        "negative": prompts._edit_negative(style),
+    }
+
+
 def guided_frame_prompt(anim, clip_id, direction, who, style, key, freeform=False, kind=None):
     """Prompt for a frame drawn from a puppet: the puppet is the first reference, the character's sprite the second. `kind` is the
     kind of pose the frame is ('contact', 'passing', 'step'...), which can add wording of its own."""
@@ -553,6 +570,8 @@ class Animator:
         freeform = npc.get("freeform", False)
         hard = style.get("hard_edges", False)
         view = pose.VIEW_OF[direction]
+        retry_passing = (not guided and clip_id == "walk" and view == "side" and npc["style"] == "pixel"
+                         and job.options.get("edit_model") == "qwen2511")
         front = self.front_reference(job, size)
         key = front["key"] or prompts.pick_key(npc, style)
         strategy = anim["guided_strategy" if guided else "reference_strategy"][direction]
@@ -588,6 +607,9 @@ class Animator:
                 else:
                     cut = cutout(png, hard)
                     score, detail = candidate_score(cut, canonical) if cut is not None else (-1.0, {"head": 0, "legs": 0})
+                    if retry_passing and cut is not None:
+                        mask = _alpha_mask(cut)
+                        detail.update(foot_spread=foot_spread(mask), torso_width=torso_width(mask))
                 if best is None or score > best[0]:
                     best = (score, png, detail, k, engine)
                 if guided and candidates == 1 and detail["ok"]:
@@ -611,6 +633,44 @@ class Animator:
         for i in range(count):
             if i not in drawn:
                 drawn[i] = draw(i, clip_seed, GUIDE_TRIES if guided and candidates == 1 else candidates)
+
+        if retry_passing and all("foot_spread" in result[2] for result in drawn.values()):
+            cycle = pose.WALK_CYCLES[count]
+            landing = min(drawn[i][2]["foot_spread"] for i, phase in enumerate(cycle) if phase.startswith("contact_"))
+            passing_limit = landing / STRIDE_CONTRAST_LIMIT
+            reference = self._view_reference(job, direction)["name"]
+            prompt = passing_frame_prompt(direction, style, key, freeform)
+            for i, phase in enumerate(cycle):
+                previous = drawn[i][2]
+                if not phase.startswith("passing_") or previous["foot_spread"] <= passing_limit:
+                    continue
+                contact = drawn[i - count // 4]
+                try:
+                    contact_name = self._upload(job, f"walk_contact_{direction}_{i}", contact[1])
+                except ComfyError:
+                    break
+                torso_limit = FACING_LIMITS[0] * contact[2]["torso_width"]
+                for attempt in range(PASSING_REDRAWS):
+                    step["detail"] = f"frame {i + 1}/{count}, refining the passing step (draw {attempt + 1})"
+                    job.touch()
+                    try:
+                        png, engine = self._edit(job, [contact_name, reference], prompt, clip_seed + 7919 * attempt, steps, size)
+                    except ComfyError:
+                        # A failed optional redraw leaves the original pose and its stride warning available.
+                        break
+                    cut = cutout(png, hard)
+                    if cut is None:
+                        continue
+                    mask = _alpha_mask(cut)
+                    spread = foot_spread(mask)
+                    torso = torso_width(mask)
+                    if not 0 < spread <= passing_limit or torso > torso_limit:
+                        continue
+                    score, detail = candidate_score(cut, canonical)
+                    if detail["legs"] >= MIN_MOVED and detail["head"] >= previous["head"] - PASSING_HEAD_TOLERANCE:
+                        detail.update(foot_spread=spread, torso_width=torso, passing_redraw=True)
+                        drawn[i] = (score, png, detail, candidates + attempt, engine)
+                        break
 
         raw_files, scores, frame_engines = [], [], []
         for i in range(count):
@@ -687,8 +747,8 @@ class Animator:
                         contrast = stride_contrast(cuts)
                         report_dirs[d]["stride_contrast"] = round(contrast, 2)
                         if contrast < STRIDE_CONTRAST_LIMIT:
-                            flags.append(f"{d}: the feet never come together and apart (stride contrast {contrast:.1f}), so it will look like "
-                                         f"sliding rather than walking; re-roll this direction")
+                            flags.append(f"{d}: the feet stay too far apart during a passing step (stride contrast {contrast:.1f}), "
+                                         f"so it can look like sliding; re-roll this direction")
                 if clip_id == "run" and pose.VIEW_OF[d] == "side":
                     similarity = run_phase_similarity(cuts)
                     if similarity:
