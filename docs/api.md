@@ -162,7 +162,7 @@ its pinned Hugging Face commit and copies NPC Forge's own nodes; without `"yes":
 | `POST` | `/api/npcs/{npc}/photo` | Attach (or replace) the real photo a portrait will be edited from. |
 | `GET` | `/api/npcs/{npc}/files/{path}` | Npc file. |
 | `GET` | `/api/export.zip` | Export zip. |
-| `GET` | `/api/npcs/{npc}/export/{preset}/{{preset}}.zip` | A finished animation as an engine-ready ZIP (sheet(s), atlas JSON, engine resource, preview page). |
+| `GET` | `/api/npcs/{npc}/export/{clip}/{preset}.zip` | A finished animation as an engine-ready ZIP (sheet(s), atlas JSON, engine resource, preview page). |
 | `GET` | `/api/npcs/{npc}/sheet.zip` | A finished model sheet as a ZIP: one PNG per view, the stitched sheet and a JSON record. |
 | `POST` | `/api/generate` | Queue pictures, animations, 3D and voice for a character: body {npc_id, assets, options}. |
 | `GET` | `/api/npcs/{npc}/body-3d` | What the designed-body card needs for this character: whether the Body tab saved a body for it, the base that suits its gender, and what its 3D model was designed from (or null). |

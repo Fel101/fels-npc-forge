@@ -288,6 +288,36 @@ def test_the_living_portrait_is_skipped_when_no_expression_was_made(tmp_path, mo
         jobs.close()
 
 
+def test_a_walk_is_not_drawn_from_a_reference_view_that_failed(tmp_path, monkeypatch):
+    real = Jobs._run_step
+    ran = []
+
+    def run_step(self, job, step):
+        if step["kind"] == "view" and step["key"] == "up":
+            raise engines.EngineError("Qwen-Image-Edit 2511 could not draw it: ComfyUI ran out of memory", code="low_memory")
+        if step["kind"] in ("anim", "assemble"):
+            return real(self, job, step)                         # the real checks, before any frame is drawn
+        ran.append(step["key"])
+
+    jobs = make_jobs(tmp_path, monkeypatch, run_step)
+    monkeypatch.setattr(jobs.animator, "make_direction", lambda job, step, npc, data, clip, d, seed: ran.append(f"{clip}:{d}"))
+    monkeypatch.setattr(jobs.animator, "assemble", lambda *a: ran.append("assembled"))
+    try:
+        npc = _character(jobs.lib)
+        job = queue_job(jobs, ("view", "right"), ("view", "up"), ("anim", "walk:down"), ("anim", "walk:right"),
+                        ("anim", "walk:up"), ("assemble", "walk"), npc_id=npc["id"])
+        row = finish(jobs, job)
+        up_view, up_walk, assemble = row["steps"][1], row["steps"][4], row["steps"][5]
+        assert ran == ["right", "walk:down", "walk:right"]       # the up walk and the assembly were not tried
+        assert up_view["code"] == "low_memory"
+        assert up_walk["status"] == "cancelled" and up_walk.get("error") is None
+        assert up_walk["reason"] == "no up reference view was made: " + up_view["error"]
+        assert assemble["status"] == "cancelled" and assemble["reason"] == "not every direction was made: " + up_view["error"]
+        assert row["status"] == "error" and row["code"] == "low_memory"
+    finally:
+        jobs.close()
+
+
 def test_the_living_portrait_still_fails_on_its_own_when_its_steps_were_fine(tmp_path, monkeypatch):
     real = Jobs._run_step
 

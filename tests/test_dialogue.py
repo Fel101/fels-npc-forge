@@ -1,4 +1,5 @@
 import json
+import re
 
 import pytest
 
@@ -50,3 +51,34 @@ def test_quest_lines_read_right_for_table_goals_and_typed_goals():
     quest = lambda pack: " ".join(line["text"] for line in pack["lines"]["quest"])
     assert "My aim is opening a saloon." in quest(table) and "to opening" not in quest(table)
     assert "My aim is to restore the old observatory." in quest(typed)
+
+
+def test_the_characters_own_pronouns_become_first_person_in_the_lines_they_speak():
+    lorraine = dialogue.generate({"profile": {"first_name": "Lorraine", "gender": "female", "occupation": "Crook",
+                                              "goal": "clearing her name before the file closes", "quirk": "counting exits the moment she walks in",
+                                              "hobbies": ["tending her roses"], "peeve": "a tail she can't shake"}})
+    text = " ".join(line["text"] for rows in lorraine["lines"].values() for line in rows)
+    assert "My aim is clearing my name before the file closes." in text
+    assert "Counting exits the moment I walk in" in text and "I like tending my roses" in text
+    assert "a tail I can't shake gets on my nerves" in text
+    assert "the crook" in text and "Crook" not in text                       # a typed occupation reads as a common noun
+    assert dialogue.first_person("winning her heart", "male") == "winning her heart"        # someone else: left alone
+    assert dialogue.first_person("never turning his back on the sea", "male") == "never turning my back on the sea"
+    assert dialogue.first_person("naming every weapon they owns", "nonbinary") == "naming every weapon I own"
+    assert dialogue.first_person("she's never lost a bet", "female") == "I've never lost a bet"
+    ministry = dialogue.generate({"profile": {"first_name": "Ada", "occupation": "Ministry clerk"}})
+    assert "the Ministry clerk" in ministry["lines"]["greeting"][0]["text"]  # a capital the tables meant is kept
+
+
+def test_no_rolled_character_speaks_of_itself_in_the_third_person():
+    from npcgen import roll
+    data = roll.load_data()
+    own = {"female": ("she", "her", "hers", "herself"), "male": ("he", "him", "his", "himself"),
+           "nonbinary": ("they", "them", "their", "theirs", "themselves")}
+    for setting in data["settings"]:
+        for seed in range(40):
+            npc = roll.roll_npc(data, setting, seed=seed)
+            lines = dialogue.generate(npc)["lines"]
+            spoken = " ".join(line["text"] for line in lines["quest"] + lines["idle"] + lines["trade"]).lower()
+            words = set(re.findall(r"[a-z']+", spoken))
+            assert not words & set(own[npc["profile"]["gender"]]), (setting, seed, spoken)

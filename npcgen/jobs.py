@@ -1538,12 +1538,26 @@ class Jobs:
             return
 
         if kind in ("view", "anim", "assemble"):
+            def not_made(kind_, keys):
+                """A step of this job that should have made what this one needs, and failed or was not run: say why."""
+                gone = next((s for s in job.steps if s.get("kind") == kind_ and s.get("key") in keys
+                             and s.get("status") in ("error", "cancelled")), None)
+                return gone and (gone.get("error") or gone.get("reason") or "it did not finish")
+
             if kind == "view":
                 self.animator.make_view(job, npc, data, step["key"], seed)
             elif kind == "anim":
                 clip_id, direction = step["key"].split(":")
+                why = not_made("view", {direction})
+                if why:                                    # each frame is drawn from that view
+                    raise StepSkipped(f"no {direction} reference view was made: {why}")
                 self.animator.make_direction(job, step, npc, data, clip_id, direction, seed)
             else:
+                views = {s.get("key") for s in job.steps if s.get("kind") == "view"}
+                directions = {s.get("key") for s in job.steps if s.get("kind") == "anim" and s["key"].startswith(step["key"] + ":")}
+                why = not_made("view", views) or not_made("anim", directions)
+                if why:                                    # a direction is missing: nothing whole to assemble
+                    raise StepSkipped(f"not every direction was made: {why}")
                 self.animator.assemble(job, npc, data, step["key"])
             self._engine_note(step, {"engine_note": job.cache.pop("engine_note", None)})
             return

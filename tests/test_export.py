@@ -162,6 +162,20 @@ def test_small_frames_auto_pixelate_only_for_the_pixel_art_styles(tmp_path, styl
     assert (colours <= 6) == auto, (style, colours)
 
 
+def test_a_small_face_keeps_its_own_colour_beside_a_robe_of_many_shades():
+    """A median cut by pixel count gave a robe that filled the figure most of the palette and turned a face olive."""
+    rng = np.random.default_rng(7)
+    a = np.zeros((128, 128, 4), np.uint8)
+    a[8:120, 24:104, :3] = np.stack([rng.integers(10, 60, (112, 80)), rng.integers(70, 200, (112, 80)),
+                                    rng.integers(10, 60, (112, 80))], axis=-1)        # a green robe in many shades
+    a[8:120, 24:104, 3] = 255
+    skin = np.array([196, 140, 100])
+    a[10:20, 56:72, :3] = skin + rng.integers(-6, 7, (10, 16, 3))                     # a face, 2% of the figure
+    snapped = np.asarray(export.pixelate(Image.fromarray(a, "RGBA"), 8))[10:20, 56:72, :3].astype(int)
+    assert np.abs(snapped - skin).max() < 25
+    assert snapped[..., 0].mean() > snapped[..., 1].mean() + 30                     # still warm, not olive
+
+
 def test_pixelate_can_add_a_dark_outline_around_the_figure():
     im = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
     ImageDraw.Draw(im).rectangle([5, 5, 10, 10], fill=(200, 200, 60, 255))

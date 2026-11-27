@@ -123,7 +123,7 @@ def routes(source=None):
 
 # What a placeholder is called after the path word before it (otherwise that word without its plural s).
 NAMES = {"npcs": "npc", "cast-packs": "pack", "trash": "folder", "dress": "npc", "worn": "npc", "fits": "npc", "restore": "hash",
-         "cases": "case", "library": "voice", "export": "preset", "files": "path", "creature-projects": "game", "model-history": "model",
+         "cases": "case", "library": "voice", "export": "clip", "{clip}": "preset", "files": "path", "creature-projects": "game", "model-history": "model",
          "rig": "picture", "equips": "equip"}
 
 

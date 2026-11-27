@@ -55,6 +55,19 @@ function renderTabs() {
       disabled: S.outdated, onclick: safe(() => sceneController.showList()) }, 'Scenes', preview()),
     // pages added by local extensions (an older server has no `extensions` field: then there are none)
     ...(S.cfg.extensions || []).map(e => h('a', { class: 'tab', href: e.url }, e.label)));
+  fitTabs();
+}
+
+/** The tabs take a row of their own when the header is too narrow for them all, rather than scrolling. How narrow that is
+ * depends on the status, the model's name and the queue button, so it is measured each time one of them changes. */
+let fitTimer = 0;
+function fitTabs() {
+  clearTimeout(fitTimer);                          // once the resize observer has delivered: no layout inside its callback
+  fitTimer = setTimeout(() => {
+    const bar = $('.topbar'), tabs = $('#tabs');
+    bar.classList.remove('stacked');
+    bar.classList.toggle('stacked', tabs.scrollWidth > tabs.clientWidth + 1);
+  }, 0);
 }
 
 /** The Mage-Flow files ComfyUI lacks only matter while Mage-Flow can draw: it is chosen in Models, or it may take over when another model cannot (the default engines are Qwen's). */
@@ -2082,7 +2095,7 @@ function openAbout() {
 }
 
 // ---------- Connected apps (About; suite contract 14): Voice Lab and Altera where they answer, and what NPC Forge does with them ----------
-const SUITE_PAGES = { 'voice-lab': 'https://github.com/Fel101/fels-voice-lab', altera: 'https://github.com/Fel101/Altera',
+const SUITE_PAGES = { 'voice-lab': 'https://github.com/Fel101/fels-voice-lab', altera: 'https://github.com/Fel101/fels-altera',
   'voice-slate': 'https://github.com/Fel101/fels-voice-slate' };
 let appsRequest = null;
 
@@ -2216,6 +2229,8 @@ async function init() {
   new ResizeObserver(([entry]) => {
     document.documentElement.style.setProperty('--topbar-h', `${entry.target.offsetHeight}px`);
   }).observe($('.topbar'), { box: 'border-box' });
+  const fit = new ResizeObserver(fitTabs);
+  for (const part of $('.topbar').children) fit.observe(part);
   refreshHealth(); setInterval(refreshHealth, 20000);
   refreshGpuLight(); setInterval(refreshGpuLight, 5000);
   document.addEventListener('visibilitychange', refreshGpuLight);

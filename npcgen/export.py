@@ -14,7 +14,7 @@ import numpy as np
 from PIL import Image
 
 from . import licences, media
-from .anim import BASELINE, CANVAS
+from .anim import BASELINE, CANVAS, _rgb_to_lab
 from .sheet import VIEWS
 
 PRESETS = {
@@ -85,11 +85,9 @@ def pixelate_set(frames, colors=24, outline=False):
         if len(visible):
             samples.append(visible[::stride])
     pixels = np.concatenate(samples)[:palette_samples]
-    side = int(np.ceil(np.sqrt(len(pixels))))
-    canvas = np.tile(pixels[:1], (side * side, 1))
-    canvas[:len(pixels)] = pixels
-    palette = Image.fromarray(canvas.reshape(side, side, 3), "RGB").quantize(
-        colors=colors, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE)
+    palette = Image.new("P", (1, 1))
+    chosen = np.round(shared_palette(pixels, colors)).astype(np.uint8)
+    palette.putpalette(np.concatenate([chosen, np.repeat(chosen[:1], 256 - len(chosen), axis=0)]).ravel().tolist())
     out = []
     for a in arrays:
         solid = a[..., 3] >= 128
@@ -103,6 +101,57 @@ def pixelate_set(frames, colors=24, outline=False):
             lum = result[..., 0] * 0.299 + result[..., 1] * 0.587 + result[..., 2] * 0.114        # by hand: see anim._apply on why not `@`
             result[edge] = [*result[solid][np.argmin(lum[solid])][:3], 255]
         out.append(Image.fromarray(result, "RGBA"))
+    return out
+
+
+def _median_cut(rgb, weights, colors):
+    """Pillow's median cut over these colours, each repeated by its weight: (colors, 3) RGB."""
+    samples = np.repeat(np.round(rgb).astype(np.uint8), np.maximum(1, np.round(weights)).astype(int), axis=0)
+    side = int(np.ceil(np.sqrt(len(samples))))
+    canvas = np.tile(samples[:1], (side * side, 1))
+    canvas[:len(samples)] = samples
+    cut = Image.fromarray(canvas.reshape(side, side, 3), "RGB").quantize(colors=colors, method=Image.Quantize.MEDIANCUT,
+                                                                         dither=Image.Dither.NONE)
+    return np.asarray(cut.getpalette()[:3 * colors], dtype=np.float64).reshape(-1, 3)
+
+
+def shared_palette(pixels, colors, rounds=12):
+    """Up to `colors` RGB colours (a float array) for these (N, 3) RGB pixels.
+
+    A plain median cut shares the palette out by pixel count, so a robe that fills most of the figure takes most of the
+    colours and a small face is snapped to the nearest robe shade (an elf's skin came out olive at 24 colours). Here each
+    distinct colour (to 5 bits a channel) counts by the square root of how many pixels have it, and the median cut's
+    colours are then moved to the weighted means of the colours nearest them in Lab, where distance follows what the eye
+    sees. On eight characters' walks at 24 colours this halved the error on skin and lowered it overall.
+    """
+    px = pixels.astype(np.int64)
+    key = ((px[:, 0] >> 3) << 10) | ((px[:, 1] >> 3) << 5) | (px[:, 2] >> 3)
+    _, inverse, counts = np.unique(key, return_inverse=True, return_counts=True)
+    rgb = np.zeros((len(counts), 3))
+    np.add.at(rgb, inverse.ravel(), px)
+    rgb /= counts[:, None]
+    if len(rgb) <= colors:
+        return rgb
+    weights = np.sqrt(counts)
+    start = _median_cut(rgb, weights, colors)
+    lab, centres = _rgb_to_lab(rgb), _rgb_to_lab(start)
+    nearest = None
+    for _ in range(rounds):
+        cross = lab[:, 0:1] * centres[:, 0] + lab[:, 1:2] * centres[:, 1] + lab[:, 2:3] * centres[:, 2]   # not `@`: anim._apply
+        distance = (centres ** 2).sum(1)[None, :] - 2 * cross                  # each colour's own |lab|^2 does not change the nearest
+        moved = distance.argmin(1)
+        if nearest is not None and np.array_equal(moved, nearest):
+            break
+        nearest = moved
+        for k in range(len(centres)):
+            member = nearest == k
+            if member.any():
+                centres[k] = (lab[member] * weights[member, None]).sum(0) / weights[member].sum()
+    out = start.copy()
+    for k in range(len(centres)):                                # each colour as the weighted mean of its members' RGB
+        member = nearest == k
+        if member.any():
+            out[k] = (rgb[member] * weights[member, None]).sum(0) / weights[member].sum()
     return out
 
 

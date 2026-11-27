@@ -8,7 +8,7 @@ models running in your own ComfyUI. There is no cloud and nothing to train.
 
 > **Part of Fel's Studio.** Four free apps that run on your own PC and work together. [Voice Slate](https://github.com/Fel101/fels-voice-slate)
 > records voices with consent, [Voice Lab](https://github.com/Fel101/fels-voice-lab) designs and clones voices,
-> [NPC Forge](https://github.com/Fel101/fels-npc-forge) makes characters for games, and [Altera](https://github.com/Fel101/Altera)
+> [NPC Forge](https://github.com/Fel101/fels-npc-forge) makes characters for games, and [Altera](https://github.com/Fel101/fels-altera)
 > lets you talk with them. Each one also works on its own.
 
 [Quick start](#quick-start) · [What your PC can make](#what-your-pc-can-make) · [Gallery](docs/gallery.md) ·

@@ -367,6 +367,8 @@ select.facet.on { border-color: var(--accent); background: var(--accent-soft); }
   .topbar { flex-wrap: wrap; gap: 8px 16px; }
   .tabs { order: 4; width: 100%; }
 }
+.topbar.stacked { flex-wrap: wrap; gap: 8px 16px; }      /* wider, but the tabs still do not fit: app.js fitTabs */
+.topbar.stacked .tabs { order: 4; width: 100%; }
 @media (max-width: 980px) {
   .create { grid-template-columns: 1fr; }
   #sidebar { position: static; max-height: none; overflow: visible; padding: 0; }

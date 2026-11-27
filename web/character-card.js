@@ -33,7 +33,7 @@ export async function openCharacterCard(npc) {
     if (!options.altera_inbox) {
       handoff.hidden = false;
       handoff.append('To enable Send to Altera, start ',
-        h('a', { href: 'https://github.com/Fel101/Altera', target: '_blank', rel: 'noopener' }, 'Fel’s Altera'), ' once.');
+        h('a', { href: 'https://github.com/Fel101/fels-altera', target: '_blank', rel: 'noopener' }, 'Fel’s Altera'), ' once.');
     }
 
     async function run(format, send = false) {
