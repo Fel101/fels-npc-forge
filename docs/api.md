@@ -55,6 +55,9 @@ its pinned Hugging Face commit and copies NPC Forge's own nodes; without `"yes":
 
 ## Changes
 
+- **API 52.** `GET /api/gpu` adds `unload_external_models`: whether One model at a time also unloads
+  LM Studio's and Ollama's models, on by default. `PUT /api/gpu/settings` takes it as a setting of its own, one
+  setting per request. With the switch on, Forge now unloads them only after it holds the GPU alone.
 - **API 51.** Connected apps: `GET /api/suite/apps` says where Voice Lab and Altera answer, with their versions, how many
   of the Lab's voices are ready, and whether Altera's inbox is there for Send to Altera.
 - **API 50.** Set up ComfyUI: `GET /api/comfy-setup`, and `POST /api/comfy-setup/install`, `/stop` and `/folder`.

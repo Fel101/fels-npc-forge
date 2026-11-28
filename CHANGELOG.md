@@ -2,6 +2,42 @@
 
 What changed in each version of NPC Forge. The version is shown in the About box and by `python -m npcgen --version`.
 
+## 1.1.1 (2026-11-27)
+
+Fixes after 1.1.0, and NPC Forge now waits for the other Fel's Studio apps before it takes the graphics card.
+
+### What changed for you
+
+- **A character sheet first.** A new page starts with **Make a character sheet**: roll a character, change anything and
+  **Save** it, all on the CPU with no downloads. **Add a portrait** on the sheet checks what that portrait needs and opens
+  **Set up ComfyUI** for it when ComfyUI or its model is missing. Setup's last page no longer offers Set up ComfyUI.
+- **One model at a time waits its turn.** Before it draws, NPC Forge waits for Voice Lab and Altera to finish what they are
+  doing, then takes the card alone and only then unloads LM Studio's and Ollama's models, so an Altera reply is never cut
+  off. **Allow unloading LM Studio and Ollama models**, under the switch, is on by default; turn it off to keep their
+  models loaded.
+- **Pixel-art walks step properly.** A side-view walk drawn with Qwen-Image-Edit 2511 whose passing step came out too wide
+  gets that frame redrawn, up to twice. A redraw is kept only when the legs moved and the figure still matches.
+
+### Fixed
+
+- **Cut-out sprites:** no magenta (or green) fringe round the figure, and the backdrop's own soft shadow, which the models
+  sometimes draw between the feet, is cut out too.
+- **Pixel-art exports** keep small colours such as a face beside a large robe: the palette is shared out by colour, not by
+  pixel count, so a 24-colour export no longer turns skin olive.
+- **Lines a character speaks** are in the first person: "My aim is clearing my name", not "her name", and a typed
+  occupation reads "the crook", not "the Crook".
+- **A walk** whose reference view failed is not drawn without it: that direction and the assembly say why, and **Retry**
+  runs them again.
+- **The header's tabs** take a row of their own when they do not fit, instead of scrolling.
+- A job that had just reported progress could be stopped as stalled. The check and the progress now take turns.
+- Reading a face scan while it was being replaced could fail. It is read again.
+- Links to Altera use its new address, github.com/Fel101/fels-altera.
+
+### For other programs
+
+API 52. `GET /api/gpu` adds `unload_external_models`, and `PUT /api/gpu/settings` takes one setting per request. docs/api.md
+names the export route's parts: `/api/npcs/{npc}/export/{clip}/{preset}.zip`.
+
 ## 1.1.0 (2026-11-26)
 
 NPC Forge is now one of the four apps of Fel's Studio, with Voice Slate, Voice Lab and Altera: each is free, runs on your own

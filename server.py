@@ -68,7 +68,7 @@ mimetypes.add_type("image/svg+xml", ".svg")
 
 # Bump when web/app.js starts needing something an older server does not provide; the page compares it with its own
 # REQUIRED_API and switches the newer features off (with a banner) instead of crashing. A test keeps the two in sync.
-API_VERSION = 51             # 51: Connected apps, /api/suite/apps (docs/api.md)
+API_VERSION = 52             # 52: gpu.unload_external_models in /api/gpu (docs/api.md)
 
 DEFAULT_ASSETS = {"portrait": True, "sprite": True, "model_3d": False, "expressions": ["happy", "sad", "angry", "surprised"]}
 
